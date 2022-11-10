@@ -1,15 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import environment from './middleware/environment';
+
+import mongoose from './middleware/mongoose';
 import { AuthModule } from './routes/auth/auth.module';
+import { UserModule } from './routes/user/user.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      envFilePath: '.env.development',
-    }),
-    AuthModule,
-  ],
-  controllers: [],
-  providers: [],
+  imports: [environment, mongoose, AuthModule, UserModule],
 })
 export class AppModule {}

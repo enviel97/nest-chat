@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import environment from './common/environment';
@@ -7,7 +8,9 @@ const start = async () => {
     logger: ['error', 'warn', 'log'],
   });
 
+  // setup
   app.setGlobalPrefix('api');
+  app.useGlobalPipes(new ValidationPipe());
 
   try {
     await app.listen(environment.server.port, () => {
