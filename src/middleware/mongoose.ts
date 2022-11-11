@@ -7,8 +7,9 @@ export default MongooseModule.forRoot(environment.mongoose.uri, {
   retryWrites: true,
   w: 'majority',
   dbName: environment.mongoose.dbName.dev,
-  connectionFactory: (_, name: string) => {
+  connectionFactory: (connection: any, name: string) => {
     Logger.log(`[${name}] Connect success`, 'Mongoose');
+    return connection;
   },
   connectionErrorFactory: (error: MongooseError) => {
     Logger.error(error.message, error.stack, error.name);

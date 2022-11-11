@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
+import { instanceToPlain } from 'class-transformer';
 import { Routes, Services } from 'src/common/routes';
-import { UserDTO } from 'src/models/user.model';
+import { UserDTO } from 'src/models/users/user.dto';
 
 @Controller(Routes.AUTH)
 export class AuthController {
@@ -10,8 +11,8 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  register(@Body() user: UserDTO) {
-    this.userService.createUser(user);
+  async register(@Body() user: UserDTO) {
+    return instanceToPlain(await this.userService.createUser(user));
   }
 
   @Post('login')
