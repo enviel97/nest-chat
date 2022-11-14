@@ -1,3 +1,4 @@
 interface IUserService {
-  createUser(user: User);
+  createUser(user: User): Promise<User>;
+  findUser(userKey: UserKeys): Promise<User>;
 }

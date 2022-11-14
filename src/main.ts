@@ -1,5 +1,4 @@
 import 'reflect-metadata';
-
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -15,12 +14,12 @@ const start = async () => {
     logger: ['error', 'warn', 'log'],
   });
 
-  const { httpAdapter } = app.get(HttpAdapterHost);
+  const httpAdapterHost = app.get(HttpAdapterHost);
   // setup
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(
-    new AllExceptionsFilter(httpAdapter as any),
+    new AllExceptionsFilter(httpAdapterHost),
     new HttpExceptionFilter(),
     new MongooseExceptionFilter(),
   );
@@ -31,7 +30,7 @@ const start = async () => {
       Logger.log(`Port: ${environment.server.port}`);
     });
   } catch (error) {
-    console.log(error);
+    console.log({ error });
   }
 };
 

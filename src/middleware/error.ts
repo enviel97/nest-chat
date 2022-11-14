@@ -4,6 +4,7 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { Request, Response } from 'express';
@@ -17,10 +18,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
 
-    response.status(status).json({
+    Logger.error(exception.message, exception.stack, exception.name);
+
+    return response.status(status).json({
       statusCode: status,
-      timestamp: new Date().toISOString(),
-      path: request.url,
+      message: exception.message,
     });
   }
 }
@@ -33,7 +35,7 @@ export class MongooseExceptionFilter implements ExceptionFilter {
     switch (exception.code) {
       case 11000: {
         const field = Object.keys(exception['keyPattern'] ?? {});
-        response.status(HttpStatus.CONFLICT).json({
+        return response.status(HttpStatus.CONFLICT).json({
           statusCode: HttpStatus.CONFLICT,
           messenger:
             field.length === 0
@@ -42,7 +44,7 @@ export class MongooseExceptionFilter implements ExceptionFilter {
         });
       }
       default:
-        response.status(HttpStatus.BAD_REQUEST).json({
+        return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
           messenger: exception.message,
         });
@@ -65,11 +67,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
-
+    Logger.error(exception);
     const responseBody = {
       statusCode: httpStatus,
       timestamp: new Date().toISOString(),
-      path: httpAdapter.getRequestUrl(ctx.getRequest()),
+      message: 'Interval server error',
     };
 
     httpAdapter.reply(ctx.getResponse(), responseBody, httpStatus);

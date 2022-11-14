@@ -17,3 +17,12 @@ export class UserDTO implements User {
   @MinLength(5)
   password: string;
 }
+
+export class UserLoginDTO {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsNotEmpty()
+  password: string;
+}

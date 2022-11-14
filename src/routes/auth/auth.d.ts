@@ -1,3 +1,3 @@
 interface IAuthService {
-  validateUser();
+  validateUser(validationRule: UserValidation);
 }
