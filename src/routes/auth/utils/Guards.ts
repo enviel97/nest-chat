@@ -5,8 +5,8 @@ import { Observable } from 'rxjs';
 @Injectable()
 export class LocalAuthGuard extends AuthGuard('local') {
   async canActive(context: ExecutionContext) {
-    const result = (await super.canActivate(context)) as boolean;
     const request = context.switchToHttp().getRequest();
+    const result = (await super.canActivate(context)) as boolean;
     await super.logIn(request);
     return result;
   }
@@ -18,6 +18,7 @@ export class AuthenticateGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
+    console.log(request);
     return request.isAuthenticated();
   }
 }

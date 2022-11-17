@@ -1,5 +1,6 @@
 export default Object.freeze({
   server: {
+    env: process.env.ENVIRONMENT,
     port: process.env.PORT,
     cookie_key: process.env.COOKIE_KEY,
   },

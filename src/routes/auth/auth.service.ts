@@ -1,9 +1,8 @@
 import {
-  HttpException,
-  HttpStatus,
+  BadRequestException,
   Inject,
   Injectable,
-  Logger,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Services } from 'src/common/routes';
 import { compare } from 'src/utils/bcrypt';
@@ -13,15 +12,19 @@ export class AuthService implements IAuthService {
     @Inject(Services.USERS) private readonly userService: IUserService,
   ) {}
 
-  async validateUser(account: Account) {
-    const user = await this.userService.findUser({
+  async validateUser(account: UserLogin) {
+    const { password, ...user } = await this.userService.findUser({
       email: account.email,
       password: true,
     });
+
     if (!user) {
-      throw new HttpException('Invalid Credentials', HttpStatus.UNAUTHORIZED);
+      throw new BadRequestException('Not found');
+    }
+    if (!compare(account.password, password)) {
+      throw new UnauthorizedException('Invalid Credentials');
     }
 
-    return compare(account.password, user.password);
+    return user;
   }
 }

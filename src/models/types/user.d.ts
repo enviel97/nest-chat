@@ -1,18 +1,18 @@
-interface User {
+interface UserDetail {
   firstName: string;
   lastName: string;
   email: string;
-  password?: string;
 }
-type IUser = User & { id: string };
 
-interface Account {
+type User = Partial<UserDetail, { id: string }, { password: string }>;
+
+interface UserLogin {
   email: string;
   password: string;
 }
 
 type FindUserParams = Partial<{
-  _id: string;
+  id: string;
   email: string;
   password?: boolean;
 }>;

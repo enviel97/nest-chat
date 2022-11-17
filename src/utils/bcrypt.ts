@@ -5,6 +5,6 @@ export const hash = async (plaintext: string) => {
   return bcrypt.hash(plaintext, salt);
 };
 
-export const compare = async (plainText: string, hash: string) => {
-  return await bcrypt.compare(plainText, hash);
+export const compare = (plainText: string, hash: string) => {
+  return bcrypt.compareSync(plainText, hash);
 };

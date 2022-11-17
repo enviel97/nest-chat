@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty, MaxLength, MinLength } from 'class-validator';
 
-export class UserDTO implements User {
+export default class UseDetailDTO {
   @IsNotEmpty()
   @MaxLength(32)
   firstName: string;
@@ -15,14 +15,5 @@ export class UserDTO implements User {
 
   @IsNotEmpty()
   @MinLength(5)
-  password: string;
-}
-
-export class UserLoginDTO {
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
-
-  @IsNotEmpty()
   password: string;
 }
