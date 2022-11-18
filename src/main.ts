@@ -1,19 +1,20 @@
 import 'reflect-metadata';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from './routes/root/app.module';
 import environment from './common/environment';
 import {
   AllExceptionsFilter,
   HttpExceptionFilter,
   MongooseExceptionFilter,
 } from './middleware/error';
+import { CorsOption } from './middleware/cors';
 
 const start = async () => {
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log'],
   });
-
+  app.enableCors(CorsOption);
   const httpAdapterHost = app.get(HttpAdapterHost);
   // setup
   app.setGlobalPrefix('api');

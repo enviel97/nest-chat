@@ -1,4 +1,5 @@
-interface IRootService {
-  getPublicMessage: () => string;
-  getPrivateMessage: () => string;
+interface Response<T> {
+  code: number;
+  messuage?: string;
+  data?: T;
 }

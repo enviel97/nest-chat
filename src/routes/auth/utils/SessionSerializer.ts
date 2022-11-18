@@ -2,21 +2,20 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PassportSerializer } from '@nestjs/passport';
 import { Services } from 'src/common/routes';
 
-@Injectable()
 export class SessionSerializer extends PassportSerializer {
   constructor(
-    @Inject(Services.AUTH) private readonly authService: IAuthService,
+    @Inject(Services.USERS)
+    private readonly userService: IUserService,
   ) {
     super();
   }
 
-  serializeUser(user: User, done: Function) {
-    console.log('serialize');
+  serializeUser(user: any, done: Function) {
     done(null, user);
   }
 
-  async deserializeUser(payload: User, done: Function) {
-    const userDb = await this.authService.validateUser({ id: payload.id });
+  async deserializeUser(payload: any, done: Function) {
+    const userDb = await this.userService.findUser({ id: payload.id });
     done(null, userDb ?? null);
   }
 }
