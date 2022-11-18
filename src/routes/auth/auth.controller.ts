@@ -23,8 +23,13 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  async register(@Body() user: UserDetailDTO) {
-    return instanceToPlain(await this.userService.createUser(user));
+  async register(@Res() res: Response, @Body() user: UserDetailDTO) {
+    const data = instanceToPlain(await this.userService.createUser(user));
+    return res.json({
+      code: HttpStatus.OK,
+      message: 'Register success',
+      data: data,
+    });
   }
 
   @Post('login')

@@ -15,7 +15,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
 
     Logger.error(exception.message, exception.stack, exception.name);
@@ -37,7 +36,7 @@ export class MongooseExceptionFilter implements ExceptionFilter {
         const field = Object.keys(exception['keyPattern'] ?? {});
         return response.status(HttpStatus.CONFLICT).json({
           statusCode: HttpStatus.CONFLICT,
-          messenger:
+          message:
             field.length === 0
               ? `Conflict values`
               : `${field[0]} already exists`,
@@ -46,7 +45,7 @@ export class MongooseExceptionFilter implements ExceptionFilter {
       default:
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
-          messenger: exception.message,
+          message: exception.message,
         });
     }
   }
