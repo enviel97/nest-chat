@@ -1,5 +1,5 @@
 import { HydratedDocument, Schema } from 'mongoose';
-import { ModelName } from 'src/common/models';
+import { ModelName } from 'src/common/named';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -13,6 +13,6 @@ const UserSchema = new Schema<User>(
   { timestamps: true },
 );
 
-export { UserDetailDTO, UserLoginDTO } from './dto';
-
+export { default as UserLoginDTO } from './dto/UserLogin';
+export { default as UserDetailDTO } from './dto/UserDetail';
 export default { name: ModelName.User, schema: UserSchema };

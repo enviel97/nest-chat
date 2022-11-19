@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
-import { Services } from 'src/common/routes';
+import { Services } from 'src/common/named';
 // import PassportModule from 'src/middleware/passport';
 import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';

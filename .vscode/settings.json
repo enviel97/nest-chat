@@ -3,6 +3,9 @@
     "package-lock.json": true,
     ".vscode": true,
     "node_modules": true,
-    "dist": true
+    "dist": true,
+    "src\\routes\\conversation/test": true,
+    "src\\routes\\auth\\tests": true,
+    "src\\routes\\user\\test": true
   }
 }

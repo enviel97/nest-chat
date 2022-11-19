@@ -10,12 +10,14 @@ import * as createRedisStore from 'connect-redis';
 import * as session from 'express-session';
 import * as passport from 'passport';
 import { RedisClientType } from 'redis';
+import { ConversationModule } from '../conversation/conversation.module';
 
 @Module({
   imports: [
     // route module
     AuthModule,
     UserModule,
+    ConversationModule,
     // environment module
     ConfigModule,
     PassportModule,
