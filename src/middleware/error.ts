@@ -7,7 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { MongoError } from 'mongodb';
 
 @Catch(HttpException)
@@ -16,14 +16,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const status = exception.getStatus();
-    const exceptionResponse = exception.getResponse();
-
-    if (exceptionResponse['message']) {
-      return response.send(exceptionResponse);
-    }
-
+    Logger.error(
+      exception.message,
+      exception.getResponse()['message'] ?? 'Unknown',
+    );
     return response.status(status).json({
-      statusCode: status,
+      code: status,
       message: exception.message,
     });
   }
@@ -34,11 +32,13 @@ export class MongooseExceptionFilter implements ExceptionFilter {
   catch(exception: MongoError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    Logger.error(exception.message, exception);
+
     switch (exception.code) {
       case 11000: {
         const field = Object.keys(exception['keyPattern'] ?? {});
         return response.status(HttpStatus.CONFLICT).json({
-          statusCode: HttpStatus.CONFLICT,
+          code: HttpStatus.CONFLICT,
           message:
             field.length === 0
               ? `Conflict values`
@@ -47,7 +47,7 @@ export class MongooseExceptionFilter implements ExceptionFilter {
       }
       default:
         return response.status(HttpStatus.BAD_REQUEST).json({
-          statusCode: HttpStatus.BAD_REQUEST,
+          code: HttpStatus.BAD_REQUEST,
           message: exception.message,
         });
     }
@@ -69,9 +69,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
-    Logger.error(exception);
+
+    Logger.error(
+      exception.message,
+      exception.getResponse()['message'] ?? 'Unknown',
+    );
+
     const responseBody = {
-      statusCode: httpStatus,
+      code: httpStatus,
       timestamp: new Date().toISOString(),
       message: 'Interval server error',
     };

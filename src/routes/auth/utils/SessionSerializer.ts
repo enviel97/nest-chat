@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PassportSerializer } from '@nestjs/passport';
 import { Services } from 'src/common/named';
 
+@Injectable()
 export class SessionSerializer extends PassportSerializer {
   constructor(
     @Inject(Services.USERS)
