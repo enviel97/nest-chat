@@ -1,23 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { ModelName } from 'src/common/named';
 import { UserDocument } from 'src/models/users';
 import { hash } from 'src/utils/bcrypt';
+import string from 'src/utils/string';
 
 @Injectable()
 export class UserService implements IUserService {
   constructor(
     @InjectModel(ModelName.User)
-    private readonly userModel: Model<UserDocument>,
+    private readonly userModel: UserDocument,
   ) {}
 
   async findUser(params: FindUserParams): Promise<User> {
     const { password = false, ...param } = params;
-    return await this.userModel
-      .findOne(param)
+
+    const result = await this.userModel
+      .findOne({
+        $or: [{ _id: string.cvtToObjectId(param.id) }, { email: param.email }],
+      })
       .select(`firstName lastName email${password ? ' password' : ''}`)
       .lean();
+    if (result) {
+      const { id, _id, ...user } = result;
+      return {
+        id: id ?? _id.toString(),
+        ...user,
+      };
+    }
   }
 
   async createUser(user: User) {

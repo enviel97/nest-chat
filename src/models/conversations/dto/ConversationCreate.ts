@@ -1,15 +1,10 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString } from 'class-validator';
 
-export default class CreateConversationDTO implements ConversationCreateParams {
+export default class CreateConversationDTO {
   @IsString()
   @IsNotEmpty()
-  authorId: string;
+  participantId: string;
 
-  @IsString()
-  @IsNotEmpty()
-  recipientId: string;
-
-  @IsNotEmpty()
   @IsString()
   message: string;
 }

@@ -9,6 +9,7 @@ import {
 import { HttpAdapterHost } from '@nestjs/core';
 import { Response } from 'express';
 import { MongoError } from 'mongodb';
+import mongoose from 'mongoose';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -27,13 +28,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
   }
 }
 
-@Catch(MongoError)
+@Catch(MongoError, mongoose.Error)
 export class MongooseExceptionFilter implements ExceptionFilter {
   catch(exception: MongoError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     Logger.error(exception.message, exception);
-
     switch (exception.code) {
       case 11000: {
         const field = Object.keys(exception['keyPattern'] ?? {});
@@ -48,7 +48,7 @@ export class MongooseExceptionFilter implements ExceptionFilter {
       default:
         return response.status(HttpStatus.BAD_REQUEST).json({
           code: HttpStatus.BAD_REQUEST,
-          message: exception.message,
+          message: 'Database request error',
         });
     }
   }
@@ -70,10 +70,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    Logger.error(
-      exception.message,
-      exception.getResponse()['message'] ?? 'Unknown',
-    );
+    Logger.error(exception.message, exception);
 
     const responseBody = {
       code: httpStatus,

@@ -3,8 +3,9 @@ interface UserDetail {
   lastName: string;
   email: string;
 }
+type IUser = UserDetail & { id: string } & { password: string };
 
-type User = Partial<UserDetail, { id: string }, { password: string }>;
+type User = Partial<IUser>;
 
 interface UserLogin {
   email: string;
