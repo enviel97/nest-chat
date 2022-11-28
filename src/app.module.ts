@@ -1,16 +1,17 @@
 import { Inject, MiddlewareConsumer, Module } from '@nestjs/common';
-import ConfigModule from '../../middleware/environment';
+import ConfigModule from './middleware/environment';
 import environment, { default as env } from 'src/common/environment';
-import MongooseModule from '../../middleware/mongoose';
-import PassportModule from '../../middleware/passport';
-import { AuthModule } from '../auth/auth.module';
-import { UserModule } from '../user/user.module';
+import MongooseModule from './middleware/mongoose';
+import PassportModule from './middleware/passport';
+import { AuthModule } from './routes/auth/auth.module';
+import { UserModule } from './routes/user/user.module';
 import { REDIS, RedisModule } from 'src/adapter/redis.module';
 import * as createRedisStore from 'connect-redis';
 import * as session from 'express-session';
 import * as passport from 'passport';
 import { RedisClientType } from 'redis';
-import { ConversationModule } from '../conversation/conversation.module';
+import { ConversationModule } from './routes/conversation/conversation.module';
+import { MessagesModule } from './routes/messages/messages.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ConversationModule } from '../conversation/conversation.module';
     AuthModule,
     UserModule,
     ConversationModule,
+    MessagesModule,
     // environment module
     ConfigModule,
     PassportModule,

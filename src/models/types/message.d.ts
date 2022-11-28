@@ -1,7 +1,10 @@
 interface MessageCreateParams {
+  author: string;
   conversationId: string;
   content: string;
-  authorId: string;
+
+  // // TODO: Base 64
+  // attachment?: string;
 }
 
 interface MessageDetail {
@@ -10,4 +13,6 @@ interface MessageDetail {
   author: string;
 }
 
-type Message = Partial<MessageDetail & TimeStamps, Identity>;
+type IMessage = MessageDetail & TimeStamps & Identity;
+
+type Message = Partial<IMessage>;

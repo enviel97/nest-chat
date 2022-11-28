@@ -17,6 +17,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const status = exception.getStatus();
+
     Logger.error(
       exception.message,
       exception.getResponse()['message'] ?? 'Unknown',

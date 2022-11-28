@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
-import { AppModule } from './routes/root/app.module';
+import { AppModule } from './app.module';
 import environment from './common/environment';
 import {
   AllExceptionsFilter,

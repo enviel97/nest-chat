@@ -6,14 +6,13 @@ import {
   Inject,
   Param,
   Post,
-  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
-import { identity } from 'rxjs';
+import { Response } from 'express';
 import { Routes, Services } from 'src/common/named';
 import { CreateConversationDTO } from 'src/models/conversations';
+import { AuthUser } from 'src/utils/decorates';
 import { AuthenticateGuard } from '../auth/utils/Guards';
 
 @Controller(Routes.CONVERSATIONS)
@@ -27,11 +26,11 @@ export class ConversationController {
   @Post()
   async createConversation(
     @Body() conversation: CreateConversationDTO,
-    @Req() req: Request,
+    @AuthUser() author: User,
     @Res() res: Response,
   ) {
     const result = await this.conversationsService.createConversation({
-      authorId: req.user?.id ?? '',
+      authorId: author?.id ?? '',
       ...conversation,
     });
 
@@ -45,9 +44,10 @@ export class ConversationController {
   }
 
   @Get()
-  async getAllConversation(@Req() req: Request, @Res() res: Response) {
-    const author = req.user;
-    const data = await this.conversationsService.getConversations(author['id']);
+  async getAllConversation(@AuthUser() author: User, @Res() res: Response) {
+    const data = await this.conversationsService.getConversations(
+      author.id ?? author._id,
+    );
     return res.json({
       code: HttpStatus.OK,
       message: 'Get list conversation successfully',

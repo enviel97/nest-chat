@@ -3,7 +3,7 @@ interface UserDetail {
   lastName: string;
   email: string;
 }
-type IUser = UserDetail & { id: string } & { password: string };
+type IUser = UserDetail & Identity & { password: string };
 
 type User = Partial<IUser>;
 

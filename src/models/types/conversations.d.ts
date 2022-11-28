@@ -1,11 +1,12 @@
 interface ConversationDetail {
   author: string | User;
   participant: string | User;
-  lastMessage: string;
-  lastMessageTime: string;
+  lastMessage: string | Message;
 }
 
-type IConversation = ConversationDetail & TimeStamps & Identity;
+type IConversation = ConversationDetail &
+  TimeStamps &
+  Identity & { messages: IMessages[] };
 
 type Conversation = Partial<IConversation>;
 

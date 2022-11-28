@@ -1,7 +1,7 @@
-import { HydratedDocument, Schema } from 'mongoose';
+import { HydratedDocument, Model, Schema } from 'mongoose';
 import { ModelName } from 'src/common/named';
 
-export type MessageDocument = HydratedDocument<Message>;
+export type MessageDocument = Model<HydratedDocument<Message>>;
 
 const MessageSchema = new Schema<Message>(
   {
@@ -11,5 +11,9 @@ const MessageSchema = new Schema<Message>(
   },
   { timestamps: true },
 );
+
+MessageSchema.index({ createdAt: 1 });
+
+export { default as CreateMessageDTO } from './dto/CreateMessagesDTO';
 
 export default { name: ModelName.Message, schema: MessageSchema };

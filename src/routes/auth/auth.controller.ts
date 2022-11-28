@@ -5,7 +5,6 @@ import {
   HttpStatus,
   Inject,
   Post,
-  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -13,7 +12,8 @@ import { instanceToPlain } from 'class-transformer';
 import { Routes, Services } from 'src/common/named';
 import { UserDetailDTO } from 'src/models/users';
 import { AuthenticateGuard, LocalAuthGuard } from './utils/Guards';
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthUser } from 'src/utils/decorates';
 
 @Controller(Routes.AUTH)
 export class AuthController {
@@ -34,21 +34,21 @@ export class AuthController {
 
   @Post('login')
   @UseGuards(LocalAuthGuard)
-  login(@Req() req: Request, @Res() res: Response) {
+  login(@AuthUser() user: User, @Res() res: Response) {
     return res.json({
       code: HttpStatus.OK,
       message: 'Login success',
-      data: req.user,
+      data: user,
     });
   }
 
   @Get('status')
   @UseGuards(AuthenticateGuard)
-  status(@Req() req: Request, @Res() res: Response) {
+  status(@AuthUser() user: User, @Res() res: Response) {
     return res.json({
       code: HttpStatus.OK,
       message: 'Login success',
-      data: req.user,
+      data: user,
     });
   }
 
