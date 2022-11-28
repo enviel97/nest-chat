@@ -13,12 +13,15 @@ import { Response } from 'express';
 import { Routes, Services } from 'src/common/named';
 import { CreateConversationDTO } from 'src/models/conversations';
 import { AuthUser } from 'src/utils/decorates';
+import string from 'src/utils/string';
 import { AuthenticateGuard } from '../auth/utils/Guards';
 
 @Controller(Routes.CONVERSATIONS)
 @UseGuards(AuthenticateGuard)
 export class ConversationController {
   constructor(
+    @Inject(Services.MESSAGES)
+    private readonly messagesService: IMessengerService,
     @Inject(Services.CONVERSATIONS)
     private readonly conversationsService: IConversationsService,
   ) {}
@@ -26,20 +29,26 @@ export class ConversationController {
   @Post()
   async createConversation(
     @Body() conversation: CreateConversationDTO,
-    @AuthUser() author: User,
+    @AuthUser() author: IUser,
     @Res() res: Response,
   ) {
-    const result = await this.conversationsService.createConversation({
-      authorId: author?.id ?? '',
+    let result = await this.conversationsService.createConversation({
+      authorId: author.id ?? author._id,
       ...conversation,
     });
+    let lastMessage = undefined;
+    if (conversation.message) {
+      lastMessage = await this.messagesService.createMessage({
+        conversationId: result.id ?? result._id,
+        author: string.getId(author),
+        content: conversation.message,
+      });
+    }
 
     return res.json({
       code: HttpStatus.OK,
-      message: result.isNew
-        ? 'Create successfully'
-        : 'The conversation already exists',
-      data: result,
+      message: 'Create successfully',
+      data: { ...result, lastMessage: lastMessage ?? result.lastMessage },
     });
   }
 

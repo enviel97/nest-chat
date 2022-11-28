@@ -25,48 +25,42 @@ export class ConversationService implements IConversationsService {
       throw new BadRequestException();
     }
 
-    const channel = await this.conversationModel
+    let channel = await this.conversationModel
       .findOne({
         author: conversation.authorId,
         participant: conversation.participantId,
       })
-      .populate('participant', 'firstName lastName email')
-      .populate({
-        path: 'lastMessage',
-        select: 'content author _id createdAt',
-        populate: {
-          path: 'author',
-          select: 'firstName lastName email _id',
+      .populate([
+        { path: 'participant', select: 'firstName lastName email' },
+        {
+          path: 'lastMessage',
+          select: 'content author _id createdAt',
+          populate: {
+            path: 'author',
+            select: 'firstName lastName email _id',
+          },
         },
-      })
+      ])
       .lean();
 
-    if (channel) {
-      return {
-        isNew: false,
-        conversation: channel,
-      };
-    }
-
+    if (channel) return channel;
     const participant = await this.userService.findUser({
       id: conversation.participantId,
     });
+
+    if (!participant) {
+      throw new BadRequestException('Participant not found');
+    }
 
     const model = new this.conversationModel({
       author: conversation.authorId,
       participant: participant.id,
     });
-
-    if (participant) {
-      await model.save();
-    }
+    const result = await model.save();
 
     return {
-      isNew: true,
-      conversation: {
-        author: conversation.authorId,
-        participant: participant ?? this.userUnknown,
-      },
+      ...(result.toObject() as IConversation),
+      participant: participant,
     };
   }
 

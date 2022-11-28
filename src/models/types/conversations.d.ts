@@ -4,19 +4,14 @@ interface ConversationDetail {
   lastMessage: string | Message;
 }
 
-type IConversation = ConversationDetail &
+type Conversation = ConversationDetail &
   TimeStamps &
   Identity & { messages: IMessages[] };
 
-type Conversation = Partial<IConversation>;
+type IConversation = Partial<Conversation>;
 
 interface ConversationCreateParams {
   authorId: string;
   message?: string;
   participantId: string;
-}
-
-interface ConversationCreateResult {
-  isNew: boolean;
-  conversation: Conversation;
 }

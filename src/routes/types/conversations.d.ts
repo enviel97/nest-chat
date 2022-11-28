@@ -1,7 +1,7 @@
 interface IConversationsService {
   createConversation(
     conversation: ConversationCreateParams,
-  ): Promise<ConversationCreateResult>;
-  getConversations(authorId: string): Promise<Conversation[]>;
+  ): Promise<IConversation>;
+  getConversations(authorId: string): Promise<IConversation[]>;
   getConversation(id: string): Promise<IConversation>;
 }

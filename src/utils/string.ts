@@ -8,4 +8,8 @@ const cvtToObjectId = (plainText: string) => {
   }
 };
 
-export default { cvtToObjectId };
+const getId = (object: Identity) => {
+  return object?.id ?? object._id;
+};
+
+export default { cvtToObjectId, getId };

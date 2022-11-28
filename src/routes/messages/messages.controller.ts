@@ -14,11 +14,11 @@ export class MessagesController {
   ) {}
 
   @Post()
-  createMessage(
+  async createMessage(
     @AuthUser() user: IUser,
     @Body() createMessageDTO: CreateMessageDTO,
   ) {
-    return this.messageService.createMessage({
+    return await this.messageService.createMessage({
       author: user.id ?? user._id,
       ...createMessageDTO,
     });
