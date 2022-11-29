@@ -4,11 +4,11 @@ interface ConversationDetail {
   lastMessage: string | Message;
 }
 
-type Conversation = ConversationDetail &
+type IConversation = ConversationDetail &
   TimeStamps &
   Identity & { messages: IMessages[] };
 
-type IConversation = Partial<Conversation>;
+type Conversation = Partial<IConversation>;
 
 interface ConversationCreateParams {
   authorId: string;
