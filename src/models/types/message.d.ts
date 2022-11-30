@@ -10,7 +10,7 @@ interface MessageCreateParams {
 interface MessageDetail {
   conversationId: string;
   content: string;
-  author: string;
+  author: User;
 }
 
 type IMessage = MessageDetail & TimeStamps & Identity;

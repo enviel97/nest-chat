@@ -12,6 +12,8 @@ const ConversationSchema = new Schema<Conversation>(
   { timestamps: true },
 );
 
+ConversationSchema.index({ createdAt: 1 });
+
 export { default as CreateConversationDTO } from './dto/ConversationCreate';
 
 export default { name: ModelName.Conversation, schema: ConversationSchema };

@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { ModelName } from 'src/common/named';
 import { ConversationDocument } from 'src/models/conversations';
 import { MessageDocument } from 'src/models/messages';
+import string from 'src/utils/string';
 
 @Injectable()
 export class MessagesService implements IMessengerService {
@@ -62,10 +63,13 @@ export class MessagesService implements IMessengerService {
         author: author,
       });
 
-      conversation.lastMessage = (message.id ?? message._id).toString();
-      await conversation.save();
+      conversation.lastMessage = string.getId(message);
+      const [_, messageFull] = await Promise.all([
+        conversation.save(),
+        message.populate('author', 'firstName lastName email'),
+      ]);
 
-      return message.toObject();
+      return messageFull.toObject();
     } catch (exception) {
       throw exception;
     }

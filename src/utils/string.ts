@@ -9,7 +9,7 @@ const cvtToObjectId = (plainText: string) => {
 };
 
 const getId = (object: Identity) => {
-  return object?.id ?? object._id;
+  return (object?.id ?? object._id).toString();
 };
 
 export default { cvtToObjectId, getId };

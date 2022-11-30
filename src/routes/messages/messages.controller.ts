@@ -18,9 +18,14 @@ export class MessagesController {
     @AuthUser() user: IUser,
     @Body() createMessageDTO: CreateMessageDTO,
   ) {
-    return await this.messageService.createMessage({
+    const newMessage = await this.messageService.createMessage({
       author: user.id ?? user._id,
       ...createMessageDTO,
     });
+    return {
+      code: 200,
+      message: 'Create mess success',
+      data: newMessage,
+    };
   }
 }

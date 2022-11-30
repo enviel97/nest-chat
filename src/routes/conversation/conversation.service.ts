@@ -67,16 +67,33 @@ export class ConversationService implements IConversationsService {
   async getConversations(authorId: string) {
     if (!authorId) throw new BadRequestException();
     return await this.conversationModel
-      .find({ author: authorId })
-      .populate('participant', 'firstName lastName email')
-      .populate({
-        path: 'lastMessage',
-        select: 'content author _id createdAt',
-        populate: {
-          path: 'author',
-          select: 'firstName lastName email _id',
+      .find(
+        { $or: [{ author: authorId }, { participant: authorId }] },
+        {},
+        {
+          sort: {
+            updatedAt: -1,
+          },
         },
-      })
+      )
+      .populate([
+        {
+          path: 'author',
+          select: 'firstName lastName email',
+        },
+        {
+          path: 'participant',
+          select: 'firstName lastName email',
+        },
+        {
+          path: 'lastMessage',
+          select: 'content author _id createdAt',
+          populate: {
+            path: 'author',
+            select: 'firstName lastName email _id',
+          },
+        },
+      ])
       .lean();
   }
 
