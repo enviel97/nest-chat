@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { Routes, Services } from 'src/common/named';
+import { Routes, Services } from 'src/common/define';
 import { CreateConversationDTO } from 'src/models/conversations';
 import { AuthUser } from 'src/utils/decorates';
 import string from 'src/utils/string';

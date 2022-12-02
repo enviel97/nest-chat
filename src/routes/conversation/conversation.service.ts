@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ModelName, Services } from 'src/common/named';
+import { ModelName, Services } from 'src/common/define';
 import { ConversationDocument } from 'src/models/conversations';
 
 @Injectable()
@@ -102,7 +102,16 @@ export class ConversationService implements IConversationsService {
     const [conversation, messages] = await Promise.all([
       this.conversationModel
         .findById(id)
-        .populate('participant', 'firstName lastName email')
+        .populate([
+          {
+            path: 'author',
+            select: 'firstName lastName email',
+          },
+          {
+            path: 'participant',
+            select: 'firstName lastName email',
+          },
+        ])
         .lean(),
       this.messageService.getMessages(id),
     ]);

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Services } from 'src/common/named';
+import { Services } from 'src/common/define';
 import ConversationSchema from 'src/models/conversations';
 import { MessagesModule } from '../messages/messages.module';
 import { UserModule } from '../user/user.module';

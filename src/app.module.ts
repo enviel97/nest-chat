@@ -12,6 +12,8 @@ import * as passport from 'passport';
 import { RedisClientType } from 'redis';
 import { ConversationModule } from './routes/conversation/conversation.module';
 import { MessagesModule } from './routes/messages/messages.module';
+import { GatewayModule } from './middleware/gateway/gateway.module';
+import EventConfigModule from './middleware/gateway/event.config';
 
 @Module({
   imports: [
@@ -25,6 +27,9 @@ import { MessagesModule } from './routes/messages/messages.module';
     PassportModule,
     MongooseModule,
     RedisModule,
+    EventConfigModule,
+    // middleware
+    GatewayModule,
   ],
   controllers: [],
   providers: [],

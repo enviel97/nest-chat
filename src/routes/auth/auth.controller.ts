@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { instanceToPlain } from 'class-transformer';
-import { Routes, Services } from 'src/common/named';
+import { Routes, Services } from 'src/common/define';
 import { UserDetailDTO } from 'src/models/users';
 import { AuthenticateGuard, LocalAuthGuard } from './utils/Guards';
 import { Response } from 'express';

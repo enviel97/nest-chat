@@ -4,7 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Services } from 'src/common/named';
+import { Services } from 'src/common/define';
 import { compare } from 'src/utils/bcrypt';
 @Injectable()
 export class AuthService implements IAuthService {

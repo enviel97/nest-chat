@@ -1,5 +1,5 @@
 import { HydratedDocument, Model, Schema } from 'mongoose';
-import { ModelName } from 'src/common/named';
+import { ModelName } from 'src/common/define';
 
 export type MessageDocument = Model<HydratedDocument<Message>>;
 

@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ModelName } from 'src/common/named';
+import { ModelName } from 'src/common/define';
 import { ConversationDocument } from 'src/models/conversations';
 import { MessageDocument } from 'src/models/messages';
 import string from 'src/utils/string';

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ModelName } from 'src/common/named';
+import { ModelName } from 'src/common/define';
 import { UserDocument } from 'src/models/users';
 import { hash } from 'src/utils/bcrypt';
 import string from 'src/utils/string';
