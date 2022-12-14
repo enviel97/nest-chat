@@ -1,4 +1,9 @@
-import { Inject, MiddlewareConsumer, Module } from '@nestjs/common';
+import {
+  Inject,
+  MiddlewareConsumer,
+  Module,
+  RequestMethod,
+} from '@nestjs/common';
 import ConfigModule from './middleware/environment';
 import environment, { default as env } from 'src/common/environment';
 import MongooseModule from './middleware/mongoose';
@@ -14,6 +19,7 @@ import { ConversationModule } from './routes/conversation/conversation.module';
 import { MessagesModule } from './routes/messages/messages.module';
 import { GatewayModule } from './middleware/gateway/gateway.module';
 import EventConfigModule from './middleware/gateway/event.config';
+import { LoggerMiddleware } from './adapter/logger.module';
 
 @Module({
   imports: [
@@ -58,5 +64,10 @@ export class AppModule {
         passport.session(),
       )
       .forRoutes('*');
+
+    // middleware logger
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }
