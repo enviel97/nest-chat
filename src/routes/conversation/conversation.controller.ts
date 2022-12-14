@@ -63,14 +63,4 @@ export class ConversationController {
       data: data,
     });
   }
-
-  @Get(':id')
-  async getConversation(@Param('id') params: string, @Res() res: Response) {
-    const data = await this.conversationsService.getConversation(params);
-    return res.json({
-      code: HttpStatus.OK,
-      message: 'Get list conversation successfully',
-      data: data,
-    });
-  }
 }

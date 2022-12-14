@@ -1,5 +1,16 @@
 interface Response<T> {
   code: number;
-  messuage?: string;
+  message?: string;
   data?: T;
+}
+interface Pagination<T> {
+  total: number;
+  bucket: number;
+  limit: number;
+  data?: T[];
+}
+
+interface PaginationOption {
+  bucket: number | 1;
+  limit: number | 20;
 }

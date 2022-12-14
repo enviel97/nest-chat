@@ -39,16 +39,33 @@ export class MessagesService implements IMessengerService {
     return conversation;
   }
 
-  async getMessages(conversationId: string): Promise<IMessage[]> {
-    const value = await this.messageModel
-      .find(
-        { conversationId: conversationId },
-        {},
-        { sort: { createdAt: 'desc' } },
-      )
-      .populate('author', 'firstName lastName email')
-      .lean();
-    return value as IMessage[];
+  async getMessages(
+    conversationId: string,
+    { limit = 20, bucket = 1 }: PaginationOption,
+  ): Promise<Pagination<IMessage>> {
+    const _bucket = bucket - 1 <= 0 ? 0 : bucket - 1;
+    const [data, total] = await Promise.all([
+      this.messageModel
+        .find(
+          { conversationId: conversationId },
+          {},
+          {
+            sort: { createdAt: 'desc' },
+            limit: limit,
+            skip: limit * _bucket,
+          },
+        )
+        .populate('author', 'firstName lastName email')
+        .lean(),
+      this.messageModel.find({ conversationId: conversationId }).count(),
+    ]);
+
+    return {
+      total: total,
+      bucket: bucket,
+      limit: limit,
+      data: (data as IMessage[]) ?? [],
+    };
   }
 
   async createMessage(params: MessageCreateParams): Promise<IMessage> {

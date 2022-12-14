@@ -6,8 +6,6 @@ import { ConversationDocument } from 'src/models/conversations';
 @Injectable()
 export class ConversationService implements IConversationsService {
   constructor(
-    @Inject(Services.MESSAGES)
-    private readonly messageService: IMessengerService,
     @Inject(Services.USERS)
     private readonly userService: IUserService,
     @InjectModel(ModelName.Conversation)
@@ -95,29 +93,5 @@ export class ConversationService implements IConversationsService {
         },
       ])
       .lean();
-  }
-
-  async getConversation(id: string): Promise<IConversation> {
-    if (!id) throw new BadRequestException();
-    const [conversation, messages] = await Promise.all([
-      this.conversationModel
-        .findById(id)
-        .populate([
-          {
-            path: 'author',
-            select: 'firstName lastName email',
-          },
-          {
-            path: 'participant',
-            select: 'firstName lastName email',
-          },
-        ])
-        .lean(),
-      this.messageService.getMessages(id),
-    ]);
-
-    // Todo get other value
-
-    return { ...(conversation as IConversation), messages: messages };
   }
 }

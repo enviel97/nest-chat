@@ -1,5 +1,17 @@
-import { Body, Controller, Inject, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Inject,
+  Param,
+  Post,
+  Query,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Response } from 'express';
 import { Event, Routes, Services } from 'src/common/define';
 import { CreateMessageDTO } from 'src/models/messages';
 
@@ -32,5 +44,23 @@ export class MessagesController {
       message: 'Create mess success',
       data: newMessage,
     };
+  }
+
+  @Get(':id')
+  async getConversation(
+    @Param('id') params: string,
+    @Query('limit') limit: number | undefined,
+    @Query('bucket') bucket: number | undefined,
+    @Res() res: Response,
+  ) {
+    const data = await this.messageService.getMessages(params, {
+      limit: limit,
+      bucket: bucket,
+    });
+    return res.json({
+      code: HttpStatus.OK,
+      message: 'Get list conversation successfully',
+      data: data,
+    });
   }
 }
