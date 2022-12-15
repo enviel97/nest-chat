@@ -41,7 +41,7 @@ export class MessagesService implements IMessengerService {
 
   async getMessages(
     conversationId: string,
-    { limit = 20, bucket = 1 }: PaginationOption,
+    { limit, bucket }: PaginationOption,
   ): Promise<Pagination<IMessage>> {
     const _bucket = bucket - 1 <= 0 ? 0 : bucket - 1;
     const [data, total] = await Promise.all([

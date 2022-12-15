@@ -11,7 +11,6 @@ const MessageSchema = new Schema<Message>(
   },
   { timestamps: true },
 );
-
 MessageSchema.index({ createdAt: 1 });
 
 export { default as CreateMessageDTO } from './dto/CreateMessagesDTO';

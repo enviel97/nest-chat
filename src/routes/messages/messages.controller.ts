@@ -54,8 +54,8 @@ export class MessagesController {
     @Res() res: Response,
   ) {
     const data = await this.messageService.getMessages(params, {
-      limit: limit,
-      bucket: bucket,
+      limit: limit ?? 20,
+      bucket: bucket ?? 1,
     });
     return res.json({
       code: HttpStatus.OK,
