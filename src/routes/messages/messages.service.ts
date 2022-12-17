@@ -67,9 +67,11 @@ export class MessagesService implements IMessengerService {
       data: (data as IMessage[]) ?? [],
     };
   }
-
-  async createMessage(params: MessageCreateParams): Promise<IMessage> {
+  async createMessage(
+    params: MessageCreateParams,
+  ): Promise<CreateMessageServices> {
     try {
+      const members = new Set<string>();
       const { conversationId, content, author } = params;
       const conversation = await this.getConversationByID(conversationId);
       this.validConversation(conversation, params.author);
@@ -86,7 +88,13 @@ export class MessagesService implements IMessengerService {
         message.populate('author', 'firstName lastName email'),
       ]);
 
-      return messageFull.toObject();
+      return {
+        message: messageFull.toObject(),
+        members: members
+          .add(author)
+          .add(conversation.author.toString())
+          .add(conversation.participant.toString()),
+      };
     } catch (exception) {
       throw exception;
     }

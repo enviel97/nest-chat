@@ -42,7 +42,7 @@ export class MessagesController {
     return {
       code: 200,
       message: 'Create mess success',
-      data: newMessage,
+      data: newMessage.message,
     };
   }
 

@@ -48,10 +48,14 @@ export class AppModule {
     consumer
       .apply(
         session({
-          store: new RedisStore({ client: this.redisClient as any }),
-          name: 'AUTH:SESSION',
+          store: new RedisStore({
+            client: this.redisClient as any,
+            prefix: environment.server.session_prefix,
+          }),
+          name: 'SESSION_ID',
           resave: false,
           saveUninitialized: true,
+
           secret: env.server.cookie_key,
           cookie: {
             sameSite: 'strict',

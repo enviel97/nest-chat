@@ -9,14 +9,17 @@ import {
   MongooseExceptionFilter,
 } from './middleware/error';
 import { CorsOption } from './middleware/cors';
+import { WebsocketAdapter } from './middleware/gateway/gateway.adapter';
 
 const start = async () => {
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log'],
   });
   app.enableCors(CorsOption);
+  const websocketAdapter = new WebsocketAdapter(app);
   const httpAdapterHost = app.get(HttpAdapterHost);
   // setup
+  app.useWebSocketAdapter(websocketAdapter);
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(

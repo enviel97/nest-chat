@@ -9,6 +9,7 @@ export const Services = Object.freeze({
   USERS: 'USER_SERVICE',
   CONVERSATIONS: 'CONVERSATIONS_SERVICE',
   MESSAGES: 'MESSAGES_SERVICE',
+  GATEWAY_SESSION: 'GATEWAY_SESSION_MANAGER',
 });
 
 export const ModelName = Object.freeze({
