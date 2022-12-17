@@ -14,12 +14,7 @@ export class GatewaySessionManager implements IGatewaySession {
   }
 
   setUserSocket(userId: string, socket: AuthenticationSocket) {
-    const authSocket = this.sessions.get(userId);
-    if (!authSocket) {
-      this.sessions.set(userId, socket);
-      return;
-    }
-    throw new Error('Conflict listener');
+    this.sessions.set(userId, socket);
   }
 
   removeUserSocket(userId: string) {
