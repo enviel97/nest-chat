@@ -11,9 +11,10 @@ export class LoggerMiddleware implements NestMiddleware {
     );
 
     Logger.log(`[ URI: ${req.originalUrl} ]`, req.method);
-
+    if (req.headers.cookie) {
+      console.log({ header: req.headers });
+    }
     console.log({
-      header: req.headers,
       body: req.body,
       query: req.query,
     });
