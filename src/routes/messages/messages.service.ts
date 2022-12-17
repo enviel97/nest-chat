@@ -43,11 +43,9 @@ export class MessagesService implements IMessengerService {
     conversationId: string,
     { limit, bucket }: PaginationOption,
   ): Promise<Pagination<IMessage>> {
-    const data = await this.messageModel.find(
-      { conversationId },
-      {},
-      { sort: { createdAt: 'desc' } },
-    );
+    const data = await this.messageModel
+      .find({ conversationId }, {}, { sort: { createdAt: 'desc' } })
+      .populate('author', 'firstName lastName');
 
     return {
       total: data.length,
