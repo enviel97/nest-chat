@@ -5,8 +5,6 @@ import * as cookie from 'cookie';
 import env from 'src/common/environment';
 import { REDIS } from 'src/adapter/redis.module';
 import { RedisClientType } from 'redis';
-import { plainToInstance } from 'class-transformer';
-import { Logger } from '@nestjs/common/services';
 import environment from 'src/common/environment';
 
 export class WebsocketAdapter extends IoAdapter {
@@ -31,7 +29,7 @@ export class WebsocketAdapter extends IoAdapter {
       const { SESSION_ID } = cookie.parse(clientCookie);
       if (!SESSION_ID) {
         console.log('ERROR: SESSION_ID has not exits');
-        return new Error('Not Authenticate');
+        return next(new Error('Not Authenticate'));
       }
       const signedCookie = cookieParser.signedCookie(
         SESSION_ID,

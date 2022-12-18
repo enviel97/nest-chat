@@ -6,10 +6,9 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Server } from 'http';
 import { CorsOption } from '../cors';
 import { Event, Services } from 'src/common/define';
-import { Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import { AuthenticationSocket } from './gateway.session';
 import { Inject } from '@nestjs/common';
 import string from 'src/utils/string';
@@ -36,17 +35,14 @@ export class MessagingGateway implements OnGatewayConnection {
 
   handleConnection(client: AuthenticationSocket, ...args: any[]) {
     console.log(`>>>>>>>>> New Incoming Connection >>> id: ${client.id}`);
-    try {
-      this.sessions.setUserSocket(string.getId(client.user as any), client);
-      client.emit(Event.EVENT_SOCKET_CONNECTED, {
-        status: CONNECTED_STATUS.GOOD,
-        client: client.id,
-      });
-    } catch (error) {
-      client.emit(Event.EVENT_SOCKET_CONNECTED, {
-        status: CONNECTED_STATUS.BAD,
-      });
-    }
+    this.sessions.setUserSocket(string.getId(client.user as any), client);
+    console.log(
+      `>>>>>>>>> User >>> name: ${client.user.firstName} ${client.user.lastName}`,
+    );
+    client.emit(Event.EVENT_SOCKET_CONNECTED, {
+      status: CONNECTED_STATUS.GOOD,
+      client: client.id,
+    });
   }
 
   private emitSocket(id: string, payload: IMessage) {

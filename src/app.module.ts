@@ -33,9 +33,9 @@ import { LoggerMiddleware } from './adapter/logger.module';
     PassportModule,
     MongooseModule,
     RedisModule,
-    EventConfigModule,
     // middleware
     GatewayModule,
+    EventConfigModule,
   ],
   controllers: [],
   providers: [],
