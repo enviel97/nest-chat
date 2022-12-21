@@ -23,15 +23,12 @@ export class MessagingGateway implements OnGatewayConnection {
   constructor(
     @Inject(Services.GATEWAY_SESSION)
     private readonly sessions: IGatewaySession,
+    @Inject(Services.CONVERSATIONS)
+    private readonly conversationServices: IConversationsService,
   ) {}
 
   @WebSocketServer()
   server: Server;
-
-  @SubscribeMessage(Event.EVENT_CREATE_MESSAGE)
-  handleCreateMessage(@MessageBody() data: any) {
-    console.log('Create Message');
-  }
 
   handleConnection(client: AuthenticationSocket, ...args: any[]) {
     console.log(`>>>>>>>>> New Incoming Connection >>> id: ${client.id}`);
@@ -57,5 +54,16 @@ export class MessagingGateway implements OnGatewayConnection {
     members.forEach((member) => {
       this.emitSocket(member, message);
     });
+  }
+
+  //  event
+  @SubscribeMessage(Event.EVENT_CREATE_MESSAGE)
+  handleCreateMessage(@MessageBody() data: any) {
+    console.log('Create Message');
+  }
+
+  @SubscribeMessage(Event.EMIT_USER_TYPING)
+  handleUserTyping(@MessageBody() data: UserTypeMessaged) {
+    console.log('Someone typing');
   }
 }

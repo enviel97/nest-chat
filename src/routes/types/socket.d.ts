@@ -4,3 +4,8 @@ interface IGatewaySession {
   removeUserSocket(userId: string);
   getSockets(): Map<string, AuthenticationSocket>;
 }
+
+interface UserTypeMessaged {
+  conversationId: string;
+  userId: string;
+}

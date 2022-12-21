@@ -12,6 +12,11 @@ export class ConversationService implements IConversationsService {
     private readonly conversationModel: ConversationDocument,
   ) {}
 
+  async findConversationById(id: string): Promise<Conversation> {
+    if (!id) return;
+    return await this.conversationModel.findById(id);
+  }
+
   private readonly userUnknown: User = {
     firstName: 'Chat',
     lastName: 'User',

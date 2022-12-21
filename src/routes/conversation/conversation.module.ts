@@ -20,5 +20,11 @@ import { ConversationService } from './conversation.service';
       useClass: ConversationService,
     },
   ],
+  exports: [
+    {
+      provide: Services.CONVERSATIONS,
+      useClass: ConversationService,
+    },
+  ],
 })
 export class ConversationModule {}
