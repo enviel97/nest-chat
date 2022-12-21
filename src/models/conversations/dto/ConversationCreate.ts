@@ -1,9 +1,9 @@
-import { IsMongoId, IsNotEmpty, IsString, ValidateIf } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, ValidateIf } from 'class-validator';
 
 export default class CreateConversationDTO {
-  @IsMongoId()
+  @IsEmail()
   @IsNotEmpty()
-  participantId: string;
+  emailParticipant: string;
 
   @IsString()
   @ValidateIf((object, value) => value !== undefined)

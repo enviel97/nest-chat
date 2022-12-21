@@ -8,8 +8,8 @@ const cvtToObjectId = (plainText: string) => {
   }
 };
 
-const getId = (object: Identity) => {
-  return (object?.id ?? object._id).toString();
+const getId = (object?: Identity) => {
+  return (object?.id ?? object?._id ?? '').toString();
 };
 
 export default { cvtToObjectId, getId };
