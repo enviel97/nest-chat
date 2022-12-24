@@ -44,26 +44,42 @@ export class MessagingGateway implements OnGatewayConnection {
     });
   }
 
-  private emitSocket(id: string, payload: IMessage) {
+  private emitSocket<T>(
+    id: string,
+    payload: T,
+    event: string,
+    option?: SocketEmitOptions,
+  ) {
     const socket: AuthenticationSocket = this.sessions.getSocketId(id);
     if (!socket) return;
-    socket.emit(Event.EVENT_NOTIFICATION_MESSAGE, payload);
+    if (!option?.isEmitWithCreator) {
+      socket.emit(event, payload);
+    } else {
+      const data = { ...payload, sender: socket.user };
+      socket.emit(event, data);
+    }
   }
 
   @OnEvent(Event.EVENT_MESSAGE_SENDING)
   handleNotificationMessageSending(payload: CreateMessageServices) {
     const { message, members } = payload;
     members.forEach((member) => {
-      this.emitSocket(member, message);
+      this.emitSocket<IMessage>(member, message, Event.EVENT_MESSAGE_CREATED);
     });
   }
 
-  //  event
-  @SubscribeMessage(Event.EVENT_CREATE_MESSAGE)
-  handleCreateMessage(@MessageBody() data: any) {
-    console.log('Create Message');
+  @OnEvent(Event.EVENT_CONVERSATION_SENDING)
+  handleNotificationConversationCreated(payload: Conversation) {
+    const { participant } = payload;
+    this.emitSocket<Conversation>(
+      string.getId(participant),
+      payload,
+      Event.EVENT_CONVERSATION_CREATED,
+      { isEmitWithCreator: true },
+    );
   }
 
+  // //  event
   @SubscribeMessage(Event.EVENT_USER_TYPING)
   handleUserTyping(@MessageBody() data: UserTypeMessaged) {
     console.log('Someone typing');

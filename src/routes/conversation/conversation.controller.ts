@@ -9,8 +9,9 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Response } from 'express';
-import { Routes, Services } from 'src/common/define';
+import { Event, Routes, Services } from 'src/common/define';
 import { CreateConversationDTO } from 'src/models/conversations';
 import { AuthUser } from 'src/utils/decorates';
 import string from 'src/utils/string';
@@ -24,6 +25,8 @@ export class ConversationController {
     private readonly messagesService: IMessengerService,
     @Inject(Services.CONVERSATIONS)
     private readonly conversationsService: IConversationsService,
+
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @Post()
@@ -45,11 +48,13 @@ export class ConversationController {
       });
       lastMessage = newMessage.message;
     }
+    const data = { ...result, lastMessage: lastMessage ?? result.lastMessage };
+    this.eventEmitter.emit(Event.EVENT_CONVERSATION_SENDING, data);
 
     return res.json({
       code: HttpStatus.OK,
       message: 'Create successfully',
-      data: { ...result, lastMessage: lastMessage ?? result.lastMessage },
+      data,
     });
   }
 

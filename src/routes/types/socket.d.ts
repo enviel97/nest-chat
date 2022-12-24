@@ -9,3 +9,7 @@ interface UserTypeMessaged {
   conversationId: string;
   userId: string;
 }
+
+interface SocketEmitOptions {
+  isEmitWithCreator?: boolean;
+}
