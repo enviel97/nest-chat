@@ -55,18 +55,19 @@ export class ConversationService implements IConversationsService {
             participant: participant,
           };
         }
-
-        return await channel.populate([
-          { path: 'participant', select: 'firstName lastName email' },
-          {
-            path: 'lastMessage',
-            select: 'content author _id createdAt',
-            populate: {
-              path: 'author',
-              select: 'firstName lastName email _id',
+        return (
+          await channel.populate([
+            { path: 'participant', select: 'firstName lastName email' },
+            {
+              path: 'lastMessage',
+              select: 'content author _id createdAt',
+              populate: {
+                path: 'author',
+                select: 'firstName lastName email _id',
+              },
             },
-          },
-        ]);
+          ])
+        ).toObject();
       });
   }
 

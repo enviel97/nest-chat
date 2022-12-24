@@ -1,5 +1,6 @@
 import { OnEvent } from '@nestjs/event-emitter';
 import {
+  ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
   SubscribeMessage,
@@ -36,6 +37,7 @@ export class MessagingGateway implements OnGatewayConnection {
     console.log(
       `>>>>>>>>> User >>> name: ${client.user.firstName} ${client.user.lastName}`,
     );
+
     client.emit(Event.EVENT_SOCKET_CONNECTED, {
       status: CONNECTED_STATUS.GOOD,
       client: client.id,
@@ -45,10 +47,10 @@ export class MessagingGateway implements OnGatewayConnection {
   private emitSocket(id: string, payload: IMessage) {
     const socket: AuthenticationSocket = this.sessions.getSocketId(id);
     if (!socket) return;
-    socket.emit(Event.EMIT_NOTIFICATION_MESSAGE, payload);
+    socket.emit(Event.EVENT_NOTIFICATION_MESSAGE, payload);
   }
 
-  @OnEvent(Event.EMIT_MESSAGE_SENDING)
+  @OnEvent(Event.EVENT_MESSAGE_SENDING)
   handleNotificationMessageSending(payload: CreateMessageServices) {
     const { message, members } = payload;
     members.forEach((member) => {
@@ -62,8 +64,16 @@ export class MessagingGateway implements OnGatewayConnection {
     console.log('Create Message');
   }
 
-  @SubscribeMessage(Event.EMIT_USER_TYPING)
+  @SubscribeMessage(Event.EVENT_USER_TYPING)
   handleUserTyping(@MessageBody() data: UserTypeMessaged) {
+    console.log('Someone typing');
+  }
+
+  @SubscribeMessage(Event.EVENT_CONNECT_ROOM_CONVERSATION)
+  handleUserConnectConversation(
+    @MessageBody() data: UserTypeMessaged,
+    @ConnectedSocket() client: AuthenticationSocket,
+  ) {
     console.log('Someone typing');
   }
 }

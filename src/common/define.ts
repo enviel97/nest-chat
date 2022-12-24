@@ -19,11 +19,10 @@ export const ModelName = Object.freeze({
 });
 
 export const Event = Object.freeze({
-  EMIT_MESSAGE_SENDING: 'message.create',
-  EMIT_NOTIFICATION_MESSAGE: 'message.notification',
-  EMIT_USER_TYPING: 'onUserTyping',
-
-  // Event name
+  EVENT_MESSAGE_SENDING: 'message.create',
+  EVENT_NOTIFICATION_MESSAGE: 'message.notification',
+  EVENT_USER_TYPING: 'onUserTyping',
+  EVENT_CONNECT_ROOM_CONVERSATION: 'onConnectRoomConversation',
   EVENT_CREATE_MESSAGE: 'createMessage',
   EVENT_SOCKET_CONNECTED: 'connected',
 });

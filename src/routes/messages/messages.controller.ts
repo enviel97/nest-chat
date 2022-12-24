@@ -37,7 +37,7 @@ export class MessagesController {
       ...createMessageDTO,
     });
 
-    this.eventEmitter.emit(Event.EMIT_MESSAGE_SENDING, newMessage);
+    this.eventEmitter.emit(Event.EVENT_MESSAGE_SENDING, newMessage);
 
     return {
       code: 200,

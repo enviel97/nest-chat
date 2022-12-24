@@ -8,8 +8,10 @@ const cvtToObjectId = (plainText: string) => {
   }
 };
 
-const getId = (object?: Identity) => {
-  return (object?.id ?? object?._id ?? '').toString();
+const getId = (object?: any) => {
+  if (!object?.id && !object?._id)
+    throw new Error('Object is empty or not have id');
+  return (object?.id ?? object?._id).toString();
 };
 
 export default { cvtToObjectId, getId };

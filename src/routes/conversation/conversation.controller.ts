@@ -38,11 +38,12 @@ export class ConversationController {
     });
     let lastMessage = undefined;
     if (conversation.message) {
-      lastMessage = await this.messagesService.createMessage({
-        conversationId: result.id ?? result._id,
+      const newMessage = await this.messagesService.createMessage({
+        conversationId: string.getId(result),
         author: string.getId(author),
         content: conversation.message,
       });
+      lastMessage = newMessage.message;
     }
 
     return res.json({
