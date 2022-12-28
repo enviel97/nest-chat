@@ -24,7 +24,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     );
     return response.status(status).json({
       code: status,
-      message: exception.message,
+      message: exception.message.includes('/api/')
+        ? 'Bad request'
+        : exception.message,
     });
   }
 }

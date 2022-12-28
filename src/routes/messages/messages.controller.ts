@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Inject,
@@ -11,8 +12,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { IsMongoId } from 'class-validator';
 import { Response } from 'express';
 import { Event, Routes, Services } from 'src/common/define';
+import { ParseObjectIdPipe } from 'src/middleware/parse/mongoDb';
 import { CreateMessageDTO } from 'src/models/messages';
 
 import { AuthUser } from 'src/utils/decorates';
@@ -29,11 +32,13 @@ export class MessagesController {
 
   @Post()
   async createMessage(
+    @Param('conversationId', ParseObjectIdPipe) conversationId: string,
     @AuthUser() user: IUser,
     @Body() createMessageDTO: CreateMessageDTO,
   ) {
     const newMessage = await this.messageService.createMessage({
       author: user.id ?? user._id,
+      conversationId,
       ...createMessageDTO,
     });
 
@@ -46,14 +51,14 @@ export class MessagesController {
     };
   }
 
-  @Get(':id')
-  async getConversation(
-    @Param('id') params: string,
+  @Get()
+  async getMessagesByConversationId(
+    @Param('conversationId') conversationId: string,
     @Query('limit') limit: number | undefined,
     @Query('bucket') bucket: number | undefined,
     @Res() res: Response,
   ) {
-    const data = await this.messageService.getMessages(params, {
+    const data = await this.messageService.getMessages(conversationId, {
       limit: limit ?? 20,
       bucket: bucket ?? 1,
     });
@@ -63,4 +68,10 @@ export class MessagesController {
       data: data,
     });
   }
+
+  @Delete(':id')
+  async deleteMessage(
+    @AuthUser() user: User,
+    @Param('id') conversationId: string,
+  ) {}
 }

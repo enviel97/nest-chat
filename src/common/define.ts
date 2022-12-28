@@ -1,7 +1,7 @@
 export const Routes = Object.freeze({
   AUTH: 'auth',
   CONVERSATIONS: 'conversations',
-  MESSAGES: 'messages',
+  MESSAGES: 'conversations/:conversationId/messages',
 });
 
 export const Services = Object.freeze({

@@ -1,9 +1,9 @@
-import { IsMongoId, IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 class CreateMessagesDTO {
-  @IsNotEmpty()
-  @IsMongoId()
-  conversationId: string;
+  // @IsNotEmpty()
+  // @IsMongoId()
+  // conversationId: string;
 
   @IsNotEmpty()
   @IsString()

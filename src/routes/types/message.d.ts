@@ -11,4 +11,11 @@ interface IMessengerService {
     conversationId: string,
     option: PaginationOption,
   ): Promise<Pagination<IMessage>>;
+  deleteMessage(
+    conversationId: string,
+    messageId: string,
+
+    // who delete message
+    userId: string,
+  ): Promise<IMessage>;
 }

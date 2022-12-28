@@ -54,36 +54,42 @@ export class MessagesService implements IMessengerService {
       data: data.splice(Math.max(bucket - 1, 0), limit) as IMessage[],
     };
   }
+
   async createMessage(
     params: MessageCreateParams,
   ): Promise<CreateMessageServices> {
-    try {
-      const members = new Set<string>();
-      const { conversationId, content, author } = params;
-      const conversation = await this.getConversationByID(conversationId);
-      this.validConversation(conversation, params.author);
+    const members = new Set<string>();
+    const { conversationId, content, author } = params;
+    const conversation = await this.getConversationByID(conversationId);
+    this.validConversation(conversation, params.author);
 
-      const message = await this.messageModel.create({
-        conversationId: conversationId,
-        content: content,
-        author: author,
-      });
+    const message = await this.messageModel.create({
+      conversationId: conversationId,
+      content: content,
+      author: author,
+    });
 
-      conversation.lastMessage = string.getId(message);
-      const [_, messageFull] = await Promise.all([
-        conversation.save(),
-        message.populate('author', 'firstName lastName email'),
-      ]);
+    conversation.lastMessage = string.getId(message);
+    const [_, messageFull] = await Promise.all([
+      conversation.save(),
+      message.populate('author', 'firstName lastName email'),
+    ]);
 
-      return {
-        message: messageFull.toObject(),
-        members: members
-          .add(author)
-          .add(conversation.author.toString())
-          .add(conversation.participant.toString()),
-      };
-    } catch (exception) {
-      throw exception;
-    }
+    return {
+      message: messageFull.toObject(),
+      members: members
+        .add(author)
+        .add(conversation.author.toString())
+        .add(conversation.participant.toString()),
+    };
+  }
+
+  async deleteMessage(
+    conversationId: string,
+    messageId: string,
+    userId: string,
+  ): Promise<IMessage> {
+    const conversation = await this.getConversationByID(conversationId);
+    throw new Error('Un imlement');
   }
 }
