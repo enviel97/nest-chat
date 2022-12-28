@@ -1,4 +1,4 @@
-interface CreateMessageServices {
+interface ResponseMessage {
   message: IMessage;
   members: Set<string>;
 }
@@ -6,16 +6,10 @@ interface CreateMessageServices {
 interface IMessengerService {
   createMessage(
     messengerCreateParams: MessageCreateParams,
-  ): Promise<CreateMessageServices>;
+  ): Promise<ResponseMessage>;
   getMessages(
     conversationId: string,
     option: PaginationOption,
   ): Promise<Pagination<IMessage>>;
-  deleteMessage(
-    conversationId: string,
-    messageId: string,
-
-    // who delete message
-    userId: string,
-  ): Promise<IMessage>;
+  deleteMessage(params: MessageDeleteParams): Promise<ResponseMessage>;
 }

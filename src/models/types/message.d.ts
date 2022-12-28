@@ -6,6 +6,11 @@ interface MessageCreateParams {
   // // TODO: Base 64
   // attachment?: string;
 }
+interface MessageDeleteParams {
+  userId: string;
+  conversationId: string;
+  messageId: string;
+}
 
 interface MessageDetail {
   conversationId: string;

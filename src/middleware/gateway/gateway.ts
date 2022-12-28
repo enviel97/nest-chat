@@ -61,7 +61,7 @@ export class MessagingGateway implements OnGatewayConnection {
   }
 
   @OnEvent(Event.EVENT_MESSAGE_SENDING)
-  handleNotificationMessageSending(payload: CreateMessageServices) {
+  handleNotificationMessageSending(payload: ResponseMessage) {
     const { message, members } = payload;
     members.forEach((member) => {
       this.emitSocket<IMessage>(member, message, Event.EVENT_MESSAGE_CREATED);

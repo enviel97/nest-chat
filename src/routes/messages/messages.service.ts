@@ -55,9 +55,7 @@ export class MessagesService implements IMessengerService {
     };
   }
 
-  async createMessage(
-    params: MessageCreateParams,
-  ): Promise<CreateMessageServices> {
+  async createMessage(params: MessageCreateParams): Promise<ResponseMessage> {
     const members = new Set<string>();
     const { conversationId, content, author } = params;
     const conversation = await this.getConversationByID(conversationId);
@@ -84,12 +82,32 @@ export class MessagesService implements IMessengerService {
     };
   }
 
-  async deleteMessage(
-    conversationId: string,
-    messageId: string,
-    userId: string,
-  ): Promise<IMessage> {
+  async deleteMessage(params: MessageDeleteParams): Promise<ResponseMessage> {
+    const members = new Set<string>();
+    const { conversationId, userId, messageId } = params;
     const conversation = await this.getConversationByID(conversationId);
-    throw new Error('Un imlement');
+    const message = await this.messageModel.findByIdAndDelete(messageId);
+
+    if (!message) throw new BadRequestException('Message not found');
+
+    if (conversation.lastMessage === messageId) {
+      const messages = await this.messageModel
+        .find({ conversationId })
+        .sort({ createdAt: 'desc' })
+        .limit(1)
+        .lean();
+
+      conversation.lastMessage =
+        messages.length !== 0 ? string.getId(messages[0]) : undefined;
+      await conversation.save();
+    }
+
+    return {
+      message: message?.toObject(),
+      members: members
+        .add(userId)
+        .add(conversation.participant.toString())
+        .add(conversation.author.toString()),
+    };
   }
 }

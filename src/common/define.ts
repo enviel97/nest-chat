@@ -20,6 +20,8 @@ export const ModelName = Object.freeze({
 
 export const Event = Object.freeze({
   EVENT_MESSAGE_SENDING: 'message.create',
+  EVENT_MESSAGE_DELETE: 'message.delete',
+
   EVENT_CONVERSATION_SENDING: 'conversation.create',
 
   // event listen

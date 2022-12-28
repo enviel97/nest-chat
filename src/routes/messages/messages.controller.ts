@@ -19,6 +19,7 @@ import { ParseObjectIdPipe } from 'src/middleware/parse/mongoDb';
 import { CreateMessageDTO } from 'src/models/messages';
 
 import { AuthUser } from 'src/utils/decorates';
+import string from 'src/utils/string';
 import { AuthenticateGuard } from '../auth/utils/Guards';
 
 @Controller(Routes.MESSAGES)
@@ -72,6 +73,20 @@ export class MessagesController {
   @Delete(':id')
   async deleteMessage(
     @AuthUser() user: User,
-    @Param('id') conversationId: string,
-  ) {}
+    @Param('conversationId', ParseObjectIdPipe) conversationId: string,
+    @Param('id', ParseObjectIdPipe) messageId: string,
+    @Res() res: Response,
+  ) {
+    const result = await this.messageService.deleteMessage({
+      userId: string.getId(user),
+      conversationId,
+      messageId,
+    });
+
+    return res.json({
+      code: HttpStatus.OK,
+      message: 'Delete message successfully',
+      data: result.message,
+    });
+  }
 }
