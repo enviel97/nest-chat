@@ -83,6 +83,12 @@ export class MessagesController {
       messageId,
     });
 
+    this.eventEmitter.emit(Event.EVENT_MESSAGE_DELETE, {
+      members: result.members,
+      message: result.message,
+      lastMessage: result.lastMessage,
+    });
+
     return res.json({
       code: HttpStatus.OK,
       message: 'Delete message successfully',

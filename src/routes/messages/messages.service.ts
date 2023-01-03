@@ -82,13 +82,16 @@ export class MessagesService implements IMessengerService {
     };
   }
 
-  async deleteMessage(params: MessageDeleteParams): Promise<ResponseMessage> {
+  async deleteMessage(
+    params: MessageDeleteParams,
+  ): Promise<ResponseDeleteMessage> {
     const members = new Set<string>();
     const { conversationId, userId, messageId } = params;
     const conversation = await this.getConversationByID(conversationId);
     const message = await this.messageModel.findByIdAndDelete(messageId);
 
     if (!message) throw new BadRequestException('Message not found');
+    let lastMessage: IMessage;
 
     if (conversation.lastMessage === messageId) {
       const messages = await this.messageModel
@@ -96,14 +99,15 @@ export class MessagesService implements IMessengerService {
         .sort({ createdAt: 'desc' })
         .limit(1)
         .lean();
-
       conversation.lastMessage =
         messages.length !== 0 ? string.getId(messages[0]) : undefined;
+      lastMessage = messages.length !== 0 ? <IMessage>messages[0] : undefined;
       await conversation.save();
     }
 
     return {
       message: message?.toObject(),
+      lastMessage: lastMessage,
       members: members
         .add(userId)
         .add(conversation.participant.toString())

@@ -79,17 +79,31 @@ export class MessagingGateway implements OnGatewayConnection {
     );
   }
 
-  // //  event
+  @OnEvent(Event.EVENT_MESSAGE_DELETE)
+  handleNotificationMessageDelete(payload: ResponseDeleteMessage) {
+    const { members, lastMessage, message } = payload;
+    members.forEach((member) => {
+      this.emitSocket(
+        member,
+        {
+          lastMessage: lastMessage,
+          messageId: string.getId(message),
+          conversationId: message.conversationId,
+        },
+        Event.EVENT_MESSAGE_REMOVE,
+      );
+    });
+  }
+
+  //  Subscribe
   @SubscribeMessage(Event.EVENT_USER_TYPING)
   handleUserTyping(@MessageBody() data: UserTypeMessaged) {
-    console.log('Someone typing');
+    // console.log('Someone typing');
   }
 
   @SubscribeMessage(Event.EVENT_CONNECT_ROOM_CONVERSATION)
   handleUserConnectConversation(
     @MessageBody() data: UserTypeMessaged,
     @ConnectedSocket() client: AuthenticationSocket,
-  ) {
-    console.log('Someone typing');
-  }
+  ) {}
 }
