@@ -92,7 +92,11 @@ export class MessagesController {
     return res.json({
       code: HttpStatus.OK,
       message: 'Delete message successfully',
-      data: result.message,
+      data: {
+        conversationId: result.message.conversationId,
+        messageId: string.getId(result.message),
+        lastMessage: result.lastMessage,
+      },
     });
   }
 }

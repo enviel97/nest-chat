@@ -9,9 +9,9 @@ const cvtToObjectId = (plainText: string) => {
 };
 
 const getId = (object?: any) => {
+  if (typeof object === 'string') return object;
   if (!object?.id && !object?._id)
     throw new Error('Object is empty or not have id');
-  if (typeof object === 'string') return object;
   return (object?.id ?? object?._id).toString();
 };
 
