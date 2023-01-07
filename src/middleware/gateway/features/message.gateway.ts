@@ -23,18 +23,10 @@ export class MessagingGateway {
   @WebSocketServer()
   server: Server;
 
-  private emitSocket<T>(
-    id: string,
-    payload: T,
-    event: string,
-    option?: SocketEmitOptions,
-  ) {
+  private emitSocket<T>(id: string, payload: T, event: string) {
     const socket: AuthenticationSocket = this.sessions.getSocketId(id);
     if (!socket) return;
-    return socket.emit(event, {
-      ...payload,
-      ...(!option?.isEmitWithCreator && { sender: socket.user }),
-    });
+    return socket.emit(event, payload);
   }
 
   @OnEvent(Event.EVENT_MESSAGE_SENDING)

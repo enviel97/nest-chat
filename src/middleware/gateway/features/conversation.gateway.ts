@@ -33,7 +33,7 @@ export class ConversationGateway {
     if (!socket) return;
     return socket.emit(event, {
       ...payload,
-      ...(!option?.isEmitWithCreator && socket.user),
+      ...(!option?.isEmitWithCreator && { sender: socket.user }),
     });
   }
 
