@@ -33,7 +33,7 @@ export class MessagingGateway {
     if (!socket) return;
     return socket.emit(event, {
       ...payload,
-      ...(!option?.isEmitWithCreator && socket.user),
+      ...(!option?.isEmitWithCreator && { sender: socket.user }),
     });
   }
 
@@ -66,7 +66,7 @@ export class MessagingGateway {
   }
 
   //  Subscribe
-  @SubscribeMessage(Event.EVENT_USER_TYPING)
+  @SubscribeMessage(Event.EVENT_USER_TYPING_START)
   handleUserTyping(
     @MessageBody() data: UserTypeMessaged,
     @ConnectedSocket() client: AuthenticationSocket,
@@ -79,6 +79,23 @@ export class MessagingGateway {
       .emit(Event.EVENT_USER_TYPED, {
         userId: string.getId(client.user),
         message: `${client.user.firstName} typings`,
+      });
+  }
+
+  //  Subscribe
+  @SubscribeMessage(Event.EVENT_USER_TYPING_STOP)
+  handleUserStopTyping(
+    @MessageBody() data: UserTypeMessaged,
+    @ConnectedSocket() client: AuthenticationSocket,
+  ) {
+    console.log(
+      `>>> ${client.user.firstName} stop typing in conversation-${data.conversationId}`,
+    );
+    client
+      .to(`conversation-${data.conversationId}`)
+      .emit(Event.EVENT_USER_TYPED, {
+        userId: string.getId(client.user),
+        message: '',
       });
   }
 }

@@ -25,8 +25,9 @@ export const Event = Object.freeze({
   EVENT_CONVERSATION_SENDING: 'conversation.create',
 
   // event listen
-  EVENT_USER_TYPING: 'onUserTyping',
-  EVENT_USER_TYPED: 'onUserTyped',
+  EVENT_USER_TYPING_START: 'onUserTypingStart',
+  EVENT_USER_TYPING_STOP: 'onUserTypingStop',
+  EVENT_USER_TYPED: 'onUserTyping',
 
   EVENT_CONNECT_ROOM_CONVERSATION: 'onConnectRoomConversation',
   EVENT_LEAVE_ROOM_CONVERSATION: 'onLeaveRoomConversation',
