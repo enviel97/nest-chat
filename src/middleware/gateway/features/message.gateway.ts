@@ -23,28 +23,26 @@ export class MessagingGateway {
   @WebSocketServer()
   server: Server;
 
-  private emitSocket<T>(id: string, payload: T, event: string) {
-    const socket: AuthenticationSocket = this.sessions.getSocketId(id);
-    if (!socket) return;
-    return socket.emit(event, payload);
-  }
-
   @OnEvent(Event.EVENT_MESSAGE_SENDING)
-  handleNotificationMessageSending(payload: ResponseMessage) {
+  handleNotificationMessageSend(payload: ResponseMessage) {
     const { message, members } = payload;
     members.forEach((member) => {
       if (member !== string.getId(message.author)) {
-        this.emitSocket<IMessage>(member, message, Event.EVENT_MESSAGE_CREATED);
+        this.sessions.emitSocket<IMessage>(
+          member,
+          message,
+          Event.EVENT_MESSAGE_CREATED,
+        );
       }
     });
   }
 
   @OnEvent(Event.EVENT_MESSAGE_DELETE)
-  handleNotificationMessageDelete(payload: ResponseDeleteMessage) {
+  handleNotificationMessageDelete(payload: ResponseMessageWithLastMessage) {
     const { members, lastMessage, message } = payload;
     members.forEach((member) => {
       if (member !== string.getId(message.author)) {
-        this.emitSocket(
+        this.sessions.emitSocket(
           member,
           {
             lastMessage: lastMessage,
@@ -52,6 +50,25 @@ export class MessagingGateway {
             conversationId: message.conversationId,
           },
           Event.EVENT_MESSAGE_REMOVE,
+        );
+      }
+    });
+  }
+
+  @OnEvent(Event.EVENT_MESSAGE_UPDATE)
+  handleNotificationMessageEdited(payload: ResponseMessageWithLastMessage) {
+    const { members, lastMessage, message } = payload;
+    members.forEach((member) => {
+      if (member !== string.getId(message.author)) {
+        this.sessions.emitSocket(
+          member,
+          {
+            lastMessage: lastMessage,
+            messageId: string.getId(message),
+            content: message.content,
+            conversationId: message.conversationId,
+          },
+          Event.EVENT_MESSAGE_EDITED,
         );
       }
     });

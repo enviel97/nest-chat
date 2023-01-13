@@ -9,6 +9,20 @@ export interface AuthenticationSocket extends Socket {
 export class GatewaySessionManager implements IGatewaySession {
   private readonly sessions: Map<string, AuthenticationSocket> = new Map();
 
+  emitSocket<T>(
+    id: string,
+    payload: T,
+    event: string,
+    option?: SocketEmitOptions,
+  ) {
+    const socket: AuthenticationSocket = this.getSocketId(id);
+    if (!socket) return;
+    return socket.emit(event, {
+      ...payload,
+      ...(!option?.isEmitWithCreator && { sender: socket.user }),
+    });
+  }
+
   getSocketId(id: string): AuthenticationSocket | undefined {
     return this.sessions.get(id);
   }

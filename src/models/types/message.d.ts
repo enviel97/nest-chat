@@ -11,7 +11,12 @@ interface MessageDeleteParams {
   conversationId: string;
   messageId: string;
 }
-
+interface MessageEditParams {
+  userId: string;
+  conversationId: string;
+  messageId: string;
+  content: string;
+}
 interface MessageDetail {
   conversationId: string;
   content: string;

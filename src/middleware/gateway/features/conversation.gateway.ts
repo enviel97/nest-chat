@@ -23,24 +23,10 @@ export class ConversationGateway {
   @WebSocketServer()
   server: Server;
 
-  private emitSocket<T>(
-    id: string,
-    payload: T,
-    event: string,
-    option?: SocketEmitOptions,
-  ) {
-    const socket: AuthenticationSocket = this.sessions.getSocketId(id);
-    if (!socket) return;
-    return socket.emit(event, {
-      ...payload,
-      ...(!option?.isEmitWithCreator && { sender: socket.user }),
-    });
-  }
-
   @OnEvent(Event.EVENT_CONVERSATION_SENDING)
   handleNotificationConversationCreated(payload: Conversation) {
     const { participant } = payload;
-    this.emitSocket<Conversation>(
+    this.sessions.emitSocket<Conversation>(
       string.getId(participant),
       payload,
       Event.EVENT_CONVERSATION_CREATED,

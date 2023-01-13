@@ -7,6 +7,7 @@ import {
   Inject,
   Param,
   Post,
+  Put,
   Query,
   Res,
   UseGuards,
@@ -17,6 +18,7 @@ import { Response } from 'express';
 import { Event, Routes, Services } from 'src/common/define';
 import { ParseObjectIdPipe } from 'src/middleware/parse/mongoDb';
 import { CreateMessageDTO } from 'src/models/messages';
+import EditContentMessageDTO from 'src/models/messages/dto/EditContentMessageDTO';
 
 import { AuthUser } from 'src/utils/decorates';
 import string from 'src/utils/string';
@@ -96,6 +98,39 @@ export class MessagesController {
         conversationId: result.message.conversationId,
         messageId: string.getId(result.message),
         lastMessage: result.lastMessage,
+      },
+    });
+  }
+
+  @Put(':id')
+  async editMessage(
+    @AuthUser() user: User,
+    @Param('conversationId', ParseObjectIdPipe) conversationId: string,
+    @Param('id', ParseObjectIdPipe) messageId: string,
+    @Body() editMessageDTO: EditContentMessageDTO,
+    @Res() res: Response,
+  ) {
+    const result = await this.messageService.editContentMessage({
+      userId: string.getId(user),
+      content: editMessageDTO.content,
+      conversationId,
+      messageId,
+    });
+
+    this.eventEmitter.emit(Event.EVENT_MESSAGE_UPDATE, {
+      members: result.members,
+      message: result.message,
+      lastMessage: result.lastMessage,
+    });
+
+    return res.json({
+      code: HttpStatus.OK,
+      message: 'Delete message successfully',
+      data: {
+        conversationId: result.message.conversationId,
+        messageId: string.getId(result.message),
+        lastMessage: result.lastMessage,
+        content: result.message.content,
       },
     });
   }

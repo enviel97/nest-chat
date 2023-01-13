@@ -3,7 +3,7 @@ interface ResponseMessage {
   members: Set<string>;
 }
 
-interface ResponseDeleteMessage extends ResponseMessage {
+interface ResponseMessageWithLastMessage extends ResponseMessage {
   lastMessage?: IMessage;
 }
 
@@ -22,5 +22,10 @@ interface IMessengerService {
     conversationId: string,
     option: PaginationOption,
   ): Promise<Pagination<IMessage>>;
-  deleteMessage(params: MessageDeleteParams): Promise<ResponseDeleteMessage>;
+  deleteMessage(
+    params: MessageDeleteParams,
+  ): Promise<ResponseMessageWithLastMessage>;
+  editContentMessage(
+    params: MessageEditParams,
+  ): Promise<ResponseMessageWithLastMessage>;
 }
