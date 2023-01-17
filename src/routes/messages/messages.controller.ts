@@ -56,7 +56,7 @@ export class MessagesController {
 
   @Get()
   async getMessagesByConversationId(
-    @Param('conversationId') conversationId: string,
+    @Param('conversationId', ParseObjectIdPipe) conversationId: string,
     @Query('limit') limit: number | undefined,
     @Query('bucket') bucket: number | undefined,
     @Res() res: Response,
