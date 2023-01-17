@@ -1,9 +1,9 @@
 import { IsEmail, IsNotEmpty, IsString, ValidateIf } from 'class-validator';
 
 export default class CreateConversationDTO {
-  @IsEmail()
+  @IsEmail(undefined, { each: true })
   @IsNotEmpty()
-  emailParticipant: string;
+  emailParticipant: string[];
 
   @IsString()
   @ValidateIf((object, value) => value !== undefined)

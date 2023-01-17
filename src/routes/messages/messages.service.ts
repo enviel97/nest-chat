@@ -29,7 +29,9 @@ export class MessagesService implements IMessengerService {
   }
 
   private async getConversationByID(conversationId: string) {
-    const conversation = await this.conversationModel.findById(conversationId);
+    const conversation = await this.conversationModel
+      .findById(conversationId)
+      .populate('participant');
 
     if (!conversation) throw new BadRequestException('Conversation not found');
 
@@ -91,6 +93,7 @@ export class MessagesService implements IMessengerService {
     const message = await this.messageModel.findByIdAndDelete(messageId);
 
     if (!message) throw new BadRequestException('Message not found');
+
     let lastMessage: IMessage = null;
 
     if (conversation.lastMessage === messageId) {
@@ -105,13 +108,14 @@ export class MessagesService implements IMessengerService {
       await conversation.save();
     }
 
+    (<Participant<User>>conversation.participant).members.forEach((member) =>
+      members.add(string.getId(member)),
+    );
+
     return {
       message: message?.toObject(),
       lastMessage: lastMessage,
-      members: members
-        .add(userId)
-        .add(conversation.participant.toString())
-        .add(conversation.author.toString()),
+      members: members.add(userId).add(conversation.author.toString()),
     };
   }
 
@@ -134,13 +138,14 @@ export class MessagesService implements IMessengerService {
       lastMessage = <IMessage>message;
     }
 
+    (<Participant<User>>conversation.participant).members.forEach((member) =>
+      members.add(string.getId(member)),
+    );
+
     return {
       message: message?.toObject(),
       lastMessage: lastMessage,
-      members: members
-        .add(userId)
-        .add(conversation.participant.toString())
-        .add(conversation.author.toString()),
+      members: members.add(userId).add(conversation.author.toString()),
     };
   }
 }

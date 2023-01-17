@@ -26,12 +26,14 @@ export class ConversationGateway {
   @OnEvent(Event.EVENT_CONVERSATION_SENDING)
   handleNotificationConversationCreated(payload: Conversation) {
     const { participant } = payload;
-    this.sessions.emitSocket<Conversation>(
-      string.getId(participant),
-      payload,
-      Event.EVENT_CONVERSATION_CREATED,
-      { isEmitWithCreator: true },
-    );
+    (participant as Participant<User>).members.forEach((user) => {
+      this.sessions.emitSocket<Conversation>(
+        string.getId(user),
+        payload,
+        Event.EVENT_CONVERSATION_CREATED,
+        { isEmitWithCreator: true },
+      );
+    });
   }
 
   @SubscribeMessage(Event.EVENT_CONNECT_ROOM_CONVERSATION)

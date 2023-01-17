@@ -14,3 +14,8 @@ interface PaginationOption {
   bucket: number | 1;
   limit: number | 20;
 }
+
+interface Entity<T> {
+  ids: string[];
+  entities: T[];
+}

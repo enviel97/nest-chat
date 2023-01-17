@@ -16,6 +16,7 @@ export const ModelName = Object.freeze({
   User: 'users',
   Conversation: 'conversations',
   Message: 'messages',
+  Participant: 'participants',
 });
 
 export const Event = Object.freeze({

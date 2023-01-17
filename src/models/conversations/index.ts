@@ -6,7 +6,7 @@ export type ConversationDocument = Model<HydratedDocument<Conversation>>;
 const ConversationSchema = new Schema<Conversation>(
   {
     author: { type: String, ref: ModelName.User, index: 1 },
-    participant: { type: String, ref: ModelName.User, index: 1 },
+    participant: { type: String, ref: ModelName.Participant, index: 1 },
     lastMessage: { type: String, ref: ModelName.Message },
   },
   { timestamps: true },

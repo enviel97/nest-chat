@@ -1,14 +1,19 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ModelName, Services } from 'src/common/define';
+import { ModelName } from 'src/common/define';
 import { ConversationDocument } from 'src/models/conversations';
+import { ParticipantDocument } from 'src/models/participants';
+import { UserDocument } from 'src/models/users';
+import { mapToEntities } from 'src/utils/map';
 import string from 'src/utils/string';
 
 @Injectable()
 export class ConversationService implements IConversationsService {
   constructor(
-    @Inject(Services.USERS)
-    private readonly userService: IUserService,
+    @InjectModel(ModelName.User)
+    private readonly userModel: UserDocument,
+    @InjectModel(ModelName.Participant)
+    private readonly participantModel: ParticipantDocument,
     @InjectModel(ModelName.Conversation)
     private readonly conversationModel: ConversationDocument,
   ) {}
@@ -24,51 +29,89 @@ export class ConversationService implements IConversationsService {
     email: 'user@unknown',
   };
 
-  async createConversation(conversation: ConversationCreateParams) {
-    if (!conversation.authorId) {
+  private async getParticipant(
+    participants: string[],
+  ): Promise<{ participant: Participant<User>; isNew: boolean }> {
+    const users = await this.userModel.find({ email: { $in: participants } });
+    if (users.length === 0 || users.length !== participants.length) {
+      throw new BadRequestException('Users not found');
+    }
+    const entity = mapToEntities(users);
+    const participant = await this.participantModel
+      .findOne({
+        members: { $all: entity.ids },
+      })
+      .populate('members', 'firstName lastName email');
+
+    if (!participant) {
+      const participant = await this.participantModel.create({
+        members: entity.ids,
+        roles: entity.ids.reduce((acc, obj) => {
+          acc[string.getId(obj)] = 'Member';
+          return acc;
+        }, {}),
+      });
+      return {
+        participant: {
+          ...participant.toObject(),
+          members: users,
+        },
+        isNew: true,
+      };
+    }
+
+    return {
+      participant: <Participant<User>>participant,
+      isNew: false,
+    };
+  }
+
+  async createConversation(conversationDTO: ConversationCreateParams) {
+    if (!conversationDTO.authorId) {
       throw new BadRequestException();
     }
 
-    const participant = await this.userService.findUser({
-      email: conversation.emailParticipant,
-    });
+    const { participant, isNew } = await this.getParticipant(
+      conversationDTO.emailParticipant,
+    );
 
-    if (!participant) {
-      throw new BadRequestException('Participant not found');
+    console.log({ participant, isNew });
+    if (isNew) {
+      const model = new this.conversationModel({
+        author: conversationDTO.authorId,
+        participant: string.getId(participant),
+      });
+      const result = await model.save();
+      return {
+        ...result.toObject(),
+        participant: participant,
+      };
     }
 
-    return await this.conversationModel
+    const conversation = await this.conversationModel
       .findOne({
-        author: conversation.authorId,
+        author: conversationDTO.authorId,
         participant: string.getId(participant as any),
       })
-      .then(async (channel) => {
-        if (!channel) {
-          const model = new this.conversationModel({
-            author: conversation.authorId,
-            participant: participant.id,
-          });
-          const result = await model.save();
+      .populate([
+        {
+          path: 'participant',
+          populate: {
+            path: 'members',
+            select: '_id firstName lastName email',
+          },
+        },
+        {
+          path: 'lastMessage',
+          select: '_id content author createdAt',
+          populate: {
+            path: 'author',
+            select: '_id firstName lastName email ',
+          },
+        },
+      ]);
 
-          return {
-            ...(result.toObject() as IConversation),
-            participant: participant,
-          };
-        }
-        return (
-          await channel.populate([
-            { path: 'participant', select: 'firstName lastName email' },
-            {
-              path: 'lastMessage',
-              select: 'content author _id createdAt',
-              populate: {
-                path: 'author',
-                select: 'firstName lastName email _id',
-              },
-            },
-          ])
-        ).toObject();
-      });
+    return conversation;
   }
 
   async getConversations(authorId: string) {
@@ -90,7 +133,10 @@ export class ConversationService implements IConversationsService {
         },
         {
           path: 'participant',
-          select: 'firstName lastName email',
+          populate: {
+            path: 'members',
+            select: 'firstName lastName email',
+          },
         },
         {
           path: 'lastMessage',

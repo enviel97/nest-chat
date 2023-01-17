@@ -35,7 +35,7 @@ export class ConversationController {
     @Res() res: Response,
   ) {
     let result = await this.conversationsService.createConversation({
-      authorId: author.id ?? author._id,
+      authorId: string.getId(author),
       ...conversation,
     });
     let lastMessage = undefined;
@@ -47,7 +47,11 @@ export class ConversationController {
       });
       lastMessage = newMessage.message;
     }
-    const data = { ...result, lastMessage: lastMessage ?? result.lastMessage };
+    const data = {
+      ...result,
+      author: author,
+      lastMessage: lastMessage ?? result.lastMessage,
+    };
     this.eventEmitter.emit(Event.EVENT_CONVERSATION_SENDING, data);
 
     return res.json({
