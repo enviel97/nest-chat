@@ -75,7 +75,6 @@ export class ConversationService implements IConversationsService {
       conversationDTO.emailParticipant,
     );
 
-    console.log({ participant, isNew });
     if (isNew) {
       const model = new this.conversationModel({
         author: conversationDTO.authorId,
@@ -116,15 +115,17 @@ export class ConversationService implements IConversationsService {
 
   async getConversations(authorId: string) {
     if (!authorId) throw new BadRequestException();
+    const { ids } = mapToEntities(
+      await this.participantModel.find({
+        members: authorId,
+      }),
+    );
+
     return await this.conversationModel
       .find(
-        { $or: [{ author: authorId }, { participant: authorId }] },
+        { $or: [{ author: authorId }, { participant: { $in: ids } }] },
         {},
-        {
-          sort: {
-            updatedAt: -1,
-          },
-        },
+        { sort: { updatedAt: -1 } },
       )
       .populate([
         {
