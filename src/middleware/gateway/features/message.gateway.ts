@@ -81,13 +81,15 @@ export class MessagingGateway {
     @ConnectedSocket() client: AuthenticationSocket,
   ) {
     console.log(
-      `>>> ${client.user.firstName} typing in conversation-${data.conversationId}`,
+      `>>> ${string.getFullName(client.user)} typing in conversation-${
+        data.conversationId
+      }`,
     );
     client
       .to(`conversation-${data.conversationId}`)
       .emit(Event.EVENT_USER_TYPED, {
         userId: string.getId(client.user),
-        message: `${client.user.firstName} typings`,
+        message: `${string.getFullName(client.user)} typings`,
       });
   }
 
@@ -98,7 +100,9 @@ export class MessagingGateway {
     @ConnectedSocket() client: AuthenticationSocket,
   ) {
     console.log(
-      `>>> ${client.user.firstName} stop typing in conversation-${data.conversationId}`,
+      `>>> ${string.getFullName(client.user)} stop typing in conversation-${
+        data.conversationId
+      }`,
     );
     client
       .to(`conversation-${data.conversationId}`)

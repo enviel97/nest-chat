@@ -26,7 +26,7 @@ export class ConversationGateway {
   @OnEvent(Event.EVENT_CONVERSATION_SENDING)
   handleNotificationConversationCreated(payload: Conversation) {
     const { participant } = payload;
-    (participant as Participant<User>).members.forEach((user) => {
+    (<Participant<User>>participant).members.forEach((user) => {
       this.sessions.emitSocket<Conversation>(
         string.getId(user),
         payload,
@@ -42,14 +42,16 @@ export class ConversationGateway {
     @ConnectedSocket() client: AuthenticationSocket,
   ) {
     console.log(
-      `>>> ${client.user.firstName} join in conversation-${data.conversationId}`,
+      `>>> ${string.getFullName(client.user)} join in conversation-${
+        data.conversationId
+      }`,
     );
     const conversationId = data.conversationId;
     await client.join(`conversation-${conversationId}`);
     client
       .to(`conversation-${conversationId}`)
       .emit(Event.EVENT_CONNECTED_ROOM, {
-        message: `${client.user.firstName} join`,
+        message: `${string.getFullName(client.user)} join`,
       });
   }
 
@@ -59,12 +61,14 @@ export class ConversationGateway {
     @ConnectedSocket() client: AuthenticationSocket,
   ) {
     console.log(
-      `>>> ${client.user.firstName} leaving conversation-${data.conversationId}`,
+      `>>> ${string.getFullName(client.user)} leaving conversation-${
+        data.conversationId
+      }`,
     );
     const conversationId = data.conversationId;
     await client.leave(`conversation-${conversationId}`);
     client.to(`conversation-${conversationId}`).emit(Event.EVENT_LEAVED_ROOM, {
-      message: `${client.user.firstName} leaved`,
+      message: `${string.getFullName(client.user)} leaved`,
     });
   }
 }

@@ -15,4 +15,6 @@ const getId = (object?: any) => {
   return (object?.id ?? object?._id).toString();
 };
 
-export default { cvtToObjectId, getId };
+const getFullName = (user: User) => `${user.lastName} ${user.firstName}`;
+
+export default { cvtToObjectId, getId, getFullName };

@@ -42,7 +42,6 @@ export class ConversationService implements IConversationsService {
         members: { $all: entity.ids },
       })
       .populate('members', 'firstName lastName email');
-
     if (!participant) {
       const participant = await this.participantModel.create({
         members: entity.ids,
@@ -67,17 +66,12 @@ export class ConversationService implements IConversationsService {
   }
 
   async createConversation(conversationDTO: ConversationCreateParams) {
-    if (!conversationDTO.authorId) {
-      throw new BadRequestException();
-    }
-
     const { participant, isNew } = await this.getParticipant(
       conversationDTO.emailParticipant,
     );
 
     if (isNew) {
       const model = new this.conversationModel({
-        author: conversationDTO.authorId,
         participant: string.getId(participant),
       });
       const result = await model.save();
@@ -88,10 +82,7 @@ export class ConversationService implements IConversationsService {
     }
 
     const conversation = await this.conversationModel
-      .findOne({
-        author: conversationDTO.authorId,
-        participant: string.getId(participant as any),
-      })
+      .findOne({ participant: string.getId(participant) })
       .populate([
         {
           path: 'participant',
@@ -108,8 +99,8 @@ export class ConversationService implements IConversationsService {
             select: '_id firstName lastName email ',
           },
         },
-      ]);
-
+      ])
+      .lean();
     return conversation;
   }
 
@@ -122,16 +113,8 @@ export class ConversationService implements IConversationsService {
     );
 
     return await this.conversationModel
-      .find(
-        { $or: [{ author: authorId }, { participant: { $in: ids } }] },
-        {},
-        { sort: { updatedAt: -1 } },
-      )
+      .find({ participant: { $in: ids } }, {}, { sort: { updatedAt: -1 } })
       .populate([
-        {
-          path: 'author',
-          select: 'firstName lastName email',
-        },
         {
           path: 'participant',
           populate: {

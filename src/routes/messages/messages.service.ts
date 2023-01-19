@@ -20,10 +20,11 @@ export class MessagesService implements IMessengerService {
     private readonly messageModel: MessageDocument,
   ) {}
 
-  private validConversation(conversation: Conversation, participantId: string) {
-    const { author, participant } = conversation;
-
-    if (author !== participantId && participant !== participantId) {
+  private validConversation(
+    participant: Participant<string>,
+    participantId: string,
+  ) {
+    if (participant.members.indexOf(participantId) < 0) {
       throw new ForbiddenException('Messenger failure');
     }
   }
@@ -35,7 +36,7 @@ export class MessagesService implements IMessengerService {
 
     if (!conversation) throw new BadRequestException('Conversation not found');
 
-    if (!conversation.author || !conversation.participant) {
+    if (!conversation.participant) {
       throw new InternalServerErrorException();
     }
     return conversation;
@@ -62,7 +63,10 @@ export class MessagesService implements IMessengerService {
     const members = new Set<string>();
     const { conversationId, content, author } = params;
     const conversation = await this.getConversationByID(conversationId);
-    this.validConversation(conversation, params.author);
+    this.validConversation(
+      <Participant<string>>conversation.participant,
+      params.author,
+    );
 
     const message = await this.messageModel.create({
       conversationId: conversationId,
@@ -76,12 +80,13 @@ export class MessagesService implements IMessengerService {
       message.populate('author', 'firstName lastName email'),
     ]);
 
+    (<Participant<User>>conversation.participant).members.forEach((member) =>
+      members.add(string.getId(member)),
+    );
+
     return {
       message: messageFull.toObject(),
-      members: members
-        .add(author)
-        .add(conversation.author.toString())
-        .add(conversation.participant.toString()),
+      members: members.add(author).add(conversation.participant.toString()),
     };
   }
 
@@ -116,7 +121,7 @@ export class MessagesService implements IMessengerService {
     return {
       message: message?.toObject(),
       lastMessage: lastMessage,
-      members: members.add(userId).add(conversation.author.toString()),
+      members: members.add(userId),
     };
   }
 
@@ -146,7 +151,7 @@ export class MessagesService implements IMessengerService {
     return {
       message: message?.toObject(),
       lastMessage: lastMessage,
-      members: members.add(userId).add(conversation.author.toString()),
+      members: members.add(userId),
     };
   }
 }

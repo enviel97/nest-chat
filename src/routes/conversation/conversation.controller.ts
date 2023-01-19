@@ -35,8 +35,7 @@ export class ConversationController {
     @Res() res: Response,
   ) {
     let result = await this.conversationsService.createConversation({
-      authorId: string.getId(author),
-      ...conversation,
+      emailParticipant: [...conversation.emailParticipant, author.email],
     });
     let lastMessage = undefined;
     if (conversation.message) {
