@@ -4,10 +4,13 @@ import {
   Get,
   HttpStatus,
   Inject,
+  Query,
+  ParseEnumPipe,
   Post,
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { DefaultValuePipe, ParseIntPipe } from '@nestjs/common/pipes';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Response } from 'express';
 import { Event, Routes, Services } from 'src/common/define';
@@ -15,6 +18,11 @@ import { CreateConversationDTO } from 'src/models/conversations';
 import { AuthUser } from 'src/utils/decorates';
 import string from 'src/utils/string';
 import { AuthenticateGuard } from '../auth/utils/Guards';
+
+enum ConversationType {
+  GROUP = 'group',
+  DIRECT = 'direct',
+}
 
 @Controller(Routes.CONVERSATIONS)
 @UseGuards(AuthenticateGuard)
@@ -61,9 +69,23 @@ export class ConversationController {
   }
 
   @Get()
-  async getAllConversation(@AuthUser() author: User, @Res() res: Response) {
+  async getAllConversation(
+    @Query(
+      'type',
+      new DefaultValuePipe(ConversationType.DIRECT),
+      new ParseEnumPipe(ConversationType),
+    )
+    type: ConversationType,
+    @AuthUser() author: User,
+    @Res() res: Response,
+  ) {
     const data = await this.conversationsService.getConversations(
       author.id ?? author._id,
+      {
+        limit: 20,
+        bucket: 0,
+        type: type,
+      },
     );
     return res.json({
       code: HttpStatus.OK,

@@ -104,11 +104,17 @@ export class ConversationService implements IConversationsService {
     return conversation;
   }
 
-  async getConversations(authorId: string) {
+  async getConversations(authorId: string, options: GetConversationsOption) {
     if (!authorId) throw new BadRequestException();
+    const { type } = options;
+    const query =
+      type === 'direct'
+        ? { members: { $size: 2 } }
+        : { $nor: [{ members: { $size: 2 } }] };
+
     const { ids } = mapToEntities(
       await this.participantModel.find({
-        members: authorId,
+        $and: [{ members: authorId }, query],
       }),
     );
 
