@@ -12,6 +12,23 @@ export class UserService implements IUserService {
     private readonly userModel: UserDocument,
   ) {}
 
+  async searchUsers(query: string): Promise<User[]> {
+    const containReg = new RegExp(`${query}`, 'i');
+    const result = await this.userModel
+      .find({
+        $or: [
+          { email: { $regex: containReg } },
+          { firstName: { $regex: containReg } },
+          { lastName: { $regex: containReg } },
+        ],
+      })
+      .select('firstName lastName email')
+      .sort({ email: 1, firstName: 1, lastName: 1 })
+      .limit(10)
+      .lean();
+    return result;
+  }
+
   async findUser(params: FindUserParams): Promise<User> {
     const { password = false, ...param } = params;
 

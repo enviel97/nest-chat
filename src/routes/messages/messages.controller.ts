@@ -13,7 +13,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { IsMongoId } from 'class-validator';
 import { Response } from 'express';
 import { Event, Routes, Services } from 'src/common/define';
 import { ParseObjectIdPipe } from 'src/middleware/parse/mongoDb';

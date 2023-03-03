@@ -13,6 +13,12 @@ const UserSchema = new Schema<User>(
   { timestamps: true },
 );
 
+UserSchema.index({
+  email: 'text',
+  firstName: 'text',
+  lastName: 'text',
+});
+
 export { default as UserLoginDTO } from './dto/UserLogin';
 export { default as UserDetailDTO } from './dto/UserDetail';
 
