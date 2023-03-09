@@ -12,5 +12,5 @@ type IConversation = ConversationDetail &
 type Conversation = Partial<IConversation>;
 
 interface ConversationCreateParams {
-  emailParticipant: string[];
+  idParticipant: string[];
 }

@@ -32,7 +32,7 @@ export class ConversationService implements IConversationsService {
   private async getParticipant(
     participants: string[],
   ): Promise<{ participant: Participant<User>; isNew: boolean }> {
-    const users = await this.userModel.find({ email: { $in: participants } });
+    const users = await this.userModel.find({ _id: { $in: participants } });
     if (users.length === 0 || users.length !== participants.length) {
       throw new BadRequestException('Users not found');
     }
@@ -67,7 +67,7 @@ export class ConversationService implements IConversationsService {
 
   async createConversation(conversationDTO: ConversationCreateParams) {
     const { participant, isNew } = await this.getParticipant(
-      conversationDTO.emailParticipant,
+      conversationDTO.idParticipant,
     );
 
     if (isNew) {
