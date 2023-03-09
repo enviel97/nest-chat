@@ -90,50 +90,21 @@ export class MessagesService implements IMessengerService {
     };
   }
 
-  async deleteMessage(
-    params: MessageDeleteParams,
-  ): Promise<ResponseMessageWithLastMessage> {
-    const members = new Set<string>();
-    const { conversationId, userId, messageId } = params;
-    const conversation = await this.getConversationByID(conversationId);
-    const message = await this.messageModel.findByIdAndDelete(messageId);
-
-    if (!message) throw new BadRequestException('Message not found');
-
-    let lastMessage: IMessage = null;
-
-    if (conversation.lastMessage === messageId) {
-      const messages = await this.messageModel
-        .find({ conversationId })
-        .sort({ createdAt: 'desc' })
-        .limit(1)
-        .lean();
-      conversation.lastMessage =
-        messages.length !== 0 ? string.getId(messages[0]) : undefined;
-      lastMessage = messages.length !== 0 ? <IMessage>messages[0] : undefined;
-      await conversation.save();
-    }
-
-    (<Participant<User>>conversation.participant).members.forEach((member) =>
-      members.add(string.getId(member)),
-    );
-
-    return {
-      message: message?.toObject(),
-      lastMessage: lastMessage,
-      members: members.add(userId),
-    };
-  }
-
   async editContentMessage(
     params: MessageEditParams,
   ): Promise<ResponseMessageWithLastMessage> {
     const members = new Set<string>();
-    const { conversationId, userId, messageId } = params;
+    const {
+      conversationId,
+      userId,
+      messageId,
+      action = 'Edited',
+      content,
+    } = params;
     const conversation = await this.getConversationByID(conversationId);
     const message = await this.messageModel.findByIdAndUpdate(
       messageId,
-      { content: params.content },
+      { content, action },
       { new: true },
     );
 

@@ -48,7 +48,7 @@ export class MessagesController {
 
     return {
       code: 200,
-      message: 'Create mess success',
+      message: 'Create message success',
       data: newMessage.message,
     };
   }
@@ -78,8 +78,10 @@ export class MessagesController {
     @Param('id', ParseObjectIdPipe) messageId: string,
     @Res() res: Response,
   ) {
-    const result = await this.messageService.deleteMessage({
+    const result = await this.messageService.editContentMessage({
       userId: string.getId(user),
+      content: 'This chat is removed',
+      action: 'Removed',
       conversationId,
       messageId,
     });
@@ -97,6 +99,8 @@ export class MessagesController {
         conversationId: result.message.conversationId,
         messageId: string.getId(result.message),
         lastMessage: result.lastMessage,
+        content: result.message.content,
+        action: 'Removed',
       },
     });
   }
@@ -114,6 +118,7 @@ export class MessagesController {
       content: editMessageDTO.content,
       conversationId,
       messageId,
+      action: 'Edited',
     });
 
     this.eventEmitter.emit(Event.EVENT_MESSAGE_UPDATE, {
@@ -124,12 +129,13 @@ export class MessagesController {
 
     return res.json({
       code: HttpStatus.OK,
-      message: 'Delete message successfully',
+      message: 'Edit message successfully',
       data: {
         conversationId: result.message.conversationId,
         messageId: string.getId(result.message),
         lastMessage: result.lastMessage,
         content: result.message.content,
+        action: 'Edited',
       },
     });
   }

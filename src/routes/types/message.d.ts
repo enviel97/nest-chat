@@ -22,9 +22,6 @@ interface IMessengerService {
     conversationId: string,
     option: PaginationOption,
   ): Promise<Pagination<IMessage>>;
-  deleteMessage(
-    params: MessageDeleteParams,
-  ): Promise<ResponseMessageWithLastMessage>;
   editContentMessage(
     params: MessageEditParams,
   ): Promise<ResponseMessageWithLastMessage>;
