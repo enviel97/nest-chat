@@ -10,9 +10,4 @@ interface IConversationsService {
     authorId: string,
     options: GetConversationsOption,
   ): Promise<Conversation[]>;
-  findConversationById(id: string): Promise<Conversation>;
-  addMoreMembers(
-    conversationId: string,
-    params: ConversationCreateParams,
-  ): Promise<Conversation>;
 }

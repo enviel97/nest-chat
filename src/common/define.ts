@@ -1,6 +1,7 @@
 export const Routes = Object.freeze({
   AUTH: 'auth',
   CONVERSATIONS: 'conversations',
+  PARTICIPANT: 'conversations/:id/participants',
   MESSAGES: 'conversations/:conversationId/messages',
   USERS: 'users',
 });
@@ -11,6 +12,7 @@ export const Services = Object.freeze({
   CONVERSATIONS: 'CONVERSATIONS_SERVICE',
   MESSAGES: 'MESSAGES_SERVICE',
   GATEWAY_SESSION: 'GATEWAY_SESSION_MANAGER',
+  PARTICIPANT: 'PARTICIPANT_SERVICE',
 });
 
 export const ModelName = Object.freeze({

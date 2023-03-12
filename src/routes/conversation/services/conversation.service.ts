@@ -18,12 +18,6 @@ export class ConversationService implements IConversationsService {
     private readonly conversationModel: ConversationDocument,
   ) {}
 
-  private readonly userUnknown: User = {
-    firstName: 'Chat',
-    lastName: 'User',
-    email: 'user@unknown',
-  };
-
   private async getParticipantByUsers(ids: string[]) {
     const users = await this.userModel.find({ _id: { $in: ids } });
     if (users.length === 0 || users.length !== ids.length) {
@@ -37,24 +31,6 @@ export class ConversationService implements IConversationsService {
       .populate('members', 'firstName lastName email');
 
     return { participant, newUser: entity };
-  }
-
-  public async findConversationById(id: string): Promise<Conversation> {
-    if (!id) throw new BadRequestException('Id not valid');
-    const result = await (
-      await this.conversationModel.findById(id)
-    ).populate([
-      {
-        path: 'lastMessage',
-        select: 'content author _id createdAt',
-        populate: {
-          path: 'author',
-          select: 'firstName lastName email _id',
-        },
-      },
-    ]);
-    if (!result) throw new BadRequestException('Conversation not found');
-    return result.toObject();
   }
 
   async createConversation(conversationDTO: ConversationCreateParams) {
@@ -138,38 +114,5 @@ export class ConversationService implements IConversationsService {
         },
       ])
       .lean();
-  }
-
-  async addMoreMembers(
-    conversationId: string,
-    params: ConversationCreateParams,
-  ): Promise<Conversation> {
-    const conversation = await this.findConversationById(conversationId);
-    const participant = await this.participantModel.findById(
-      conversation.participant,
-    );
-    const unique = new Set<string>([
-      ...participant.members,
-      ...params.idParticipant,
-    ]);
-
-    const { participant: currentParticipant, newUser } =
-      await this.getParticipantByUsers([...unique]);
-    if (currentParticipant) {
-      throw new BadRequestException('Exits conversation');
-    }
-    participant.members = newUser.ids;
-    participant.roles = newUser.ids.reduce((acc, obj) => {
-      acc[string.getId(obj)] = 'Member';
-      return acc;
-    }, {});
-    await participant.save();
-    return {
-      ...conversation,
-      participant: {
-        ...(participant as any).toObject(),
-        members: newUser.entities,
-      },
-    };
   }
 }
