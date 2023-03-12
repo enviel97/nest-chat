@@ -1,21 +1,16 @@
 import {
   Body,
   Controller,
-  Get,
   HttpStatus,
   Inject,
-  Query,
-  ParseEnumPipe,
   Post,
   Res,
   UseGuards,
   Param,
 } from '@nestjs/common';
-import { DefaultValuePipe } from '@nestjs/common/pipes';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Response } from 'express';
 import { Event, Routes, Services } from 'src/common/define';
-import { CreateConversationDTO } from 'src/models/conversations';
 import ConversationAddMember from 'src/models/conversations/dto/ConversationAddMember';
 import { AuthenticateGuard } from 'src/routes/auth/utils/Guards';
 import { AuthUser } from 'src/utils/decorates';
@@ -46,6 +41,8 @@ export class ConversationParticipantController {
     const result = await this.conversationsService.addMoreMembers(id, {
       idParticipant: [...body.idParticipants, string.getId(author)],
     });
+
+    this.eventEmitter.emit(Event.EVENT_CONVERSATION_SENDING, result);
 
     return res.json({
       code: HttpStatus.OK,

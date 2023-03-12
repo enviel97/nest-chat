@@ -71,4 +71,17 @@ export class ConversationGateway {
       message: `${string.getFullName(client.user)} leaved`,
     });
   }
+
+  // @OnEvent(Event.EVENT_CONVERSATION_ADD_MEMBER)
+  // handleAddNewMemberToConversation(@MessageBody() payload: Conversation) {
+  //   const { participant } = payload;
+  //   (<Participant<User>>participant).members.forEach((user) => {
+  //     this.sessions.emitSocket<Conversation>(
+  //       string.getId(user),
+  //       payload,
+  //       Event.EVENT_CONVERSATION_CREATED,
+  //       { isEmitWithCreator: true },
+  //     );
+  //   });
+  // }
 }
