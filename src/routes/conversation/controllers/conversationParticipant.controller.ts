@@ -7,6 +7,7 @@ import {
   Res,
   UseGuards,
   Param,
+  Delete,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Response } from 'express';
@@ -50,4 +51,7 @@ export class ConversationParticipantController {
       data: result,
     });
   }
+
+  @Delete(':id')
+  async removeMembers() {}
 }

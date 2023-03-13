@@ -51,6 +51,7 @@ export class ConversationGateway {
     client
       .to(`conversation-${conversationId}`)
       .emit(Event.EVENT_CONNECTED_ROOM, {
+        id: string.getId(client.user),
         message: `${string.getFullName(client.user)} join`,
       });
   }
@@ -68,6 +69,7 @@ export class ConversationGateway {
     const conversationId = data.conversationId;
     await client.leave(`conversation-${conversationId}`);
     client.to(`conversation-${conversationId}`).emit(Event.EVENT_LEAVED_ROOM, {
+      id: string.getId(client.user),
       message: `${string.getFullName(client.user)} leaved`,
     });
   }
