@@ -36,6 +36,41 @@ export class ConversationGateway {
     });
   }
 
+  @OnEvent(Event.EVENT_CONVERSATION_ADD_MEMBER)
+  handleAddNewMemberToConversation(@MessageBody() payload: Conversation) {
+    const { participant } = payload;
+    (<Participant<User>>participant).members.forEach((user) => {
+      this.sessions.emitSocket<Conversation>(
+        string.getId(user),
+        payload,
+        Event.EVENT_CONVERSATION_CREATED,
+        { isEmitWithCreator: true },
+      );
+    });
+  }
+
+  @OnEvent(Event.EVENT_CONVERSATION_REMOVE_MEMBER)
+  handleRemoveNewMemberToConversation(@MessageBody() payload: Conversation) {
+    const { participant } = payload;
+    (<Participant<User>>participant).members.forEach((user) => {
+      this.sessions.emitSocket<Conversation>(
+        string.getId(user),
+        payload,
+        Event.EVENT_REMOVE_NEW_MEMBERS,
+        { isEmitWithCreator: true },
+      );
+    });
+  }
+
+  @OnEvent(Event.EVENT_CONVERSATION_BANNED_MEMBER)
+  handleBannedMember(@MessageBody() payload: BannedMemberPayload) {
+    this.sessions.emitSocket(
+      payload.bannerId,
+      payload,
+      Event.EVENT_BANNED_USER,
+    );
+  }
+
   @SubscribeMessage(Event.EVENT_CONNECT_ROOM_CONVERSATION)
   async handleUserConnectConversation(
     @MessageBody() data: UserTypeMessaged,
@@ -73,17 +108,4 @@ export class ConversationGateway {
       message: `${string.getFullName(client.user)} leaved`,
     });
   }
-
-  // @OnEvent(Event.EVENT_CONVERSATION_ADD_MEMBER)
-  // handleAddNewMemberToConversation(@MessageBody() payload: Conversation) {
-  //   const { participant } = payload;
-  //   (<Participant<User>>participant).members.forEach((user) => {
-  //     this.sessions.emitSocket<Conversation>(
-  //       string.getId(user),
-  //       payload,
-  //       Event.EVENT_CONVERSATION_CREATED,
-  //       { isEmitWithCreator: true },
-  //     );
-  //   });
-  // }
 }

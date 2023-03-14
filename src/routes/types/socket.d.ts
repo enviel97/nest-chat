@@ -19,3 +19,8 @@ interface UserTypeMessaged {
 interface SocketEmitOptions {
   isEmitWithCreator?: boolean;
 }
+
+interface BannedMemberPayload {
+  conversationId: string;
+  bannerId: string;
+}

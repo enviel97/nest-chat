@@ -29,6 +29,8 @@ export const Event = Object.freeze({
 
   EVENT_CONVERSATION_SENDING: 'conversation.create',
   EVENT_CONVERSATION_ADD_MEMBER: 'conversation.addMember',
+  EVENT_CONVERSATION_REMOVE_MEMBER: 'conversation.removeMember',
+  EVENT_CONVERSATION_BANNED_MEMBER: 'conversation.bannedMember',
 
   // event listen
   EVENT_USER_TYPING_START: 'onUserTypingStart',
@@ -40,7 +42,8 @@ export const Event = Object.freeze({
   EVENT_CONNECTED_ROOM: 'onConnectedRoom',
   EVENT_LEAVED_ROOM: 'onLeavedRoom',
   EVENT_CONVERSATION_CREATED: 'onConversationCreated',
-  EVENT_ADD_NEW_MEMBERS: 'onAddNewMembers',
+  EVENT_REMOVE_NEW_MEMBERS: 'onRemoveMember',
+  EVENT_BANNED_USER: 'onBannedUser',
 
   EVENT_MESSAGE_CREATED: 'onMessageCreated',
   EVENT_MESSAGE_REMOVE: 'onMessageRemove',

@@ -39,6 +39,8 @@ export class ConversationParticipantController {
       idParticipant: [...body.idParticipants, string.getId(author)],
     });
 
+    this.eventEmitter.emit(Event.EVENT_CONVERSATION_ADD_MEMBER, result);
+
     return res.json({
       code: HttpStatus.OK,
       message: 'Add new member to your conversation successfully',
@@ -60,7 +62,17 @@ export class ConversationParticipantController {
         idParticipant: [userId],
       },
     );
+    const typeConversation =
+      (<Participant<User>>result.participant).members.length > 2
+        ? 'group'
+        : 'direct';
+    this.eventEmitter.emit(Event.EVENT_CONVERSATION_BANNED_MEMBER, {
+      conversationId,
+      bannerId: userId,
+      type: typeConversation,
+    } as BannedMemberPayload);
 
+    this.eventEmitter.emit(Event.EVENT_CONVERSATION_REMOVE_MEMBER, result);
     return res.json({
       code: HttpStatus.OK,
       message: 'Remove member out off group chat successfully',

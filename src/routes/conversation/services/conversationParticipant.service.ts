@@ -41,10 +41,6 @@ export class ConversationParticipantService implements IParticipantService {
       throw new BadRequestException("You don't have permission");
     }
 
-    if (participant.members.length <= 3) {
-      throw new BadRequestException('Group chat must be more than 2 people');
-    }
-
     return {
       conversation,
       participant,
@@ -103,11 +99,19 @@ export class ConversationParticipantService implements IParticipantService {
       ...params.idParticipant,
     ]);
 
-    const newParticipant = this.updateParticipant(
+    const newParticipant = await this.updateParticipant(
       string.getId(participant),
       newUser.ids,
       participant.roles,
     );
+
+    await this.conversationModel
+      .findByIdAndUpdate(
+        conversationId,
+        { updatedAt: participant.updatedAt },
+        { new: true },
+      )
+      .lean();
 
     return {
       ...conversation,
@@ -126,6 +130,11 @@ export class ConversationParticipantService implements IParticipantService {
       conversationId,
       params.inviter,
     );
+
+    if (participant.members.length <= 3) {
+      throw new BadRequestException('Group chat must be more than 2 people');
+    }
+
     const ids: string[] = participant.members.filter((member) => {
       return !params.idParticipant.includes(member);
     });
@@ -144,6 +153,14 @@ export class ConversationParticipantService implements IParticipantService {
       newUser.ids,
       participant.roles,
     );
+
+    await this.conversationModel
+      .findByIdAndUpdate(
+        conversationId,
+        { updatedAt: participant.updatedAt },
+        { new: true },
+      )
+      .lean();
 
     return {
       ...conversation,

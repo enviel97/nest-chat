@@ -82,7 +82,6 @@ export class ConversationController {
     @AuthUser() author: User,
     @Res() res: Response,
   ) {
-    console.log(type);
     const data = await this.conversationsService.getConversations(
       author.id ?? author._id,
       {
