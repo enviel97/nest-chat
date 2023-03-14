@@ -45,6 +45,7 @@ export class ConversationController {
     @Res() res: Response,
   ) {
     const result = await this.conversationsService.createConversation({
+      creator: string.getId(author),
       idParticipant: [...conversation.idParticipant, string.getId(author)],
     });
     let lastMessage = undefined;
@@ -81,6 +82,7 @@ export class ConversationController {
     @AuthUser() author: User,
     @Res() res: Response,
   ) {
+    console.log(type);
     const data = await this.conversationsService.getConversations(
       author.id ?? author._id,
       {

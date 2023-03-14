@@ -17,11 +17,6 @@ import { AuthenticateGuard } from 'src/routes/auth/utils/Guards';
 import { AuthUser } from 'src/utils/decorates';
 import string from 'src/utils/string';
 
-enum ConversationType {
-  GROUP = 'group',
-  DIRECT = 'direct',
-}
-
 @Controller(Routes.PARTICIPANT)
 @UseGuards(AuthenticateGuard)
 export class ConversationParticipantController {
@@ -40,10 +35,9 @@ export class ConversationParticipantController {
     @Res() res: Response,
   ) {
     const result = await this.conversationsService.addMoreMembers(id, {
+      inviter: string.getId(author),
       idParticipant: [...body.idParticipants, string.getId(author)],
     });
-
-    this.eventEmitter.emit(Event.EVENT_CONVERSATION_SENDING, result);
 
     return res.json({
       code: HttpStatus.OK,
@@ -52,6 +46,25 @@ export class ConversationParticipantController {
     });
   }
 
-  @Delete(':id')
-  async removeMembers() {}
+  @Delete(':userId')
+  async removeMembers(
+    @Param('id') conversationId: string,
+    @Param('userId') userId: string,
+    @AuthUser() author: IUser,
+    @Res() res: Response,
+  ) {
+    const result = await this.conversationsService.removeMoreMembers(
+      conversationId,
+      {
+        inviter: string.getId(author),
+        idParticipant: [userId],
+      },
+    );
+
+    return res.json({
+      code: HttpStatus.OK,
+      message: 'Remove member out off group chat successfully',
+      data: result,
+    });
+  }
 }

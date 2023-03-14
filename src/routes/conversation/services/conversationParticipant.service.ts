@@ -18,67 +18,137 @@ export class ConversationParticipantService implements IParticipantService {
     private readonly conversationModel: ConversationDocument,
   ) {}
 
-  private async getParticipantByUsers(ids: string[]) {
-    const users = await this.userModel.find({ _id: { $in: ids } });
-    if (users.length === 0 || users.length !== ids.length) {
+  private async checkPermission(conversationId: string, inviter: string) {
+    if (!conversationId) throw new BadRequestException('Id not valid');
+    const conversation = await this.conversationModel
+      .findById(conversationId)
+      .populate([
+        {
+          path: 'lastMessage',
+          select: 'content author _id createdAt',
+          populate: {
+            path: 'author',
+            select: 'firstName lastName email _id',
+          },
+        },
+      ])
+      .lean();
+    if (!conversation) throw new BadRequestException('Conversation not found');
+    const participant = await this.participantModel
+      .findById(conversation.participant)
+      .lean();
+    if (participant.roles[inviter] !== 'Admin') {
+      throw new BadRequestException("You don't have permission");
+    }
+
+    if (participant.members.length <= 3) {
+      throw new BadRequestException('Group chat must be more than 2 people');
+    }
+
+    return {
+      conversation,
+      participant,
+    };
+  }
+
+  private async checkParticipantByUsers(ids: string[]) {
+    const unique = new Set<string>(ids);
+    const users = await this.userModel.find({ _id: { $in: [...unique] } });
+
+    if (users.length === 0 || users.length !== unique.size) {
       throw new BadRequestException('Users not found');
     }
     const entity = mapToEntities(users);
     const participant = await this.participantModel
       .findOne({
-        members: { $all: entity.ids },
+        $and: [
+          { members: { $all: entity.ids } },
+          { members: { $size: entity.ids.length } },
+        ],
       })
-      .populate('members', 'firstName lastName email');
+      .lean();
 
-    return { participant, newUser: entity };
+    if (participant) throw new BadRequestException('Exits conversation');
+
+    return entity;
   }
 
-  private async findConversationById(id: string): Promise<Conversation> {
-    if (!id) throw new BadRequestException('Id not valid');
-    const result = await (
-      await this.conversationModel.findById(id)
-    ).populate([
-      {
-        path: 'lastMessage',
-        select: 'content author _id createdAt',
-        populate: {
-          path: 'author',
-          select: 'firstName lastName email _id',
-        },
-      },
-    ]);
-    if (!result) throw new BadRequestException('Conversation not found');
-    return result.toObject();
+  private async updateParticipant(
+    id: string,
+    members: string[],
+    roles: ParticipantRole,
+  ) {
+    const _roles = members.reduce((acc, id) => {
+      acc[id] = roles[id] ?? 'Member';
+      return acc;
+    }, {});
+
+    return await this.participantModel
+      .findByIdAndUpdate(id, { members, roles: _roles }, { new: true })
+      .populate('members', 'firstName lastName email')
+      .lean();
   }
 
   async addMoreMembers(
     conversationId: string,
-    params: ConversationCreateParams,
+    params: ConversationModifiedMembers,
   ): Promise<Conversation> {
-    const conversation = await this.findConversationById(conversationId);
-    const participant = await this.participantModel.findById(
-      conversation.participant,
+    const { conversation, participant } = await this.checkPermission(
+      conversationId,
+      params.inviter,
     );
-    const unique = new Set<string>([
+
+    const newUser = await this.checkParticipantByUsers([
       ...participant.members,
       ...params.idParticipant,
     ]);
 
-    const { participant: currentParticipant, newUser } =
-      await this.getParticipantByUsers([...unique]);
-    if (currentParticipant) {
-      throw new BadRequestException('Exits conversation');
-    }
-    participant.members = newUser.ids;
-    participant.roles = newUser.ids.reduce((acc, obj) => {
-      acc[string.getId(obj)] = 'Member';
-      return acc;
-    }, {});
-    await participant.save();
+    const newParticipant = this.updateParticipant(
+      string.getId(participant),
+      newUser.ids,
+      participant.roles,
+    );
+
     return {
       ...conversation,
       participant: {
-        ...(participant as any).toObject(),
+        ...newParticipant,
+        members: newUser.entities,
+      },
+    };
+  }
+
+  async removeMoreMembers(
+    conversationId: string,
+    params: ConversationModifiedMembers,
+  ): Promise<Conversation> {
+    const { conversation, participant } = await this.checkPermission(
+      conversationId,
+      params.inviter,
+    );
+    const ids: string[] = participant.members.filter((member) => {
+      return !params.idParticipant.includes(member);
+    });
+
+    if (
+      participant.members.length - ids.length !==
+      params.idParticipant.length
+    ) {
+      throw new BadRequestException("Can't found user in current conversation");
+    }
+
+    const newUser = await this.checkParticipantByUsers(ids);
+
+    const newParticipant = await this.updateParticipant(
+      string.getId(participant),
+      newUser.ids,
+      participant.roles,
+    );
+
+    return {
+      ...conversation,
+      participant: {
+        ...newParticipant,
         members: newUser.entities,
       },
     };

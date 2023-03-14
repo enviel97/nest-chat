@@ -12,5 +12,11 @@ type IConversation = ConversationDetail &
 type Conversation = Partial<IConversation>;
 
 interface ConversationCreateParams {
+  creator: string;
+  idParticipant: string[];
+}
+
+interface ConversationModifiedMembers {
+  inviter: string;
   idParticipant: string[];
 }

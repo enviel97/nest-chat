@@ -26,9 +26,13 @@ export class ConversationService implements IConversationsService {
     const entity = mapToEntities(users);
     const participant = await this.participantModel
       .findOne({
-        members: { $all: entity.ids },
+        $and: [
+          { members: { $all: entity.ids } },
+          { members: { $size: entity.ids.length } },
+        ],
       })
-      .populate('members', 'firstName lastName email');
+      .populate('members', 'firstName lastName email')
+      .lean();
 
     return { participant, newUser: entity };
   }
@@ -40,12 +44,17 @@ export class ConversationService implements IConversationsService {
     ]);
 
     if (!participant) {
+      const roles = newUser.ids.reduce((acc, obj) => {
+        let role = 'Member';
+        if (string.getId(obj) === conversationDTO.creator) {
+          role = 'Admin';
+        }
+        acc[string.getId(obj)] = role;
+        return acc;
+      }, {});
       const newParticipant = await this.participantModel.create({
         members: newUser.ids,
-        roles: newUser.ids.reduce((acc, obj) => {
-          acc[string.getId(obj)] = 'Member';
-          return acc;
-        }, {}),
+        roles: roles,
       });
       const model = new this.conversationModel({
         participant: string.getId(newParticipant),
