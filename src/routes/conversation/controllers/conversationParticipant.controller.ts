@@ -42,7 +42,8 @@ export class ConversationParticipantController {
             .join(', ')} has been add by ${author.firstName}`
         : `${participant
             .map((user) => user.firstName)
-            .join(' ,')} has been banned by ${author.firstName}`;
+            .join(', ')} has been banned by ${author.firstName}`;
+
     const message = await this.messagesService.createMessage({
       content: content,
       conversationId: conversationId,
@@ -62,7 +63,7 @@ export class ConversationParticipantController {
     const { conversation: result, newUsers } =
       await this.conversationsService.addMoreMembers(id, {
         author: string.getId(author),
-        idParticipant: [...body.idParticipants, string.getId(author)],
+        idParticipant: body.idParticipants,
       });
     await this._createNoticeMessage(id, author, newUsers, 'invite');
     this.eventEmitter.emit(Event.EVENT_CONVERSATION_ADD_MEMBER, result);
