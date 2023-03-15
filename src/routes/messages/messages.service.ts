@@ -72,9 +72,12 @@ export class MessagesService implements IMessengerService {
       conversationId: conversationId,
       content: content,
       author: author,
+      action: params.action ?? 'New',
     });
 
-    conversation.lastMessage = string.getId(message);
+    if (params.action !== 'Notice') {
+      conversation.lastMessage = string.getId(message);
+    }
     const [_, messageFull] = await Promise.all([
       conversation.save(),
       message.populate('author', 'firstName lastName email'),

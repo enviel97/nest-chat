@@ -17,6 +17,6 @@ interface ConversationCreateParams {
 }
 
 interface ConversationModifiedMembers {
-  inviter: string;
+  author: string;
   idParticipant: string[];
 }

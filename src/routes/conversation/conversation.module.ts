@@ -4,6 +4,7 @@ import { Services } from 'src/common/define';
 import ConversationSchema from 'src/models/conversations';
 import UserSchema from 'src/models/users';
 import ParticipantSchema from 'src/models/participants';
+import MessageSchema from 'src/models/messages';
 import { MessagesModule } from '../messages/messages.module';
 import { ConversationController } from './controllers/conversation.controller';
 import { ConversationService } from './services/conversation.service';
@@ -17,6 +18,7 @@ import { ConversationParticipantService } from './services/conversationParticipa
       ConversationSchema,
       UserSchema,
       ParticipantSchema,
+      MessageSchema,
     ]),
   ],
   controllers: [ConversationController, ConversationParticipantController],

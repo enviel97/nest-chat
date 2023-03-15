@@ -1,7 +1,10 @@
+type MessageAction = 'New' | 'Edited' | 'Removed' | 'Seen' | 'Notice';
+
 interface MessageCreateParams {
   author: string;
   conversationId: string;
   content: string;
+  action?: MessageAction;
 
   // // TODO: Base 64
   // attachment?: string;
@@ -16,13 +19,13 @@ interface MessageEditParams {
   conversationId: string;
   messageId: string;
   content: string;
-  action: 'New' | 'Edited' | 'Removed';
+  action: MessageAction;
 }
 interface MessageDetail {
   conversationId: string;
   content: string;
   author: User;
-  action: 'New' | 'Edited' | 'Removed';
+  action: MessageAction;
 }
 
 type IMessage = MessageDetail & TimeStamps & Identity;

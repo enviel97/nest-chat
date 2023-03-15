@@ -88,10 +88,10 @@ export class ConversationParticipantService implements IParticipantService {
   async addMoreMembers(
     conversationId: string,
     params: ConversationModifiedMembers,
-  ): Promise<Conversation> {
+  ): Promise<ResponseModified> {
     const { conversation, participant } = await this.checkPermission(
       conversationId,
-      params.inviter,
+      params.author,
     );
 
     const newUser = await this.checkParticipantByUsers([
@@ -113,22 +113,29 @@ export class ConversationParticipantService implements IParticipantService {
       )
       .lean();
 
+    const inviter = await this.userModel.find({
+      _id: { $in: [...params.idParticipant] },
+    });
+
     return {
-      ...conversation,
-      participant: {
-        ...newParticipant,
-        members: newUser.entities,
+      conversation: {
+        ...conversation,
+        participant: {
+          ...newParticipant,
+          members: newUser.entities,
+        },
       },
+      newUsers: inviter,
     };
   }
 
   async removeMoreMembers(
     conversationId: string,
     params: ConversationModifiedMembers,
-  ): Promise<Conversation> {
+  ): Promise<ResponseModified> {
     const { conversation, participant } = await this.checkPermission(
       conversationId,
-      params.inviter,
+      params.author,
     );
 
     if (participant.members.length <= 3) {
@@ -162,12 +169,19 @@ export class ConversationParticipantService implements IParticipantService {
       )
       .lean();
 
+    const banners = await this.userModel.find({
+      _id: { $in: [...params.idParticipant] },
+    });
+
     return {
-      ...conversation,
-      participant: {
-        ...newParticipant,
-        members: newUser.entities,
+      conversation: {
+        ...conversation,
+        participant: {
+          ...newParticipant,
+          members: newUser.entities,
+        },
       },
+      newUsers: banners,
     };
   }
 }

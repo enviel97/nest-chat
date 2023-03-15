@@ -26,6 +26,17 @@ export class MessagingGateway {
   @OnEvent(Event.EVENT_MESSAGE_SENDING)
   handleNotificationMessageSend(payload: ResponseMessage) {
     const { message, members } = payload;
+    if (message.action === 'Notice') {
+      members.forEach((member) => {
+        this.sessions.emitSocket<IMessage>(
+          member,
+          message,
+          Event.EVENT_MESSAGE_CREATED,
+        );
+      });
+      return;
+    }
+
     members.forEach((member) => {
       if (member !== string.getId(message.author)) {
         this.sessions.emitSocket<IMessage>(
