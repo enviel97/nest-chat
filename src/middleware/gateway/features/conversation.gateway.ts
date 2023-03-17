@@ -12,7 +12,10 @@ import { Server } from 'socket.io';
 import { AuthenticationSocket } from '../gateway.session';
 import { Inject } from '@nestjs/common';
 import string from 'src/utils/string';
-
+interface EmitForAllConversationOptions {
+  isEmitWithCreator?: boolean;
+  ignoreList?: string[];
+}
 @WsG({ cors: CorsOption })
 export class ConversationGateway {
   constructor(
@@ -23,50 +26,52 @@ export class ConversationGateway {
   @WebSocketServer()
   server: Server;
 
+  private emitUpdateConversation(
+    payload: Conversation,
+    event: string,
+    option?: EmitForAllConversationOptions,
+  ) {
+    const { isEmitWithCreator = true, ignoreList = [] } = option ?? {};
+    const { participant } = payload;
+    (<Participant<User>>participant).members
+      .filter((user) => ignoreList.includes(string.getId(user)))
+      .forEach((user) => {
+        this.sessions.emitSocket<Conversation>(
+          string.getId(user),
+          payload,
+          event,
+          { isEmitWithCreator },
+        );
+      });
+  }
+
   @OnEvent(Event.EVENT_CONVERSATION_SENDING)
   handleNotificationConversationCreated(payload: Conversation) {
-    const { participant } = payload;
-    (<Participant<User>>participant).members.forEach((user) => {
-      this.sessions.emitSocket<Conversation>(
-        string.getId(user),
-        payload,
-        Event.EVENT_CONVERSATION_CREATED,
-        { isEmitWithCreator: true },
-      );
-    });
+    this.emitUpdateConversation(payload, Event.EVENT_CONVERSATION_CREATED);
   }
 
   @OnEvent(Event.EVENT_CONVERSATION_ADD_MEMBER)
   handleAddNewMemberToConversation(@MessageBody() payload: Conversation) {
-    const { participant } = payload;
-    (<Participant<User>>participant).members.forEach((user) => {
-      this.sessions.emitSocket<Conversation>(
-        string.getId(user),
-        payload,
-        Event.EVENT_CONVERSATION_CREATED,
-        { isEmitWithCreator: true },
-      );
-    });
+    this.emitUpdateConversation(payload, Event.EVENT_CONVERSATION_CREATED);
   }
 
-  @OnEvent(Event.EVENT_CONVERSATION_REMOVE_MEMBER)
-  handleRemoveNewMemberToConversation(@MessageBody() payload: Conversation) {
-    const { participant } = payload;
-    (<Participant<User>>participant).members.forEach((user) => {
-      this.sessions.emitSocket<Conversation>(
-        string.getId(user),
-        payload,
-        Event.EVENT_REMOVE_NEW_MEMBERS,
-        { isEmitWithCreator: true },
-      );
-    });
+  @OnEvent(Event.EVENT_CONVERSATION_LEAVE)
+  handleUserLeaveGroupChat(@MessageBody() payload: Conversation) {
+    this.emitUpdateConversation(payload, Event.EVENT_CONVERSATION_LEAVE_GROUP);
   }
 
   @OnEvent(Event.EVENT_CONVERSATION_BANNED_MEMBER)
   handleBannedMember(@MessageBody() payload: BannedMemberPayload) {
+    const { conversation, bannerId, type } = payload;
+
+    this.emitUpdateConversation(conversation, Event.EVENT_REMOVE_NEW_MEMBERS);
     this.sessions.emitSocket(
-      payload.bannerId,
-      payload,
+      bannerId,
+      {
+        conversationId: string.getId(conversation),
+        bannerId,
+        type,
+      },
       Event.EVENT_BANNED_USER,
     );
   }

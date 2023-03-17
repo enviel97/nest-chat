@@ -33,16 +33,21 @@ export class ConversationParticipantController {
     conversationId: string,
     author: User,
     participant: User[],
-    action: 'banned' | 'invite',
+    action: 'banned' | 'invite' | 'leave',
   ) {
-    const content =
-      action === 'banned'
-        ? `${participant
-            .map((user) => user.firstName)
-            .join(', ')} has been add by ${author.firstName}`
-        : `${participant
-            .map((user) => user.firstName)
-            .join(', ')} has been banned by ${author.firstName}`;
+    let content = `${participant
+      .map((user) => user.firstName)
+      .join(', ')} has been add by ${author.firstName}`;
+    switch (action) {
+      case 'banned':
+        content = `${participant
+          .map((user) => user.firstName)
+          .join(', ')} has been banned by ${author.firstName}`;
+        break;
+      case 'leave':
+        content = `${author.firstName} leave group`;
+        break;
+    }
 
     const message = await this.messagesService.createMessage({
       content: content,
@@ -75,6 +80,31 @@ export class ConversationParticipantController {
     });
   }
 
+  @Delete('leave')
+  async leave(
+    @Param('id') conversationId: string,
+    @AuthUser() author: IUser,
+    @Res() res: Response,
+  ) {
+    const conversation = await this.conversationsService.leave(
+      conversationId,
+      string.getId(author),
+    );
+
+    await this._createNoticeMessage(conversationId, author, [author], 'leave');
+
+    this.eventEmitter.emit(Event.EVENT_CONVERSATION_LEAVE, {
+      conversation,
+      author,
+    });
+
+    return res.json({
+      code: HttpStatus.OK,
+      message: 'Leaving group chat successfully',
+      data: conversation,
+    });
+  }
+
   @Delete(':userId')
   async removeMembers(
     @Param('id') conversationId: string,
@@ -94,12 +124,11 @@ export class ConversationParticipantController {
 
     await this._createNoticeMessage(conversationId, author, newUsers, 'invite');
     this.eventEmitter.emit(Event.EVENT_CONVERSATION_BANNED_MEMBER, {
-      conversationId,
+      conversation: result,
       bannerId: userId,
       type: typeConversation,
     } as BannedMemberPayload);
 
-    this.eventEmitter.emit(Event.EVENT_CONVERSATION_REMOVE_MEMBER, result);
     return res.json({
       code: HttpStatus.OK,
       message: 'Remove member out off group chat successfully',

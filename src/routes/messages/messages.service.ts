@@ -63,10 +63,12 @@ export class MessagesService implements IMessengerService {
     const members = new Set<string>();
     const { conversationId, content, author } = params;
     const conversation = await this.getConversationByID(conversationId);
-    this.validConversation(
-      <Participant<string>>conversation.participant,
-      params.author,
-    );
+    if (params.action !== 'Notice') {
+      this.validConversation(
+        <Participant<string>>conversation.participant,
+        params.author,
+      );
+    }
 
     const message = await this.messageModel.create({
       conversationId: conversationId,

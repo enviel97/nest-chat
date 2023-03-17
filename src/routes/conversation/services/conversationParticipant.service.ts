@@ -184,4 +184,39 @@ export class ConversationParticipantService implements IParticipantService {
       newUsers: banners,
     };
   }
+
+  async leave(conversationId: string, authorId: string): Promise<Conversation> {
+    if (!conversationId) throw new BadRequestException('Id not valid');
+    const conversation = await this.conversationModel
+      .findById(conversationId)
+      .populate({
+        path: 'participant',
+        populate: {
+          path: 'members',
+          select: '_id firstName lastName email',
+        },
+      });
+    const participant = <Participant<User>>conversation.participant;
+    const memberIndex = participant.members.findIndex(
+      (member) => string.getId(member) === authorId,
+    );
+    if (memberIndex < 0) throw new BadRequestException('You are not in group');
+    participant.members.splice(memberIndex, 1);
+
+    const newParticipant = await this.participantModel.findByIdAndUpdate(
+      string.getId(conversation.participant),
+      { members: participant.members },
+      { new: true },
+    );
+    conversation.updatedAt = newParticipant.updatedAt;
+    await conversation.save();
+
+    return {
+      ...conversation.toObject(),
+      participant: {
+        ...newParticipant,
+        members: participant.members,
+      },
+    };
+  }
 }

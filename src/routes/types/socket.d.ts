@@ -21,6 +21,7 @@ interface SocketEmitOptions {
 }
 
 interface BannedMemberPayload {
-  conversationId: string;
+  conversation: Conversation;
   bannerId: string;
+  type: 'group' | 'direct';
 }
