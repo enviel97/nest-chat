@@ -201,13 +201,11 @@ export class ConversationParticipantService implements IParticipantService {
     if (memberIndex < 0) throw new BadRequestException('You are not in group');
     participant.members.splice(memberIndex, 1);
 
-    const newParticipant = await this.participantModel
-      .findByIdAndUpdate(
-        string.getId(conversation.participant),
-        { members: participant.members },
-        { new: true },
-      )
-      .lean();
+    const newParticipant = await this.updateParticipant(
+      string.getId(participant),
+      participant.members.map((member) => string.getId(member)),
+      participant.roles,
+    );
     conversation.updatedAt = newParticipant.updatedAt;
     await conversation.save();
 
