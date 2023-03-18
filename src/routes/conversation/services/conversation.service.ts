@@ -6,6 +6,7 @@ import { ParticipantDocument } from 'src/models/participants';
 import { UserDocument } from 'src/models/users';
 import { mapToEntities } from 'src/utils/map';
 import string from 'src/utils/string';
+import { populateLastMessage, populateParticipant } from '../utils/config';
 
 @Injectable()
 export class ConversationService implements IConversationsService {
@@ -37,6 +38,20 @@ export class ConversationService implements IConversationsService {
     return { participant, newUser: entity };
   }
 
+  private createRoles(ids: string[], adminId: string) {
+    const roles = ids.reduce((acc, obj) => {
+      const isAdmin = string.getId(obj) === adminId;
+      acc[string.getId(obj)] = isAdmin ? 'Admin' : 'Member';
+      return acc;
+    }, {});
+    return roles;
+  }
+
+  private createType(ids: Set<string>) {
+    const type: ConversationType = ids.size > 2 ? 'group' : 'direct';
+    return type;
+  }
+
   async createConversation(conversationDTO: ConversationCreateParams) {
     const unique = new Set<string>([...conversationDTO.idParticipant]);
     const { participant, newUser } = await this.getParticipantByUsers([
@@ -44,47 +59,25 @@ export class ConversationService implements IConversationsService {
     ]);
 
     if (!participant) {
-      const roles = newUser.ids.reduce((acc, obj) => {
-        let role = 'Member';
-        if (string.getId(obj) === conversationDTO.creator) {
-          role = 'Admin';
-        }
-        acc[string.getId(obj)] = role;
-        return acc;
-      }, {});
+      const roles = this.createRoles(newUser.ids, conversationDTO.creator);
+      const type = this.createType(unique);
       const newParticipant = await this.participantModel.create({
         members: newUser.ids,
         roles: roles,
       });
-      const model = new this.conversationModel({
+      const model = await this.conversationModel.create({
         participant: string.getId(newParticipant),
+        type: type,
       });
-      const result = await model.save();
       return {
-        ...result.toObject(),
+        ...model.toObject(),
         participant: { ...participant, members: newUser.entities },
       };
     }
 
     const conversation = await this.conversationModel
       .findOne({ participant: string.getId(participant) })
-      .populate([
-        {
-          path: 'participant',
-          populate: {
-            path: 'members',
-            select: '_id firstName lastName email',
-          },
-        },
-        {
-          path: 'lastMessage',
-          select: '_id content author createdAt',
-          populate: {
-            path: 'author',
-            select: '_id firstName lastName email ',
-          },
-        },
-      ])
+      .populate([populateParticipant, populateLastMessage])
       .lean();
     return conversation;
   }
@@ -92,36 +85,16 @@ export class ConversationService implements IConversationsService {
   async getConversations(authorId: string, options: GetConversationsOption) {
     if (!authorId) throw new BadRequestException();
     const { type } = options;
-    const query =
-      type === 'direct'
-        ? { members: { $size: 2 } }
-        : { $nor: [{ members: { $size: 2 } }] };
-
     const { ids } = mapToEntities(
-      await this.participantModel.find({
-        $and: [{ members: authorId }, query],
-      }),
+      await this.participantModel.find({ members: authorId }),
     );
-
     return await this.conversationModel
-      .find({ participant: { $in: ids } }, {}, { sort: { updatedAt: -1 } })
-      .populate([
-        {
-          path: 'participant',
-          populate: {
-            path: 'members',
-            select: 'firstName lastName email',
-          },
-        },
-        {
-          path: 'lastMessage',
-          select: 'content author _id createdAt',
-          populate: {
-            path: 'author',
-            select: 'firstName lastName email _id',
-          },
-        },
-      ])
+      .find(
+        { participant: { $in: ids }, type: type },
+        {},
+        { sort: { updatedAt: -1 } },
+      )
+      .populate([populateParticipant, populateLastMessage])
       .lean();
   }
 }

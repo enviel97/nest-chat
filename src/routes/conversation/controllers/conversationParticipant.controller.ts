@@ -38,6 +38,7 @@ export class ConversationParticipantController {
     let content = `${participant
       .map((user) => user.firstName)
       .join(', ')} has been add by ${author.firstName}`;
+
     switch (action) {
       case 'banned':
         content = `${participant
@@ -93,10 +94,7 @@ export class ConversationParticipantController {
 
     await this._createNoticeMessage(conversationId, author, [author], 'leave');
 
-    this.eventEmitter.emit(Event.EVENT_CONVERSATION_LEAVE, {
-      conversation,
-      author,
-    });
+    this.eventEmitter.emit(Event.EVENT_CONVERSATION_LEAVE, conversation);
 
     return res.json({
       code: HttpStatus.OK,
@@ -122,7 +120,7 @@ export class ConversationParticipantController {
         ? 'group'
         : 'direct';
 
-    await this._createNoticeMessage(conversationId, author, newUsers, 'invite');
+    await this._createNoticeMessage(conversationId, author, newUsers, 'banned');
     this.eventEmitter.emit(Event.EVENT_CONVERSATION_BANNED_MEMBER, {
       conversation: result,
       bannerId: userId,

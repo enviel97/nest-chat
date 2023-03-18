@@ -26,37 +26,42 @@ export class ConversationGateway {
   @WebSocketServer()
   server: Server;
 
+  private conversationRoom(id: string) {
+    return `conversation-${id}`;
+  }
+
   private emitUpdateConversation(
-    payload: Conversation,
+    payload: Conversation<User>,
     event: string,
     option?: EmitForAllConversationOptions,
   ) {
     const { isEmitWithCreator = true, ignoreList = [] } = option ?? {};
-    const { participant } = payload;
-    (<Participant<User>>participant).members
-      .filter((user) => ignoreList.includes(string.getId(user)))
-      .forEach((user) => {
-        this.sessions.emitSocket<Conversation>(
-          string.getId(user),
-          payload,
-          event,
-          { isEmitWithCreator },
-        );
-      });
+    const participant = <Participant<User>>payload.participant;
+    const filterParticipant = participant.members.filter(
+      (user) => !ignoreList.includes(string.getId(user)),
+    );
+    filterParticipant.forEach((user) => {
+      this.sessions.emitSocket<Conversation<any>>(
+        string.getId(user),
+        payload,
+        event,
+        { isEmitWithCreator },
+      );
+    });
   }
 
   @OnEvent(Event.EVENT_CONVERSATION_SENDING)
-  handleNotificationConversationCreated(payload: Conversation) {
+  handleNotificationConversationCreated(payload: Conversation<any>) {
     this.emitUpdateConversation(payload, Event.EVENT_CONVERSATION_CREATED);
   }
 
   @OnEvent(Event.EVENT_CONVERSATION_ADD_MEMBER)
-  handleAddNewMemberToConversation(@MessageBody() payload: Conversation) {
+  handleAddNewMemberToConversation(@MessageBody() payload: Conversation<any>) {
     this.emitUpdateConversation(payload, Event.EVENT_CONVERSATION_CREATED);
   }
 
   @OnEvent(Event.EVENT_CONVERSATION_LEAVE)
-  handleUserLeaveGroupChat(@MessageBody() payload: Conversation) {
+  handleUserLeaveGroupChat(@MessageBody() payload: Conversation<any>) {
     this.emitUpdateConversation(payload, Event.EVENT_CONVERSATION_LEAVE_GROUP);
   }
 
@@ -87,9 +92,9 @@ export class ConversationGateway {
       }`,
     );
     const conversationId = data.conversationId;
-    await client.join(`conversation-${conversationId}`);
+    await client.join(this.conversationRoom(conversationId));
     client
-      .to(`conversation-${conversationId}`)
+      .to(this.conversationRoom(conversationId))
       .emit(Event.EVENT_CONNECTED_ROOM, {
         id: string.getId(client.user),
         message: `${string.getFullName(client.user)} join`,
@@ -107,10 +112,12 @@ export class ConversationGateway {
       }`,
     );
     const conversationId = data.conversationId;
-    await client.leave(`conversation-${conversationId}`);
-    client.to(`conversation-${conversationId}`).emit(Event.EVENT_LEAVED_ROOM, {
-      id: string.getId(client.user),
-      message: `${string.getFullName(client.user)} leaved`,
-    });
+    await client.leave(this.conversationRoom(conversationId));
+    client
+      .to(this.conversationRoom(conversationId))
+      .emit(Event.EVENT_LEAVED_ROOM, {
+        id: string.getId(client.user),
+        message: `${string.getFullName(client.user)} leaved`,
+      });
   }
 }

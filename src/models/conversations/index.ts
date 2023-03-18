@@ -1,12 +1,13 @@
 import { HydratedDocument, Model, Schema } from 'mongoose';
 import { ModelName } from 'src/common/define';
 
-export type ConversationDocument = Model<HydratedDocument<Conversation>>;
+export type ConversationDocument = Model<HydratedDocument<Conversation<any>>>;
 
-const ConversationSchema = new Schema<Conversation>(
+const ConversationSchema = new Schema<Conversation<any>>(
   {
     participant: { type: String, ref: ModelName.Participant, index: 1 },
     lastMessage: { type: String, ref: ModelName.Message },
+    type: { type: String, default: 'direct' },
   },
   { timestamps: true },
 );

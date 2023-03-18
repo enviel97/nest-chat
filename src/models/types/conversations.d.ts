@@ -1,15 +1,16 @@
-type ConversationType = 'users' | 'participants';
+type ConversationType = 'direct' | 'group';
 
-interface ConversationDetail {
-  participant: string | Participant<string | User>;
+interface ConversationDetail<T = any> {
+  participant: string | Participant<T>;
   lastMessage: string | Message;
+  type: ConversationType;
 }
 
-type IConversation = ConversationDetail &
+type IConversation<T extends any> = ConversationDetail<T> &
   TimeStamps &
   Identity & { messages: IMessages[] };
 
-type Conversation = Partial<IConversation>;
+type Conversation<T extends any> = Partial<IConversation<T>>;
 
 interface ConversationCreateParams {
   creator: string;

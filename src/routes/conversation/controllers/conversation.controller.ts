@@ -16,7 +16,6 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Response } from 'express';
 import { Event, Routes, Services } from 'src/common/define';
 import { CreateConversationDTO } from 'src/models/conversations';
-import ConversationAddMember from 'src/models/conversations/dto/ConversationAddMember';
 import { AuthUser } from 'src/utils/decorates';
 import string from 'src/utils/string';
 import { AuthenticateGuard } from '../../auth/utils/Guards';

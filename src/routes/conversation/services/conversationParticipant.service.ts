@@ -6,6 +6,7 @@ import { ParticipantDocument } from 'src/models/participants';
 import { UserDocument } from 'src/models/users';
 import { mapToEntities } from 'src/utils/map';
 import string from 'src/utils/string';
+import { populateLastMessage, populateParticipant } from '../utils/config';
 
 @Injectable()
 export class ConversationParticipantService implements IParticipantService {
@@ -185,17 +186,14 @@ export class ConversationParticipantService implements IParticipantService {
     };
   }
 
-  async leave(conversationId: string, authorId: string): Promise<Conversation> {
+  async leave(
+    conversationId: string,
+    authorId: string,
+  ): Promise<Conversation<any>> {
     if (!conversationId) throw new BadRequestException('Id not valid');
     const conversation = await this.conversationModel
       .findById(conversationId)
-      .populate({
-        path: 'participant',
-        populate: {
-          path: 'members',
-          select: '_id firstName lastName email',
-        },
-      });
+      .populate([populateParticipant, populateLastMessage]);
     const participant = <Participant<User>>conversation.participant;
     const memberIndex = participant.members.findIndex(
       (member) => string.getId(member) === authorId,
@@ -203,11 +201,13 @@ export class ConversationParticipantService implements IParticipantService {
     if (memberIndex < 0) throw new BadRequestException('You are not in group');
     participant.members.splice(memberIndex, 1);
 
-    const newParticipant = await this.participantModel.findByIdAndUpdate(
-      string.getId(conversation.participant),
-      { members: participant.members },
-      { new: true },
-    );
+    const newParticipant = await this.participantModel
+      .findByIdAndUpdate(
+        string.getId(conversation.participant),
+        { members: participant.members },
+        { new: true },
+      )
+      .lean();
     conversation.updatedAt = newParticipant.updatedAt;
     await conversation.save();
 

@@ -5,9 +5,9 @@ interface GetConversationsOption extends PaginationOption {
 interface IConversationsService {
   createConversation(
     conversation: ConversationCreateParams,
-  ): Promise<Conversation>;
+  ): Promise<Conversation<any>>;
   getConversations(
     authorId: string,
     options: GetConversationsOption,
-  ): Promise<Conversation[]>;
+  ): Promise<Conversation<any>[]>;
 }
