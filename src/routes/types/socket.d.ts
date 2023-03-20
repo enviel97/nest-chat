@@ -4,7 +4,7 @@ interface IGatewaySession {
   removeUserSocket(userId: string);
   getSockets(): Map<string, AuthenticationSocket>;
   emitSocket<T>(
-    id: string,
+    ids: string[],
     payload: T,
     event: string,
     option?: SocketEmitOptions,
@@ -18,10 +18,16 @@ interface UserTypeMessaged {
 
 interface SocketEmitOptions {
   isEmitWithCreator?: boolean;
+  ignoreIds?: string[];
 }
 
 interface BannedMemberPayload {
   conversation: Conversation;
   bannerId: string;
   type: 'group' | 'direct';
+}
+
+interface InviteMemberPayload {
+  conversation: Conversation;
+  newUsers: string[];
 }

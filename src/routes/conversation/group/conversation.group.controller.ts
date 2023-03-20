@@ -72,7 +72,10 @@ class ConversationGroupController {
         idParticipant: body.idParticipants,
       });
     await this._createNoticeMessage(id, author, newUsers, 'invite');
-    this.eventEmitter.emit(Event.EVENT_CONVERSATION_ADD_MEMBER, result);
+    this.eventEmitter.emit(Event.EVENT_CONVERSATION_ADD_MEMBER, {
+      conversation: result,
+      newUsers: body.idParticipants,
+    });
 
     return res.json({
       code: HttpStatus.OK,

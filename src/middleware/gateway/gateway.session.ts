@@ -10,17 +10,22 @@ export class GatewaySessionManager implements IGatewaySession {
   private readonly sessions: Map<string, AuthenticationSocket> = new Map();
 
   emitSocket<T>(
-    id: string,
+    ids: string[],
     payload: T,
     event: string,
     option?: SocketEmitOptions,
   ) {
-    const socket: AuthenticationSocket = this.getSocketId(id);
-    if (!socket) return;
-    return socket.emit(event, {
-      ...payload,
-      ...(!option?.isEmitWithCreator && { sender: socket.user }),
-    });
+    const { isEmitWithCreator = false, ignoreIds = [] } = option ?? {};
+    ids
+      .filter((id) => !ignoreIds.includes(id))
+      .forEach((id) => {
+        const socket: AuthenticationSocket = this.getSocketId(id);
+        if (!socket) return;
+        socket.emit(event, {
+          ...payload,
+          ...(isEmitWithCreator && { sender: socket.user }),
+        });
+      });
   }
 
   getSocketId(id: string): AuthenticationSocket | undefined {
