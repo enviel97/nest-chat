@@ -177,7 +177,8 @@ class ConversationGroupService implements IParticipantService {
     if (!conversationId) throw new BadRequestException('Id not valid');
     const conversation = await this.conversationModel
       .findById(conversationId)
-      .populate([populateParticipant, populateLastMessage]);
+      .populate([populateParticipant, populateLastMessage])
+      .lean();
     const participant = <Participant<User>>conversation.participant;
     const memberIndex = participant.members.findIndex(
       (member) => string.getId(member) === authorId,
@@ -191,7 +192,7 @@ class ConversationGroupService implements IParticipantService {
       participant.roles,
     );
 
-    return merge(conversation.toObject(), {
+    return merge(conversation, {
       participant: {
         ...newParticipant,
         members: participant.members,
