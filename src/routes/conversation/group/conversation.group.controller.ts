@@ -19,7 +19,7 @@ import string from 'src/utils/string';
 
 @Controller(Routes.PARTICIPANT)
 @UseGuards(AuthenticateGuard)
-export class ConversationParticipantController {
+class ConversationGroupController {
   constructor(
     @Inject(Services.MESSAGES)
     private readonly messagesService: IMessengerService,
@@ -134,3 +134,5 @@ export class ConversationParticipantController {
     });
   }
 }
+
+export default ConversationGroupController;

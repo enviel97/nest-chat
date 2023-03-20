@@ -19,3 +19,17 @@ interface Entity<T> {
   ids: string[];
   entities: T[];
 }
+
+interface Provider {
+  provide: any;
+  useClass: any;
+}
+
+type CallBackFactory = (...models: any) => any;
+
+interface ConfigFactoryModel {
+  name: string;
+  useFactory: CallBackFactory;
+  imports: any[];
+  inject: string[];
+}

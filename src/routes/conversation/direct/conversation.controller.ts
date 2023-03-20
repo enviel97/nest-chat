@@ -27,7 +27,7 @@ enum ConversationType {
 
 @Controller(Routes.CONVERSATIONS)
 @UseGuards(AuthenticateGuard)
-export class ConversationController {
+class ConversationController {
   constructor(
     @Inject(Services.MESSAGES)
     private readonly messagesService: IMessengerService,
@@ -96,3 +96,5 @@ export class ConversationController {
     });
   }
 }
+
+export default ConversationController;

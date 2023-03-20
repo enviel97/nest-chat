@@ -9,7 +9,7 @@ import string from 'src/utils/string';
 import { populateLastMessage, populateParticipant } from '../utils/config';
 
 @Injectable()
-export class ConversationService implements IConversationsService {
+class ConversationService implements IConversationsService {
   constructor(
     @InjectModel(ModelName.User)
     private readonly userModel: UserDocument,
@@ -52,6 +52,15 @@ export class ConversationService implements IConversationsService {
     return type;
   }
 
+  private createNameConversation(
+    users: User[],
+    options?: { type?: 'group' | 'direct' },
+  ) {
+    const { type = 'direct' } = options;
+    if (type === 'direct') return '';
+    return `Group of ${users.map((user) => user.lastName).join(', ')}`;
+  }
+
   async createConversation(conversationDTO: ConversationCreateParams) {
     const unique = new Set<string>([...conversationDTO.idParticipant]);
     const { participant, newUser } = await this.getParticipantByUsers([
@@ -68,6 +77,9 @@ export class ConversationService implements IConversationsService {
       const model = await this.conversationModel.create({
         participant: string.getId(newParticipant),
         type: type,
+        name: this.createNameConversation(newUser.entities, {
+          type: type,
+        }),
       });
       return {
         ...model.toObject(),
@@ -98,3 +110,5 @@ export class ConversationService implements IConversationsService {
       .lean();
   }
 }
+
+export default ConversationService;

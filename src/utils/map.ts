@@ -16,3 +16,16 @@ export const mapToResponse = <T>(response: IResponse<T>) => {
     data,
   };
 };
+
+export const merge = <Root extends Object, Part extends Object>(
+  root: Root,
+  ...parts: Part[]
+) => {
+  return parts.reduce(
+    (root, part) => ({
+      ...root,
+      ...part,
+    }),
+    root,
+  );
+};

@@ -4,12 +4,12 @@ import { ModelName } from 'src/common/define';
 import { ConversationDocument } from 'src/models/conversations';
 import { ParticipantDocument } from 'src/models/participants';
 import { UserDocument } from 'src/models/users';
-import { mapToEntities } from 'src/utils/map';
+import { mapToEntities, merge } from 'src/utils/map';
 import string from 'src/utils/string';
 import { populateLastMessage, populateParticipant } from '../utils/config';
 
 @Injectable()
-export class ConversationParticipantService implements IParticipantService {
+class ConversationGroupService implements IParticipantService {
   constructor(
     @InjectModel(ModelName.User)
     private readonly userModel: UserDocument,
@@ -106,26 +106,18 @@ export class ConversationParticipantService implements IParticipantService {
       participant.roles,
     );
 
-    await this.conversationModel
-      .findByIdAndUpdate(
-        conversationId,
-        { updatedAt: participant.updatedAt },
-        { new: true },
-      )
-      .lean();
-
     const inviter = await this.userModel.find({
       _id: { $in: [...params.idParticipant] },
     });
 
     return {
-      conversation: {
-        ...conversation,
+      conversation: merge(conversation, {
         participant: {
           ...newParticipant,
           members: newUser.entities,
         },
-      },
+        updatedAt: newParticipant.updatedAt,
+      }),
       newUsers: inviter,
     };
   }
@@ -162,26 +154,18 @@ export class ConversationParticipantService implements IParticipantService {
       participant.roles,
     );
 
-    await this.conversationModel
-      .findByIdAndUpdate(
-        conversationId,
-        { updatedAt: participant.updatedAt },
-        { new: true },
-      )
-      .lean();
-
     const banners = await this.userModel.find({
       _id: { $in: [...params.idParticipant] },
     });
 
     return {
-      conversation: {
-        ...conversation,
+      conversation: merge(conversation, {
         participant: {
           ...newParticipant,
           members: newUser.entities,
         },
-      },
+        updatedAt: newParticipant.updatedAt,
+      }),
       newUsers: banners,
     };
   }
@@ -206,15 +190,15 @@ export class ConversationParticipantService implements IParticipantService {
       participant.members.map((member) => string.getId(member)),
       participant.roles,
     );
-    conversation.updatedAt = newParticipant.updatedAt;
-    await conversation.save();
 
-    return {
-      ...conversation.toObject(),
+    return merge(conversation.toObject(), {
       participant: {
         ...newParticipant,
         members: participant.members,
       },
-    };
+      updatedAt: newParticipant.updatedAt,
+    });
   }
 }
+
+export default ConversationGroupService;
