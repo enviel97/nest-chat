@@ -7,8 +7,8 @@ import { ConversationGateway } from './features/conversation.gateway';
 
 @Module({
   providers: [
-    ConversationGateway,
     MessagingGateway,
+    ConversationGateway,
     WebsocketGateway,
     { provide: Services.GATEWAY_SESSION, useClass: GatewaySessionManager },
   ],

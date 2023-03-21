@@ -34,7 +34,6 @@ export class WebsocketGateway
     console.log(
       `>>> User >>> name: ${client.user.firstName} ${client.user.lastName}`,
     );
-
     client.emit(Event.EVENT_SOCKET_CONNECTED, {
       status: CONNECTED_STATUS.GOOD,
       client: client.id,

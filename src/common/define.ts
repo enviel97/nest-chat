@@ -32,6 +32,8 @@ export const Event = Object.freeze({
   EVENT_CONVERSATION_ADD_MEMBER: 'conversation.addMember',
   EVENT_CONVERSATION_BANNED_MEMBER: 'conversation.bannedMember',
 
+  EVENT_PARTICIPANT_GET_STATUS: 'participant.getStatus',
+
   // event listen
   EVENT_USER_TYPING_START: 'onUserTypingStart',
   EVENT_USER_TYPING_STOP: 'onUserTypingStop',
@@ -43,12 +45,15 @@ export const Event = Object.freeze({
   EVENT_LEAVED_ROOM: 'onLeavedRoom',
   EVENT_CONVERSATION_CREATED: 'onConversationCreated',
   EVENT_CONVERSATION_LEAVE_GROUP: 'onConversationLeaving',
+  EVENT_NOTIFICATION_CHANGE_STATUS: 'onNotificationChangeStatus',
   EVENT_REMOVE_NEW_MEMBERS: 'onRemoveMember',
   EVENT_BANNED_USER: 'onBannedUser',
 
   EVENT_MESSAGE_CREATED: 'onMessageCreated',
   EVENT_MESSAGE_REMOVE: 'onMessageRemove',
   EVENT_MESSAGE_EDITED: 'onMessageEdited',
+
+  Event_PARTICIPANT_STATUS_RESPONSE: 'onParticipantStatusResponse',
 
   EVENT_SOCKET_CONNECTED: 'connected',
 });

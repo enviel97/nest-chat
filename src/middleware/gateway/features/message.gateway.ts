@@ -12,7 +12,6 @@ import { Server } from 'socket.io';
 import { AuthenticationSocket } from '../gateway.session';
 import { Inject } from '@nestjs/common';
 import string from 'src/utils/string';
-import messages from 'src/models/messages';
 
 @WebSocketGateway({ cors: CorsOption })
 export class MessagingGateway {
