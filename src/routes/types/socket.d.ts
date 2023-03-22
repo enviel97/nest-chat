@@ -31,3 +31,8 @@ interface InviteMemberPayload {
   conversation: Conversation;
   newUsers: string[];
 }
+
+interface GetMemberStatusPayload {
+  conversationId: string;
+  userId: string;
+}

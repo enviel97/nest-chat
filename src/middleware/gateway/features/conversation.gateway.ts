@@ -109,11 +109,6 @@ export class ConversationGateway implements OnGatewayConnection {
     @ConnectedSocket() client: AuthenticationSocket,
   ) {
     const conversationId = data.conversationId;
-    // client
-    //   .to(this.conversationRoom(conversationId))
-    //   .emit(Event.EVENT_LEAVED_ROOM, {
-    //     message: `${string.getFullName(client.user)} leaved`,
-    //   });
 
     client
       .to(this.conversationRoom(conversationId))
@@ -132,10 +127,15 @@ export class ConversationGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage(Event.Event_PARTICIPANT_STATUS_RESPONSE)
-  async handleGetParticipantStatus(@MessageBody() data: string) {
+  async handleGetParticipantStatus(
+    @MessageBody() payload: GetMemberStatusPayload,
+  ) {
+    const { userId, conversationId } = payload;
     const sockets = this.sessions.getSockets();
-    if (sockets.has(data)) return 'online';
-    return 'offline';
+    if (!sockets.has(userId)) return 'offline';
+    const socket: AuthenticationSocket = this.sessions.getSocketId(userId);
+    const isInRoom = socket.rooms.has(this.conversationRoom(conversationId));
+    return isInRoom ? 'online' : 'offline';
   }
 
   handleConnection(client: AuthenticationSocket, ...args: any[]) {
