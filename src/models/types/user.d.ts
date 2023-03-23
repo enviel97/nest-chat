@@ -2,6 +2,7 @@ interface UserDetail {
   firstName: string;
   lastName: string;
   email: string;
+  friends: string[];
 }
 type IUser = UserDetail & Identity & { password: string };
 

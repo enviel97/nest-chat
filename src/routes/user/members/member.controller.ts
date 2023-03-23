@@ -8,14 +8,14 @@ import {
 } from '@nestjs/common';
 import { Routes, Services } from 'src/common/define';
 import { mapToResponse } from 'src/utils/map';
-import { AuthenticateGuard } from '../auth/utils/Guards';
+import { AuthenticateGuard } from '../../auth/utils/Guards';
 
 @Controller(Routes.USERS)
 @UseGuards(AuthenticateGuard)
-export class UserController {
+export class MemberController {
   constructor(
     @Inject(Services.USERS)
-    private readonly userService: IUserService,
+    private readonly userService: IMemberService,
   ) {}
 
   @Get('search')

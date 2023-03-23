@@ -6,7 +6,7 @@ import { Services } from 'src/common/define';
 export class SessionSerializer extends PassportSerializer {
   constructor(
     @Inject(Services.USERS)
-    private readonly userService: IUserService,
+    private readonly userService: IMemberService,
   ) {
     super();
   }

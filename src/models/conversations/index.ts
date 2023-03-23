@@ -4,18 +4,6 @@ import { ModelName } from 'src/common/define';
 
 export type ConversationDocument = Model<HydratedDocument<Conversation<any>>>;
 
-// const ConversationSchema = new Schema<Conversation<any>>(
-//   {
-//     participant: { type: String, ref: ModelName.Participant, index: 1 },
-//     lastMessage: { type: String, ref: ModelName.Message },
-//     name: { type: String, required: true },
-//     type: { type: String, default: 'direct' },
-//   },
-//   { timestamps: true },
-// );
-
-// ConversationSchema.index({ createdAt: 1 });
-
 @Schema({ timestamps: true })
 class SConversation {
   @Prop()

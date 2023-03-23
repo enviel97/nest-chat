@@ -4,6 +4,7 @@ export const Routes = Object.freeze({
   PARTICIPANT: 'conversations/:id/participants',
   MESSAGES: 'conversations/:conversationId/messages',
   USERS: 'users',
+  FRIENDS: 'friends',
 });
 
 export const Services = Object.freeze({
@@ -13,6 +14,7 @@ export const Services = Object.freeze({
   MESSAGES: 'MESSAGES_SERVICE',
   GATEWAY_SESSION: 'GATEWAY_SESSION_MANAGER',
   PARTICIPANT: 'PARTICIPANT_SERVICE',
+  FRIENDS: 'FRIEND_SERVICE',
 });
 
 export const ModelName = Object.freeze({
@@ -20,6 +22,7 @@ export const ModelName = Object.freeze({
   Conversation: 'conversations',
   Message: 'messages',
   Participant: 'participants',
+  Friend: 'friends',
 });
 
 export const Event = Object.freeze({
@@ -33,6 +36,8 @@ export const Event = Object.freeze({
   EVENT_CONVERSATION_BANNED_MEMBER: 'conversation.bannedMember',
 
   EVENT_PARTICIPANT_GET_STATUS: 'participant.getStatus',
+
+  EVENT_FRIEND_SEND_REQUEST: 'friend.friendRequest',
 
   // event listen
   EVENT_USER_TYPING_START: 'onUserTypingStart',
@@ -53,7 +58,10 @@ export const Event = Object.freeze({
   EVENT_MESSAGE_REMOVE: 'onMessageRemove',
   EVENT_MESSAGE_EDITED: 'onMessageEdited',
 
-  Event_PARTICIPANT_STATUS_RESPONSE: 'onParticipantStatusResponse',
+  EVENT_PARTICIPANT_STATUS_RESPONSE: 'onParticipantStatusResponse',
+
+  EVENT_FRIEND_RECEIVE_FRIEND_REQUEST: 'onReceiveFriendRequest',
+  EVENT_FRIEND_RECEIVE_ALLOW_FRIEND: 'onReceiveAllowFriend',
 
   EVENT_SOCKET_CONNECTED: 'connected',
 });

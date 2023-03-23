@@ -9,7 +9,7 @@ import { compare } from 'src/utils/bcrypt';
 @Injectable()
 export class AuthService implements IAuthService {
   constructor(
-    @Inject(Services.USERS) private readonly userService: IUserService,
+    @Inject(Services.USERS) private readonly userService: IMemberService,
   ) {}
 
   async validateUser(account: UserLogin) {

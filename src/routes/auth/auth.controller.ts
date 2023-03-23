@@ -19,7 +19,7 @@ import { AuthUser } from 'src/utils/decorates';
 export class AuthController {
   constructor(
     @Inject(Services.AUTH) private authService: IAuthService,
-    @Inject(Services.USERS) private userService: IUserService,
+    @Inject(Services.USERS) private userService: IMemberService,
   ) {}
 
   @Post('register')

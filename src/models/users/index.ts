@@ -5,10 +5,11 @@ export type UserDocument = Model<HydratedDocument<User>>;
 
 const UserSchema = new Schema<User>(
   {
-    firstName: { type: String },
-    lastName: { type: String },
+    firstName: { type: String, index: true },
+    lastName: { type: String, index: true },
     email: { type: String, unique: true, sparse: true, index: true },
     password: { type: String, select: false },
+    friends: { type: [String], ref: ModelName.User, default: [] },
   },
   { timestamps: true },
 );

@@ -6,7 +6,7 @@ import { hash } from 'src/utils/bcrypt';
 import string from 'src/utils/string';
 
 @Injectable()
-export class UserService implements IUserService {
+export class MemberService implements IMemberService {
   constructor(
     @InjectModel(ModelName.User)
     private readonly userModel: UserDocument,

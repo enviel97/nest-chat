@@ -126,7 +126,7 @@ export class ConversationGateway implements OnGatewayConnection {
     );
   }
 
-  @SubscribeMessage(Event.Event_PARTICIPANT_STATUS_RESPONSE)
+  @SubscribeMessage(Event.EVENT_PARTICIPANT_STATUS_RESPONSE)
   async handleGetParticipantStatus(
     @MessageBody() payload: GetMemberStatusPayload,
   ) {
