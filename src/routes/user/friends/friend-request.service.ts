@@ -1,18 +1,20 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ModelName } from 'src/common/define';
-import { FriendDocument } from 'src/models/friends';
+import { FriendDocument } from 'src/models/friend-request';
 import { UserDocument } from 'src/models/users';
 import string from 'src/utils/string';
 import {
   FriendNotFoundException,
   FriendRequestException,
-} from '../exceptions/friend.exception';
+  FriendRequestPendingException,
+} from '../exceptions/friend-request.exception';
+import { UserNotfoundException } from '../exceptions/user.exception';
 
 @Injectable()
-export class FriendService implements IFriendService {
+export class FriendRequestService implements IFriendRequestService {
   constructor(
-    @InjectModel(ModelName.Friend)
+    @InjectModel(ModelName.FriendRequest)
     private readonly friendModel: FriendDocument,
     @InjectModel(ModelName.User)
     private readonly userModel: UserDocument,
@@ -20,7 +22,7 @@ export class FriendService implements IFriendService {
 
   private normalProjectionUser: string = 'email firstName lastName';
 
-  private async validateFriend(authorId: string, userId: string) {
+  private async validateFriendByUser(authorId: string, userId: string) {
     const [author, newFriend] = await Promise.all([
       this.userModel.findById(authorId, this.normalProjectionUser),
       this.userModel.findById(userId, this.normalProjectionUser),
@@ -41,15 +43,31 @@ export class FriendService implements IFriendService {
     };
   }
 
+  private async validateFriendById(friendId: string, userId: string) {
+    const [relationship, friend] = await Promise.all([
+      this.friendModel.findById(friendId).populate('author'),
+      this.userModel.findById(userId),
+    ]);
+
+    if (!relationship) throw new FriendNotFoundException();
+    if (!friend) throw new UserNotfoundException();
+
+    return {
+      author: relationship.author,
+      relationship,
+      friend,
+    };
+  }
+
   async createFriendRequest(
     friendId: string,
     userId: string,
-  ): Promise<Friend<User>> {
-    const { author, friend, relationship } = await this.validateFriend(
+  ): Promise<FriendRequest<User>> {
+    const { author, friend, relationship } = await this.validateFriendByUser(
       userId,
       friendId,
     );
-    if (relationship) throw new FriendRequestException(relationship.toObject());
+    if (relationship) throw new FriendRequestException();
 
     const friendRequest = await this.friendModel.create({
       author: userId,
@@ -66,22 +84,32 @@ export class FriendService implements IFriendService {
 
   async createFriendResponse(
     friendId: string,
-    userId: string,
+    friendRequestId: string,
     status: 'Accept' | 'Reject',
   ): Promise<AddFriendResponse> {
-    const { author, friend, relationship } = await this.validateFriend(
-      userId,
+    const { relationship, friend } = await this.validateFriendById(
+      friendRequestId,
       friendId,
     );
     if (!relationship) throw new FriendNotFoundException();
-    if (relationship.status === 'Request')
-      throw new FriendRequestException(relationship.toObject());
-
+    if (relationship.status !== 'Request') {
+      throw new FriendRequestPendingException();
+    }
+    if (relationship.friend !== friendId) {
+      throw new FriendRequestException();
+    }
     switch (status) {
       case 'Accept': {
+        const authorId = string.getId(relationship.author);
         const [user, newFriend] = await Promise.all([
-          author.update({ $push: { friends: friendId } }, { new: true }).lean(),
-          friend.update({ $push: { friends: author } }, { new: true }).lean(),
+          this.userModel
+            .findByIdAndUpdate(
+              authorId,
+              { $push: { friends: friendId } },
+              { new: true },
+            )
+            .lean(),
+          friend.update({ $push: { friends: authorId } }, { new: true }).lean(),
           relationship.update({ status: 'Accept' }).lean(),
         ]);
         return {
@@ -93,16 +121,26 @@ export class FriendService implements IFriendService {
       case 'Reject': {
         await relationship.update({ status: 'Accept' }).lean();
         return {
-          author: author,
+          author: <User>relationship.author,
           friend: friend,
-          status: 'Accept',
+          status: 'Reject',
         };
       }
     }
   }
 
-  getFriendRequest(userId: string): Promise<Partial<IUser>[]> {
-    throw new Error('Method not implemented.');
+  async getFriendRequest(userId: string): Promise<FriendRequest<IUser>[]> {
+    const user = await this.userModel.findById(userId).lean();
+    if (!user) throw new UserNotfoundException();
+    const relationship: FriendRequest<IUser>[] = await this.friendModel
+      .find({ friend: userId })
+      .populate([
+        { path: 'friend', select: 'firstName lastName ' },
+        { path: 'author', select: 'firstName lastName ' },
+      ])
+      .lean();
+
+    return relationship;
   }
 
   unFriend(friendId: string, userId: string): Promise<boolean> {

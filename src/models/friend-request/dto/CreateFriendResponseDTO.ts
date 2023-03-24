@@ -8,7 +8,7 @@ enum FriendShipStatus {
 class CreateFriendResponseDTO {
   @IsNotEmpty()
   @IsMongoId()
-  userId: string;
+  friendRequestId: string;
 
   @IsEnum(FriendShipStatus)
   @IsNotEmpty()

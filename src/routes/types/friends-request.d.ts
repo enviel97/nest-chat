@@ -4,13 +4,13 @@ interface AddFriendResponse {
   status: 'Accept' | 'Reject';
 }
 
-interface IFriendService {
+interface IFriendRequestService {
   createFriendRequest(friendId: string, userId: string): Promise<Friend<User>>;
   createFriendResponse(
     friendId: string,
-    userId: string,
+    friendRequestId: string,
     status: 'Accept' | 'Reject',
   ): Promise<AddFriendResponse>;
-  getFriendRequest(userId: string): Promise<Friend[]>;
+  getFriendRequest(userId: string): Promise<Friend<User>[]>;
   unFriend(friendId: string, userId: string): Promise<boolean>;
 }

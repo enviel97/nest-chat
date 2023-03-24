@@ -20,12 +20,12 @@ import { AuthenticateGuard } from '../../auth/utils/Guards';
 
 @Controller(Routes.FRIENDS)
 @UseGuards(AuthenticateGuard)
-export class FriendsController {
+export class FriendRequestController {
   constructor(
     @Inject(Services.USERS)
     private readonly memberService: IMemberService,
     @Inject(Services.FRIENDS)
-    private readonly friendsService: IFriendService,
+    private readonly friendsService: IFriendRequestService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -55,8 +55,8 @@ export class FriendsController {
   ) {
     const { author, friend, status } =
       await this.friendsService.createFriendResponse(
-        createFriendResponseDTO.userId,
         string.getId(user),
+        createFriendResponseDTO.friendRequestId,
         createFriendResponseDTO.status,
       );
 

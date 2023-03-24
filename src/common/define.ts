@@ -22,7 +22,7 @@ export const ModelName = Object.freeze({
   Conversation: 'conversations',
   Message: 'messages',
   Participant: 'participants',
-  Friend: 'friends',
+  FriendRequest: 'friend-request',
 });
 
 export const Event = Object.freeze({
@@ -37,7 +37,7 @@ export const Event = Object.freeze({
 
   EVENT_PARTICIPANT_GET_STATUS: 'participant.getStatus',
 
-  EVENT_FRIEND_SEND_REQUEST: 'friend.friendRequest',
+  EVENT_FRIEND_SEND_REQUEST: 'friend-request.ack',
 
   // event listen
   EVENT_USER_TYPING_START: 'onUserTypingStart',
@@ -61,7 +61,8 @@ export const Event = Object.freeze({
   EVENT_PARTICIPANT_STATUS_RESPONSE: 'onParticipantStatusResponse',
 
   EVENT_FRIEND_RECEIVE_FRIEND_REQUEST: 'onReceiveFriendRequest',
-  EVENT_FRIEND_RECEIVE_ALLOW_FRIEND: 'onReceiveAllowFriend',
+  EVENT_FRIEND_RECEIVE_ALLOW_FRIEND: 'onReceiveAllowFriendRequest',
+  EVENT_FRIEND_RECEIVE_REJECT_FRIEND: 'onReceiveRejectFriendRequest',
 
   EVENT_SOCKET_CONNECTED: 'connected',
 });

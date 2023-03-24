@@ -10,6 +10,7 @@ import {
 } from './middleware/error';
 import { CorsOption } from './middleware/cors';
 import { WebsocketAdapter } from './middleware/gateway/gateway.adapter';
+import 'src/extensions';
 
 const start = async () => {
   const app = await NestFactory.create(AppModule, {

@@ -1,8 +1,8 @@
 type UserRef = User | string;
-type ActionStatus = 'Request' | 'Accept';
+type FriendRequestStatus = 'Request' | 'Accept' | 'Reject';
 
-interface Friend<T extends UserRef> extends TimeStamps {
+interface FriendRequest<T extends UserRef> extends TimeStamps, Identity {
   author: T;
   friend: T;
-  status: ActionStatus;
+  status: FriendRequestStatus;
 }

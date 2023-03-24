@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Services } from 'src/common/define';
-import { FriendsController } from './friends/friend.controller';
-import { FriendService } from './friends/friend.service';
+import { FriendRequestController } from './friends/friend-request.controller';
+import { FriendRequestService } from './friends/friend-request.service';
 import { MemberController } from './members/member.controller';
 import { MemberService } from './members/member.service';
 import UserSchema from 'src/models/users';
@@ -15,11 +15,11 @@ const UserMemberProvider = {
 
 const UserFriendProvider = {
   provide: Services.FRIENDS,
-  useClass: FriendService,
+  useClass: FriendRequestService,
 };
 @Module({
   imports: [MongooseModule.forFeature([UserSchema, FriendSchema])],
-  controllers: [MemberController, FriendsController],
+  controllers: [MemberController, FriendRequestController],
   providers: [UserMemberProvider, UserFriendProvider],
   exports: [UserMemberProvider],
 })

@@ -2,10 +2,10 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model } from 'mongoose';
 import { ModelName } from 'src/common/define';
 
-export type FriendDocument = Model<HydratedDocument<Friend<UserRef>>>;
+export type FriendDocument = Model<HydratedDocument<FriendRequest<User>>>;
 
-@Schema({ timestamps: true, _id: true })
-class SFriend {
+@Schema({ timestamps: true })
+class SFriendRequest {
   @Prop({ type: String, ref: ModelName.User })
   author: string;
 
@@ -13,16 +13,16 @@ class SFriend {
   friend: string;
 
   @Prop({ type: String, default: 'Request' })
-  status: ActionStatus;
+  status: FriendRequestStatus;
 }
 
-const FriendSchema = SchemaFactory.createForClass(SFriend);
-FriendSchema.index({ author: 1, friend: 1 });
+const FriendRequestSchema = SchemaFactory.createForClass(SFriendRequest);
+FriendRequestSchema.index({ author: 1, friend: 1 });
 
 export { default as CreateFriendRequestDTO } from './dto/CreateFriendRequestDTO';
 export { default as CreateFriendResponseDTO } from './dto/CreateFriendResponseDTO';
 
 export default {
-  name: ModelName.Friend,
-  schema: FriendSchema,
+  name: ModelName.FriendRequest,
+  schema: FriendRequestSchema,
 };
