@@ -6,7 +6,7 @@ import { FriendRequestService } from './friends/friend-request.service';
 import { MemberController } from './members/member.controller';
 import { MemberService } from './members/member.service';
 import UserSchema from 'src/models/users';
-import FriendSchema from 'src/models/friends';
+import FriendSchema from 'src/models/friend-request';
 
 const UserMemberProvider = {
   provide: Services.USERS,

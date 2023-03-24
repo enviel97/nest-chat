@@ -1,19 +1,10 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Inject,
-  Param,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Inject, Post, UseGuards } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Event, Routes, Services } from 'src/common/define';
-import { ParseObjectIdPipe } from 'src/middleware/parse/mongoDb';
 import {
   CreateFriendRequestDTO,
   CreateFriendResponseDTO,
-} from 'src/models/friends';
+} from 'src/models/friend-request';
 import { AuthUser } from 'src/utils/decorates';
 import string from 'src/utils/string';
 import { AuthenticateGuard } from '../../auth/utils/Guards';

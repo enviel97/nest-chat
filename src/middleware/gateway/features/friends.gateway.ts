@@ -1,5 +1,4 @@
 import {
-  ConnectedSocket,
   MessageBody,
   WebSocketGateway as WsG,
   WebSocketServer,
@@ -7,7 +6,6 @@ import {
 import { CorsOption } from '../../cors';
 import { Event, Services } from 'src/common/define';
 import { Server } from 'socket.io';
-import { AuthenticationSocket } from '../gateway.session';
 import { Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import string from 'src/utils/string';
@@ -23,7 +21,7 @@ export class WebsocketGateway {
   server: Server;
 
   @OnEvent(Event.EVENT_FRIEND_SEND_REQUEST)
-  handleSendFriendRequest(@MessageBody() payload: Friend<User>) {
+  handleSendFriendRequest(@MessageBody() payload: FriendRequest<User>) {
     const { friend, author, status } = payload;
     const event =
       status === 'Accept'
