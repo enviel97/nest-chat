@@ -1,16 +1,24 @@
-interface AddFriendResponse {
+interface AddFriendRequest {
   author: User;
   friend: User;
   status: 'Accept' | 'Reject';
 }
 
+interface CancelFriendRequest {
+  author: string;
+  friend: string;
+}
+
 interface IFriendRequestService {
-  createFriendRequest(friendId: string, userId: string): Promise<Friend<User>>;
-  createFriendResponse(
+  create(friendId: string, userId: string): Promise<Friend<User>>;
+  response(
     friendId: string,
     friendRequestId: string,
     status: 'Accept' | 'Reject',
-  ): Promise<AddFriendResponse>;
-  getFriendRequest(userId: string): Promise<Friend<User>[]>;
-  unFriend(friendId: string, userId: string): Promise<boolean>;
+  ): Promise<AddFriendRequest>;
+  cancel(
+    friendRequestId: string,
+    friendId: string,
+  ): Promise<CancelFriendRequest>;
+  list(userId: string): Promise<Friend<User>[]>;
 }

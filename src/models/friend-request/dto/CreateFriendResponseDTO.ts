@@ -1,4 +1,4 @@
-import { IsEnum, IsMongoId, IsNotEmpty } from 'class-validator';
+import { IsEnum, IsNotEmpty } from 'class-validator';
 
 enum FriendShipStatus {
   ACCEPT = 'Accept',
@@ -6,10 +6,6 @@ enum FriendShipStatus {
 }
 
 class CreateFriendResponseDTO {
-  @IsNotEmpty()
-  @IsMongoId()
-  friendRequestId: string;
-
   @IsEnum(FriendShipStatus)
   @IsNotEmpty()
   status: FriendShipStatus;

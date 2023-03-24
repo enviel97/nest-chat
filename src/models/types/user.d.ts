@@ -6,7 +6,7 @@ interface UserDetail {
 }
 type IUser = UserDetail & Identity & { password: string };
 
-type User = Partial<IUser>;
+interface User extends Partial<IUser> {}
 
 interface UserLogin {
   email: string;

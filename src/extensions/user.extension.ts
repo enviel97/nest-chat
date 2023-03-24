@@ -1,14 +1,15 @@
 import string from 'src/utils/string';
 
 declare global {
-  interface Identity {
-    getId: () => string;
+  interface UserDetail {
+    getFullName: () => string;
   }
 }
+
 /*eslint no-extend-native: ["error", { "exceptions": ["Object"] }]*/
-Object.defineProperty(Object.prototype, 'getId', {
+Object.defineProperty(Object.prototype, 'getFullName', {
   value: function () {
-    return string.getId(this);
+    return string.getFullName(this);
   },
 });
 

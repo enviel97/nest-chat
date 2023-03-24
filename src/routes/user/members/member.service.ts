@@ -47,16 +47,14 @@ export class MemberService implements IMemberService {
     }
   }
 
-  async createUser(user: User) {
+  async createUser(user: UserDetailDTO) {
     const hashPassword = await hash(user.password);
-    const model = new this.userModel({ ...user, password: hashPassword });
-    const result = await model.save();
-
-    return {
-      id: result.id ?? result._id,
-      firstName: result.firstName,
-      lastName: result.lastName,
-      email: result.email,
-    };
+    const models = await this.userModel.create({
+      ...user,
+      password: hashPassword,
+    });
+    const result = models.toObject();
+    delete result['password'];
+    return { ...result };
   }
 }

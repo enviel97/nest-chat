@@ -18,6 +18,15 @@ class SFriendRequest {
 
 const FriendRequestSchema = SchemaFactory.createForClass(SFriendRequest);
 FriendRequestSchema.index({ author: 1, friend: 1 });
+FriendRequestSchema.index(
+  { status: 1 },
+  {
+    expireAfterSeconds: 172800, // 2 days
+    partialFilterExpression: {
+      status: 'Reject',
+    },
+  },
+);
 
 export { default as CreateFriendRequestDTO } from './dto/CreateFriendRequestDTO';
 export { default as CreateFriendResponseDTO } from './dto/CreateFriendResponseDTO';

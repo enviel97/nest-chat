@@ -60,16 +60,12 @@ export class ConversationGateway implements OnGatewayConnection {
   async handleBannedMember(@MessageBody() payload: BannedMemberPayload) {
     const { conversation, bannerId, type } = payload;
     const conversationId = string.getId(conversation);
-    await this.sessions
-      .getSocketId(bannerId)
-      .leave(this.conversationRoom(conversationId));
-    this.emitUpdateConversation(Event.EVENT_REMOVE_NEW_MEMBERS, conversation);
 
-    const bannedPayload = {
-      conversationId,
-      bannerId,
-      type,
-    };
+    const bannerSocket = this.sessions.getSocketId(bannerId);
+    if (bannerSocket) bannerSocket.leave(this.conversationRoom(conversationId));
+    this.emitUpdateConversation(Event.EVENT_REMOVE_NEW_MEMBERS, conversation);
+    const bannedPayload = { conversationId, bannerId, type };
+
     this.sessions.emitSocket(
       [bannerId],
       bannedPayload,
@@ -134,7 +130,8 @@ export class ConversationGateway implements OnGatewayConnection {
     const sockets = this.sessions.getSockets();
     if (!sockets.has(userId)) return 'offline';
     const socket: AuthenticationSocket = this.sessions.getSocketId(userId);
-    const isInRoom = socket.rooms.has(this.conversationRoom(conversationId));
+    const isInRoom =
+      socket && socket.rooms.has(this.conversationRoom(conversationId));
     return isInRoom ? 'online' : 'offline';
   }
 

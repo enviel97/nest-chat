@@ -63,7 +63,7 @@ class ConversationGroupController {
   async addMembers(
     @Param('id') id: string,
     @Body() body: ConversationAddMember,
-    @AuthUser() author: IUser,
+    @AuthUser() author: User,
     @Res() res: Response,
   ) {
     const { conversation: result, newUsers } =
@@ -87,7 +87,7 @@ class ConversationGroupController {
   @Delete('leave')
   async leave(
     @Param('id') conversationId: string,
-    @AuthUser() author: IUser,
+    @AuthUser() author: User,
     @Res() res: Response,
   ) {
     const conversation = await this.conversationsService.leave(
@@ -110,7 +110,7 @@ class ConversationGroupController {
   async removeMembers(
     @Param('id') conversationId: string,
     @Param('userId') userId: string,
-    @AuthUser() author: IUser,
+    @AuthUser() author: User,
     @Res() res: Response,
   ) {
     const { conversation: result, newUsers } =

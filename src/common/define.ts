@@ -4,6 +4,7 @@ export const Routes = Object.freeze({
   PARTICIPANT: 'conversations/:id/participants',
   MESSAGES: 'conversations/:conversationId/messages',
   USERS: 'users',
+  FRIEND_REQUEST: 'friend/request',
   FRIENDS: 'friends',
 });
 
