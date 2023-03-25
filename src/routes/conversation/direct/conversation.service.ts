@@ -20,7 +20,9 @@ class ConversationService implements IConversationsService {
   ) {}
 
   private async getParticipantByUsers(ids: string[]) {
-    const users = await this.userModel.find({ _id: { $in: ids } });
+    const users = await this.userModel
+      .find({ _id: { $in: ids } }, 'firstName lastName email')
+      .lean();
     if (users.length === 0 || users.length !== ids.length) {
       throw new BadRequestException('Users not found');
     }
@@ -83,7 +85,11 @@ class ConversationService implements IConversationsService {
       });
       return {
         ...model.toObject(),
-        participant: { ...participant, members: newUser.entities },
+        participant: {
+          ...newParticipant.toObject(),
+          roles: roles,
+          members: newUser.entities,
+        },
       };
     }
 
@@ -98,7 +104,7 @@ class ConversationService implements IConversationsService {
     if (!authorId) throw new BadRequestException();
     const { type } = options;
     const { ids } = mapToEntities(
-      await this.participantModel.find({ members: authorId }),
+      await this.participantModel.find({ members: authorId }).lean(),
     );
     return await this.conversationModel
       .find(

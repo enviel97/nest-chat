@@ -72,12 +72,7 @@ class ConversationController {
 
   @Get()
   async getAllConversation(
-    @Query(
-      'type',
-      new DefaultValuePipe(ConversationType.DIRECT),
-      new ParseEnumPipe(ConversationType),
-    )
-    type: ConversationType,
+    @Query('type') type: ConversationType,
     @AuthUser() author: User,
     @Res() res: Response,
   ) {
@@ -86,7 +81,7 @@ class ConversationController {
       {
         limit: 20,
         bucket: 0,
-        type: type,
+        type: type ?? 'direct',
       },
     );
     return res.json({

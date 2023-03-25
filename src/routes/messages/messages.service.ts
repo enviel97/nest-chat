@@ -32,7 +32,8 @@ export class MessagesService implements IMessengerService {
   private async getConversationByID(conversationId: string) {
     const conversation = await this.conversationModel
       .findById(conversationId)
-      .populate('participant');
+      .populate('participant')
+      .lean();
 
     if (!conversation) throw new BadRequestException('Conversation not found');
 
@@ -49,7 +50,8 @@ export class MessagesService implements IMessengerService {
     await this.getConversationByID(conversationId);
     const data = await this.messageModel
       .find({ conversationId }, {}, { sort: { createdAt: 'desc' } })
-      .populate('author', 'firstName lastName');
+      .populate('author', 'firstName lastName')
+      .lean();
 
     return {
       total: data.length,
@@ -77,11 +79,15 @@ export class MessagesService implements IMessengerService {
       action: params.action ?? 'New',
     });
 
-    if (params.action !== 'Notice') {
-      conversation.lastMessage = string.getId(message);
-    }
     const [_, messageFull] = await Promise.all([
-      conversation.save(),
+      async () => {
+        if (params.action === 'Notice') return;
+        return await this.conversationModel
+          .findByIdAndUpdate(conversation.getId(), {
+            lastMessage: message.getId(),
+          })
+          .lean();
+      },
       message.populate('author', 'firstName lastName email'),
     ]);
 
@@ -107,11 +113,9 @@ export class MessagesService implements IMessengerService {
       content,
     } = params;
     const conversation = await this.getConversationByID(conversationId);
-    const message = await this.messageModel.findByIdAndUpdate(
-      messageId,
-      { content, action },
-      { new: true },
-    );
+    const message = await this.messageModel
+      .findByIdAndUpdate(messageId, { content, action }, { new: true })
+      .lean();
 
     if (!message) throw new BadRequestException('Message not found');
     let lastMessage: IMessage = null;
@@ -125,7 +129,7 @@ export class MessagesService implements IMessengerService {
     );
 
     return {
-      message: message?.toObject(),
+      message: <IMessage>message,
       lastMessage: lastMessage,
       members: members.add(userId),
     };

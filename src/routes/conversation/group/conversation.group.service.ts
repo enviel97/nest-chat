@@ -50,7 +50,9 @@ class ConversationGroupService implements IParticipantService {
 
   private async checkParticipantByUsers(ids: string[]) {
     const unique = new Set<string>(ids);
-    const users = await this.userModel.find({ _id: { $in: [...unique] } });
+    const users = await this.userModel
+      .find({ _id: { $in: [...unique] } })
+      .lean();
 
     if (users.length === 0 || users.length !== unique.size) {
       throw new BadRequestException('Users not found');
@@ -154,9 +156,11 @@ class ConversationGroupService implements IParticipantService {
       participant.roles,
     );
 
-    const banners = await this.userModel.find({
-      _id: { $in: [...params.idParticipant] },
-    });
+    const banners = await this.userModel
+      .find({
+        _id: { $in: [...params.idParticipant] },
+      })
+      .lean();
 
     return {
       conversation: merge(conversation, {

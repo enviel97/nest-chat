@@ -26,17 +26,19 @@ export class FriendRequestService implements IFriendRequestService {
 
   private async validateFriendByUser(authorId: string, userId: string) {
     const [author, newFriend] = await Promise.all([
-      this.userModel.findById(authorId, this.normalProjectionUser),
-      this.userModel.findById(userId, this.normalProjectionUser),
+      this.userModel.findById(authorId, this.normalProjectionUser).lean(),
+      this.userModel.findById(userId, this.normalProjectionUser).lean(),
     ]);
     if (!author) throw new BadRequestException(`Author not found`);
     if (!newFriend) throw new BadRequestException(`User not found`);
-    const friendRelationships = await this.friendModel.find({
-      $or: [
-        { $and: [{ author: authorId }, { friend: userId }] },
-        { $and: [{ author: userId }, { friend: authorId }] },
-      ],
-    });
+    const friendRelationships = await this.friendModel
+      .find({
+        $or: [
+          { $and: [{ author: authorId }, { friend: userId }] },
+          { $and: [{ author: userId }, { friend: authorId }] },
+        ],
+      })
+      .lean();
 
     return {
       author,
@@ -99,8 +101,8 @@ export class FriendRequestService implements IFriendRequestService {
 
     return {
       ...friendRequest,
-      author: author.toObject(),
-      friend: friend.toObject(),
+      author: author,
+      friend: friend,
     };
   }
 

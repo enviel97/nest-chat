@@ -29,11 +29,13 @@ export default {
     const schema = ParticipantSchema;
     schema.post('findOneAndUpdate', async function (doc) {
       const newModel = doc as Participant<User>;
-      await conversationModel.findOneAndUpdate(
-        { participant: string.getId(newModel) },
-        {},
-        { updatedAt: newModel.updatedAt ?? new Date() },
-      );
+      await conversationModel
+        .findOneAndUpdate(
+          { participant: string.getId(newModel) },
+          {},
+          { updatedAt: newModel.updatedAt ?? new Date() },
+        )
+        .lean();
     });
     return schema;
   },
