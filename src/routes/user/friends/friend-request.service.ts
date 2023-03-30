@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ModelName } from 'src/common/define';
-import { FriendDocument } from 'src/models/friend-request';
-import { UserDocument } from 'src/models/users';
+import { FriendRequestDocument } from 'src/models/friend-request';
+import { ProfileDocument } from 'src/models/profile';
 import string from 'src/utils/string';
 import {
   FriendNotFoundException,
@@ -12,63 +12,97 @@ import {
   FriendRequestRejectException,
 } from '../exceptions/friend-request.exception';
 import { UserNotfoundException } from '../exceptions/user.exception';
+import {
+  normalProjectionUser,
+  requestFriendListPopulate,
+} from './friend-request.populate';
 
 @Injectable()
 export class FriendRequestService implements IFriendRequestService {
   constructor(
     @InjectModel(ModelName.FriendRequest)
-    private readonly friendModel: FriendDocument,
-    @InjectModel(ModelName.User)
-    private readonly userModel: UserDocument,
+    private readonly friendModel: FriendRequestDocument,
+    @InjectModel(ModelName.Profile)
+    private readonly profileModel: ProfileDocument,
   ) {}
 
-  private normalProjectionUser: string = 'email firstName lastName';
-
   private async validateFriendByUser(authorId: string, userId: string) {
-    const [author, newFriend] = await Promise.all([
-      this.userModel.findById(authorId, this.normalProjectionUser).lean(),
-      this.userModel.findById(userId, this.normalProjectionUser).lean(),
+    const [friendRelationships, author, newFriend] = await Promise.all([
+      this.friendModel
+        .find({
+          $or: [
+            { $and: [{ authorId: authorId }, { friendId: userId }] },
+            { $and: [{ authorId: userId }, { friendId: authorId }] },
+          ],
+        })
+        .lean(),
+      this.profileModel
+        .findOne({ user: authorId })
+        .populate('user', normalProjectionUser)
+        .lean(),
+      this.profileModel
+        .findOne({ user: userId })
+        .populate('user', normalProjectionUser)
+        .lean(),
     ]);
     if (!author) throw new BadRequestException(`Author not found`);
     if (!newFriend) throw new BadRequestException(`User not found`);
-    const friendRelationships = await this.friendModel
-      .find({
-        $or: [
-          { $and: [{ author: authorId }, { friend: userId }] },
-          { $and: [{ author: userId }, { friend: authorId }] },
-        ],
-      })
-      .lean();
 
     return {
-      author,
-      friend: newFriend,
+      author: author as Profile<User>,
+      friend: newFriend as Profile<User>,
       relationship: friendRelationships.at(0),
     };
   }
 
-  private async validateFriendById(friendRequestId: string, checkerId: string) {
-    const [relationship, friend] = await Promise.all([
-      this.friendModel.findById(friendRequestId).populate('author'),
-      this.userModel.findById(checkerId),
-    ]);
+  async create(
+    friendId: string,
+    userId: string,
+  ): Promise<FriendRequest<Profile<User>>> {
+    const { author, friend, relationship } = await this.validateFriendByUser(
+      userId,
+      friendId,
+    );
+    if (relationship) throw new FriendRequestException();
 
-    if (!relationship) throw new FriendNotFoundException();
-    if (!friend) throw new UserNotfoundException();
+    const friendRequest = await this.friendModel.create({
+      authorId: userId,
+      authorProfile: author.getId(),
+      friendId: friendId,
+      friendProfile: friend.getId(),
+      status: 'Request',
+    });
 
     return {
-      author: relationship.author,
-      relationship,
-      friend,
+      ...friendRequest.toObject(),
+      authorProfile: author,
+      friendProfile: friend,
     };
   }
-  async cancel(
-    friendRequestId: string,
-    friendId: string,
-  ): Promise<CancelFriendRequest> {
+
+  private async validateFriendById(friendRequestId: string) {
+    const relationship = await this.friendModel.findById(friendRequestId);
+    if (!relationship) throw new FriendNotFoundException();
+    const [profileAuthor, profileUser] = await Promise.all([
+      this.profileModel
+        .findOne({ user: relationship.authorProfile })
+        .populate('user', normalProjectionUser),
+      this.profileModel
+        .findOne({ user: relationship.friendProfile })
+        .populate('user', normalProjectionUser),
+    ]);
+    if (!profileAuthor) throw new BadRequestException(`Author not found`);
+    if (!profileUser) throw new BadRequestException(`User not found`);
+    return {
+      author: profileAuthor,
+      relationship,
+      friend: profileUser,
+    };
+  }
+
+  async cancel(friendRequestId: string): Promise<CancelFriendRequest> {
     const { relationship, author, friend } = await this.validateFriendById(
       friendRequestId,
-      friendId,
     );
     switch (relationship.status) {
       case 'Accept':
@@ -81,28 +115,8 @@ export class FriendRequestService implements IFriendRequestService {
       }
     }
     return {
-      friend: friend.getId(),
-      author: author.getId(),
-    };
-  }
-
-  async create(friendId: string, userId: string): Promise<FriendRequest<User>> {
-    const { author, friend, relationship } = await this.validateFriendByUser(
-      userId,
-      friendId,
-    );
-    if (relationship) throw new FriendRequestException();
-
-    const friendRequest = await this.friendModel.create({
-      author: userId,
-      friend: friendId,
-      status: 'Request',
-    });
-
-    return {
-      ...friendRequest,
-      author: author,
-      friend: friend,
+      friend: string.getId(friend.user),
+      author: string.getId(author.user),
     };
   }
 
@@ -111,28 +125,21 @@ export class FriendRequestService implements IFriendRequestService {
     friendRequestId: string,
     status: 'Accept' | 'Reject',
   ): Promise<AddFriendRequest> {
-    const { relationship, friend } = await this.validateFriendById(
+    const { relationship, friend, author } = await this.validateFriendById(
       friendRequestId,
-      friendId,
     );
-    if (!relationship) throw new FriendNotFoundException();
     if (relationship.status !== 'Request') {
       throw new FriendRequestPendingException();
     }
-    if (relationship.friend.getId() !== friendId) {
+    if (string.getId(friend.user) !== friendId) {
       throw new FriendRequestException();
     }
     switch (status) {
       case 'Accept': {
-        const authorId = string.getId(relationship.author);
-        const [user, newFriend] = await Promise.all([
-          this.userModel
-            .findByIdAndUpdate(
-              authorId,
-              { $push: { friends: friendId } },
-              { new: true },
-            )
-            .lean(),
+        const authorId = string.getId(author);
+        const friendId = string.getId(friend);
+        const [user, newFriend] = await Promise.all<Profile<User>>([
+          author.update({ $push: { friends: friendId } }, { new: true }).lean(),
           friend.update({ $push: { friends: authorId } }, { new: true }).lean(),
           relationship.update({ status: 'Accept' }).lean(),
         ]);
@@ -143,27 +150,32 @@ export class FriendRequestService implements IFriendRequestService {
         };
       }
       case 'Reject': {
-        await relationship.update({ status: 'Accept' }).lean();
+        await relationship.update({ status: 'Reject' }, { new: true }).lean();
         return {
-          author: <User>relationship.author,
-          friend: friend,
+          author: author.toObject(),
+          friend: friend.toObject(),
           status: 'Reject',
         };
       }
     }
   }
 
-  async list(userId: string): Promise<FriendRequest<User>[]> {
-    const user = await this.userModel.findById(userId).lean();
+  async listRequest(userId: string): Promise<FriendRequest<Profile<User>>[]> {
+    const [user, relationship] = await Promise.all([
+      this.profileModel.findOne({ user: userId }, 'user bio avatar').lean(),
+      this.friendModel
+        .find(
+          { friendId: userId, status: 'Request' },
+          'createdAt authorId authorProfile updatedAt',
+          {
+            skip: 0,
+            limit: 10,
+            populate: requestFriendListPopulate,
+          },
+        )
+        .lean(),
+    ]);
     if (!user) throw new UserNotfoundException();
-    const status = 'Request';
-    const relationship: FriendRequest<User>[] = await this.friendModel
-      .find({ friend: userId, status: status })
-      .populate([
-        { path: 'friend', select: 'firstName lastName ' },
-        { path: 'author', select: 'firstName lastName ' },
-      ])
-      .lean();
     return relationship;
   }
 }

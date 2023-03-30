@@ -9,7 +9,6 @@ const UserSchema = new Schema<User>(
     lastName: { type: String, index: true },
     email: { type: String, unique: true, sparse: true, index: true },
     password: { type: String, select: false },
-    friends: { type: [String], ref: ModelName.User, default: [] },
   },
   { timestamps: true },
 );

@@ -28,7 +28,4 @@ export class MemberController {
       data: result,
     });
   }
-
-  @Get('friend')
-  async getFriend(@AuthUser() user: User) {}
 }

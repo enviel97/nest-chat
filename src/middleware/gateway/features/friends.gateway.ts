@@ -8,10 +8,9 @@ import { Event, Services } from 'src/common/define';
 import { Server } from 'socket.io';
 import { Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import string from 'src/utils/string';
 
 @WsG({ cors: CorsOption })
-export class WebsocketGateway {
+export class FriendGateway {
   constructor(
     @Inject(Services.GATEWAY_SESSION)
     private readonly sessions: IGatewaySession,
@@ -21,12 +20,14 @@ export class WebsocketGateway {
   server: Server;
 
   @OnEvent(Event.EVENT_FRIEND_SEND_REQUEST)
-  handleSendFriendRequest(@MessageBody() payload: FriendRequest<User>) {
-    const { friend, author, status } = payload;
-    const event =
-      status === 'Accept'
-        ? Event.EVENT_FRIEND_RECEIVE_ALLOW_FRIEND
-        : Event.EVENT_FRIEND_RECEIVE_FRIEND_REQUEST;
-    this.sessions.emitSocket([string.getId(friend)], author, event);
+  handleSendFriendRequest(
+    @MessageBody() payload: FriendRequest<Profile<User>>,
+  ) {
+    const { friendId } = payload;
+    this.sessions.emitSocket(
+      [friendId],
+      payload,
+      Event.EVENT_FRIEND_RECEIVE_FRIEND_REQUEST,
+    );
   }
 }

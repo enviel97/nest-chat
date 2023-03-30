@@ -7,20 +7,34 @@ import { MemberController } from './members/member.controller';
 import { MemberService } from './members/member.service';
 import UserSchema from 'src/models/users';
 import FriendSchema from 'src/models/friend-request';
+import ProfileSchema from 'src/models/profile';
+import { ProfileService } from './profiles/profile.service';
+import { ProfileController } from './profiles/profile.controller';
 
 const UserMemberProvider = {
   provide: Services.USERS,
   useClass: MemberService,
 };
 
-const UserFriendProvider = {
-  provide: Services.FRIENDS,
+const UserFriendRequestProvider = {
+  provide: Services.FRIEND_REQUEST,
   useClass: FriendRequestService,
 };
+
+const UserProfileProvider = {
+  provide: Services.PROFILE,
+  useClass: ProfileService,
+};
 @Module({
-  imports: [MongooseModule.forFeature([UserSchema, FriendSchema])],
-  controllers: [MemberController, FriendRequestController],
-  providers: [UserMemberProvider, UserFriendProvider],
+  imports: [
+    MongooseModule.forFeature([UserSchema, FriendSchema, ProfileSchema]),
+  ],
+  controllers: [MemberController, FriendRequestController, ProfileController],
+  providers: [
+    UserMemberProvider,
+    UserFriendRequestProvider,
+    UserProfileProvider,
+  ],
   exports: [UserMemberProvider],
 })
 export class UserModule {}

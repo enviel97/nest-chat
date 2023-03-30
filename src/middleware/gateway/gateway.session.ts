@@ -16,16 +16,15 @@ export class GatewaySessionManager implements IGatewaySession {
     option?: SocketEmitOptions,
   ) {
     const { isEmitWithCreator = false, ignoreIds = [] } = option ?? {};
-    ids
-      .filter((id) => !ignoreIds.includes(id))
-      .forEach((id) => {
-        const socket: AuthenticationSocket = this.getSocketId(id);
-        if (!socket) return;
-        socket.emit(event, {
-          ...payload,
-          ...(isEmitWithCreator && { sender: socket.user }),
-        });
+    ids.forEach((id) => {
+      if (ignoreIds.includes(id)) return;
+      const socket: AuthenticationSocket = this.getSocketId(id);
+      if (!socket) return;
+      socket.emit(event, {
+        ...payload,
+        ...(isEmitWithCreator && { sender: socket.user }),
       });
+    });
   }
 
   getSocketId(id: string): AuthenticationSocket | undefined {

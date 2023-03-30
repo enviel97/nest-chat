@@ -24,17 +24,17 @@ import { AuthenticateGuard } from '../../auth/utils/Guards';
 @UseGuards(AuthenticateGuard)
 export class FriendRequestController {
   constructor(
-    @Inject(Services.FRIENDS)
-    private readonly friendsService: IFriendRequestService,
+    @Inject(Services.FRIEND_REQUEST)
+    private readonly friendRequestService: IFriendRequestService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  @Post()
+  @Post('request')
   async sendFriendRequest(
     @AuthUser() user: User,
     @Body() createFriendRequestDTO: CreateFriendRequestDTO,
   ) {
-    const friendRequest = await this.friendsService.create(
+    const friendRequest = await this.friendRequestService.create(
       createFriendRequestDTO.userId,
       string.getId(user),
     );
@@ -48,13 +48,13 @@ export class FriendRequestController {
     };
   }
 
-  @Patch(':id')
+  @Patch('response/:id')
   async sendFriendResponse(
     @Param('id', ParseObjectIdPipe) friendRequestId: string,
     @AuthUser() user: User,
     @Body() createFriendResponseDTO: CreateFriendResponseDTO,
   ) {
-    const { author, friend, status } = await this.friendsService.response(
+    const { author, friend, status } = await this.friendRequestService.response(
       string.getId(user),
       friendRequestId,
       createFriendResponseDTO.status,
@@ -78,7 +78,7 @@ export class FriendRequestController {
     @AuthUser() user: User,
     @Param('id', ParseObjectIdPipe) friendRequestId: string,
   ) {
-    const result = await this.friendsService.cancel(
+    const result = await this.friendRequestService.cancel(
       friendRequestId,
       user.getId(),
     );
@@ -89,9 +89,11 @@ export class FriendRequestController {
     };
   }
 
-  @Get()
+  @Get('request')
   async getFriendRequest(@AuthUser() user: User) {
-    const listFriendRequest = await this.friendsService.list(user.getId());
+    const listFriendRequest = await this.friendRequestService.listRequest(
+      user.getId(),
+    );
     return {
       code: 200,
       message: 'Get friend request list successfully',

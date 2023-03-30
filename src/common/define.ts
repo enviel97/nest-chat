@@ -4,8 +4,8 @@ export const Routes = Object.freeze({
   PARTICIPANT: 'conversations/:id/participants',
   MESSAGES: 'conversations/:conversationId/messages',
   USERS: 'users',
-  FRIEND_REQUEST: 'friend/request',
-  FRIENDS: 'friends',
+  FRIEND_REQUEST: 'users/friend',
+  PROFILE: 'users/profile',
 });
 
 export const Services = Object.freeze({
@@ -15,7 +15,8 @@ export const Services = Object.freeze({
   MESSAGES: 'MESSAGES_SERVICE',
   GATEWAY_SESSION: 'GATEWAY_SESSION_MANAGER',
   PARTICIPANT: 'PARTICIPANT_SERVICE',
-  FRIENDS: 'FRIEND_SERVICE',
+  FRIEND_REQUEST: 'FRIEND_REQUEST_SERVICE',
+  PROFILE: 'PROFILE_SERVICE',
 });
 
 export const ModelName = Object.freeze({
@@ -23,7 +24,8 @@ export const ModelName = Object.freeze({
   Conversation: 'conversations',
   Message: 'messages',
   Participant: 'participants',
-  FriendRequest: 'friend-request',
+  FriendRequest: 'friendRequests',
+  Profile: 'profiles',
 });
 
 export const Event = Object.freeze({
