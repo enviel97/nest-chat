@@ -15,10 +15,10 @@ interface IFriendRequestService {
     userId: string,
   ): Promise<FriendRequest<Profile<User>>>;
   response(
-    friendId: string,
     friendRequestId: string,
+    friendAccountId: string,
     status: 'Accept' | 'Reject',
-  ): Promise<AddFriendRequest>;
+  ): Promise<FriendRequest<Profile<User>>>;
   cancel(
     friendRequestId: string,
     friendId: string,

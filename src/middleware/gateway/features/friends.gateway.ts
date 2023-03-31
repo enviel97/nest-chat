@@ -19,15 +19,47 @@ export class FriendGateway {
   @WebSocketServer()
   server: Server;
 
-  @OnEvent(Event.EVENT_FRIEND_SEND_REQUEST)
-  handleSendFriendRequest(
-    @MessageBody() payload: FriendRequest<Profile<User>>,
-  ) {
+  private handleRequest(payload: FriendRequest<Profile<User>>) {
     const { friendId } = payload;
     this.sessions.emitSocket(
       [friendId],
       payload,
       Event.EVENT_FRIEND_RECEIVE_FRIEND_REQUEST,
     );
+  }
+
+  private handleAcceptResponse(payload: FriendRequest<Profile<User>>) {
+    const { authorId, authorProfile } = payload;
+    this.sessions.emitSocket(
+      [authorId],
+      { authorProfile, _id: payload.getId() },
+      Event.EVENT_FRIEND_RECEIVE_ALLOW_FRIEND,
+    );
+  }
+
+  private handleRejectResponse(payload: FriendRequest<Profile<User>>) {
+    const { authorId, authorProfile } = payload;
+    this.sessions.emitSocket(
+      [authorId],
+      { authorProfile, _id: payload.getId() },
+      Event.EVENT_FRIEND_RECEIVE_REJECT_FRIEND,
+    );
+  }
+
+  @OnEvent(Event.EVENT_FRIEND_SEND_REQUEST)
+  handleSendFriendRequest(
+    @MessageBody() payload: FriendRequest<Profile<User>>,
+  ) {
+    switch (payload.status) {
+      case 'Request':
+        this.handleRequest(payload);
+        break;
+      case 'Accept':
+        this.handleAcceptResponse(payload);
+        break;
+      case 'Reject':
+        this.handleRejectResponse(payload);
+        break;
+    }
   }
 }

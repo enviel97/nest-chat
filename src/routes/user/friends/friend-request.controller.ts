@@ -54,22 +54,20 @@ export class FriendRequestController {
     @AuthUser() user: User,
     @Body() createFriendResponseDTO: CreateFriendResponseDTO,
   ) {
-    const { author, friend, status } = await this.friendRequestService.response(
-      string.getId(user),
+    const friendResponse = await this.friendRequestService.response(
       friendRequestId,
+      string.getId(user),
       createFriendResponseDTO.status,
     );
 
-    this.eventEmitter.emit(Event.EVENT_FRIEND_SEND_REQUEST, {
-      friend,
-      author,
-      status,
-    });
-
+    this.eventEmitter.emit(Event.EVENT_FRIEND_SEND_REQUEST, friendResponse);
+    console.log(friendResponse);
     return {
       code: 200,
-      message: `${author.getFullName()} accept friend request from ${friend.getFullName()}`,
-      data: friend,
+      message: `${friendResponse.friendProfile.user.getFullName()} ${
+        friendResponse.status
+      } friend request from ${friendResponse.friendProfile.user.getFullName()}`,
+      data: friendResponse.authorProfile,
     };
   }
 
