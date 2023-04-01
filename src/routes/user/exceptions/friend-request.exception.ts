@@ -27,7 +27,7 @@ export class FriendNotFoundException extends HttpException {
 }
 export class FriendRequestException extends HttpException {
   constructor() {
-    let message = 'Friend request not exits';
+    let message = 'Friend request error';
     super(message, HttpStatus.BAD_REQUEST);
   }
 }

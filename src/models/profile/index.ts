@@ -18,10 +18,10 @@ class SProfile {
   @Prop({ type: String })
   avatar: string;
 
-  @Prop({ type: String, ref: ModelName.Profile, index: true })
+  @Prop({ type: [String], ref: ModelName.Profile, index: true })
   blockList: string[];
 
-  @Prop({ type: String, ref: ModelName.Profile, index: true })
+  @Prop({ type: [String], ref: ModelName.Profile, index: true })
   friends: string[];
 }
 

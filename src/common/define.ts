@@ -17,6 +17,7 @@ export const Services = Object.freeze({
   PARTICIPANT: 'PARTICIPANT_SERVICE',
   FRIEND_REQUEST: 'FRIEND_REQUEST_SERVICE',
   PROFILE: 'PROFILE_SERVICE',
+  REDIS: Symbol('SESSION:REDIS'),
 });
 
 export const ModelName = Object.freeze({

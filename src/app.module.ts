@@ -10,7 +10,7 @@ import MongooseModule from './middleware/mongoose';
 import PassportModule from './middleware/passport';
 import { AuthModule } from './routes/auth/auth.module';
 import { UserModule } from './routes/user/user.module';
-import { REDIS, RedisModule } from 'src/adapter/redis.module';
+import { RedisModule } from 'src/adapter/redis.module';
 import * as createRedisStore from 'connect-redis';
 import * as session from 'express-session';
 import * as passport from 'passport';
@@ -20,6 +20,7 @@ import { MessagesModule } from './routes/messages/messages.module';
 import { GatewayModule } from './middleware/gateway/gateway.module';
 import EventConfigModule from './middleware/gateway/event.config';
 import { LoggerMiddleware } from './adapter/logger.module';
+import { Services } from './common/define';
 
 @Module({
   imports: [
@@ -41,7 +42,9 @@ import { LoggerMiddleware } from './adapter/logger.module';
   providers: [],
 })
 export class AppModule {
-  constructor(@Inject(REDIS) private readonly redisClient: RedisClientType) {}
+  constructor(
+    @Inject(Services.REDIS) private readonly redisClient: RedisClientType,
+  ) {}
 
   configure(consumer: MiddlewareConsumer) {
     const RedisStore = createRedisStore(session);

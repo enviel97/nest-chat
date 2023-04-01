@@ -38,8 +38,7 @@ export class ProfileService implements IProfileService {
       path: 'friends',
       populate: { path: 'user', select: this.normalProjectionUser },
     });
-
-    return profile.toObject().friends as Profile<User>[];
+    return [...profile.friends] as Profile<User>[];
   }
 
   async searchFriend(user: string, query: string): Promise<Profile<User>[]> {

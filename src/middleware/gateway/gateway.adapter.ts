@@ -3,16 +3,16 @@ import { AuthenticationSocket } from './gateway.session';
 import * as cookieParser from 'cookie-parser';
 import * as cookie from 'cookie';
 import env from 'src/common/environment';
-import { REDIS } from 'src/adapter/redis.module';
 import { RedisClientType } from 'redis';
 import environment from 'src/common/environment';
+import { Services } from 'src/common/define';
 
 export class WebsocketAdapter extends IoAdapter {
   private redisClient: RedisClientType;
 
   constructor(app: any) {
     super(app);
-    app.resolve(REDIS).then((service: RedisClientType) => {
+    app.resolve(Services.REDIS).then((service: RedisClientType) => {
       this.redisClient = service;
     });
   }

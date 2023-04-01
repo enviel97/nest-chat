@@ -1,13 +1,12 @@
 import { Logger, Module } from '@nestjs/common';
 import * as Redis from 'redis';
+import { Services } from 'src/common/define';
 import environment from 'src/common/environment';
-
-export const REDIS = Symbol('SESSION:REDIS');
 
 @Module({
   providers: [
     {
-      provide: REDIS,
+      provide: Services.REDIS,
       useFactory: async () => {
         const client = Redis.createClient({
           legacyMode: true,
@@ -30,6 +29,6 @@ export const REDIS = Symbol('SESSION:REDIS');
       },
     },
   ],
-  exports: [REDIS],
+  exports: [Services.REDIS],
 })
 export class RedisModule {}

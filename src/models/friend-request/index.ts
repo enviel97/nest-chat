@@ -30,7 +30,7 @@ FriendRequestSchema.index({ friendId: 1, status: 1 });
 FriendRequestSchema.index(
   { createdAt: 1 },
   {
-    expireAfterSeconds: 172800, // 2 days
+    expireAfterSeconds: 5, // 5s
     partialFilterExpression: {
       status: 'Accept',
     },
@@ -39,7 +39,7 @@ FriendRequestSchema.index(
 FriendRequestSchema.index(
   { createdAt: -1 },
   {
-    expireAfterSeconds: 172800, // 2 days
+    expireAfterSeconds: 5, // 5s
     partialFilterExpression: {
       status: 'Reject',
     },

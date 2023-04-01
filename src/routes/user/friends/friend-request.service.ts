@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ModelName } from 'src/common/define';
 import { FriendRequestDocument } from 'src/models/friend-request';
@@ -6,10 +6,8 @@ import { ProfileDocument } from 'src/models/profile';
 import string from 'src/utils/string';
 import {
   FriendNotFoundException,
-  FriendRequestAcceptedException,
   FriendRequestException,
   FriendRequestPendingException,
-  FriendRequestRejectException,
 } from '../exceptions/friend-request.exception';
 import { UserNotfoundException } from '../exceptions/user.exception';
 import {
@@ -122,19 +120,19 @@ export class FriendRequestService implements IFriendRequestService {
     switch (status) {
       case 'Accept': {
         await Promise.all([
-          relationship.updateOne({ status: 'Accept' }, { new: true }),
           author
             .updateOne(
-              { $push: { friends: relationship.friendId } },
+              { $push: { friends: string.getId(relationship.friendProfile) } },
               { new: true },
             )
             .lean(),
           friend
             .updateOne(
-              { $push: { friends: relationship.authorId } },
+              { $push: { friends: string.getId(relationship.authorProfile) } },
               { new: true },
             )
             .lean(),
+          relationship.updateOne({ status: 'Accept' }, { new: true }),
         ]);
         break;
       }

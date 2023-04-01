@@ -38,8 +38,10 @@ export class FriendRequestController {
       createFriendRequestDTO.userId,
       string.getId(user),
     );
-
-    this.eventEmitter.emit(Event.EVENT_FRIEND_SEND_REQUEST, friendRequest);
+    this.eventEmitter.emit(Event.EVENT_FRIEND_SEND_REQUEST, {
+      ...friendRequest,
+      status: 'Request',
+    });
 
     return {
       code: 200,
@@ -60,8 +62,11 @@ export class FriendRequestController {
       createFriendResponseDTO.status,
     );
 
-    this.eventEmitter.emit(Event.EVENT_FRIEND_SEND_REQUEST, friendResponse);
-    console.log(friendResponse);
+    this.eventEmitter.emit(Event.EVENT_FRIEND_SEND_REQUEST, {
+      ...friendResponse,
+      status: createFriendResponseDTO.status,
+    });
+
     return {
       code: 200,
       message: `${friendResponse.friendProfile.user.getFullName()} ${
