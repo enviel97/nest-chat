@@ -10,5 +10,5 @@ interface ProfileCommon extends Identity, TimeStamps {
 interface Profile<T extends UserRef> extends ProfileCommon {
   user: T;
   blockList: T[];
-  friends: T[];
+  friends: Profile<T>[];
 }
