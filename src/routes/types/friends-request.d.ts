@@ -23,5 +23,8 @@ interface IFriendRequestService {
     friendRequestId: string,
     friendId: string,
   ): Promise<CancelFriendRequest>;
-  listRequest(userId: string): Promise<FriendRequest<Profile<User>>[]>;
+  listRequest(
+    userId: string,
+    action: 'pending' | 'request',
+  ): Promise<FriendRequest<Profile<User>>[]>;
 }

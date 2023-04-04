@@ -172,19 +172,22 @@ export class FriendRequestService implements IFriendRequestService {
     throw new Error('Un implement');
   }
 
-  async listRequest(userId: string): Promise<FriendRequest<Profile<User>>[]> {
+  async listRequest(
+    userId: string,
+    action: 'pending' | 'request',
+  ): Promise<FriendRequest<Profile<User>>[]> {
+    const query =
+      action === 'request'
+        ? { friendId: userId, status: 'Request' }
+        : { authorId: userId, status: 'Request' };
+
     const [user, relationship] = await Promise.all([
       this.profileModel.findOne({ user: userId }, 'user bio avatar').lean(),
       this.friendModel
-        .find(
-          { friendId: userId, status: 'Request' },
-          'createdAt authorId authorProfile updatedAt',
-          {
-            skip: 0,
-            limit: 10,
-            populate: requestFriendListPopulate,
-          },
-        )
+        .find(query)
+        .skip(0)
+        .limit(10)
+        .populate(requestFriendListPopulate)
         .lean(),
     ]);
     if (!user) throw new UserNotfoundException();

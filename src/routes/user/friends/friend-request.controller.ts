@@ -96,11 +96,25 @@ export class FriendRequestController {
   async getFriendRequest(@AuthUser() user: User) {
     const listFriendRequest = await this.friendRequestService.listRequest(
       user.getId(),
+      'request',
     );
     return {
       code: 200,
       message: 'Get friend request list successfully',
       data: listFriendRequest,
+    };
+  }
+
+  @Get('pending')
+  async getFriendPending(@AuthUser() user: User) {
+    const listFriendPending = await this.friendRequestService.listRequest(
+      user.getId(),
+      'pending',
+    );
+    return {
+      code: 200,
+      message: 'Get friend pending list successfully',
+      data: listFriendPending,
     };
   }
 }
