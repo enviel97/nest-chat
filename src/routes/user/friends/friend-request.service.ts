@@ -1,13 +1,18 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
 import { ModelName } from 'src/common/define';
 import { FriendRequestDocument } from 'src/models/friend-request';
 import { ProfileDocument } from 'src/models/profile';
 import string from 'src/utils/string';
 import {
   FriendNotFoundException,
+  FriendRequestAcceptedException,
   FriendRequestException,
+  FriendRequestExitedException,
   FriendRequestPendingException,
+  FriendRequestPermissionException,
+  FriendRequestRejectException,
 } from '../exceptions/friend-request.exception';
 import { UserNotfoundException } from '../exceptions/user.exception';
 import {
@@ -78,15 +83,12 @@ export class FriendRequestService implements IFriendRequestService {
     };
   }
 
-  private async validateFriendById(
-    friendRequestId: string,
-    friendAccountId: string,
-  ) {
-    const relationship = await this.friendModel.findById(friendRequestId);
+  private async validateFriendById(friendRequestId: string) {
+    const relationship = await this.friendModel
+      .findById(friendRequestId)
+      .lean();
     if (!relationship) throw new FriendNotFoundException();
-    if (relationship.friendId !== friendAccountId) {
-      throw new FriendRequestException();
-    }
+
     const [profileAuthor, profileUser] = await Promise.all([
       this.profileModel
         .findById(relationship.authorProfile)
@@ -111,65 +113,78 @@ export class FriendRequestService implements IFriendRequestService {
   ): Promise<FriendRequest<Profile<User>>> {
     const { relationship, friend, author } = await this.validateFriendById(
       friendRequestId,
-      friendAccountId,
     );
+    if (relationship.friendId !== friendAccountId) {
+      throw new FriendRequestPermissionException();
+    }
     if (relationship.status !== 'Request') {
       throw new FriendRequestPendingException();
     }
+    const newRelationShip = await this.friendModel
+      .findOneAndUpdate(
+        { _id: new Types.ObjectId(friendRequestId), status: 'Request' },
+        { status: 'Accept' },
+        { new: true },
+      )
+      .lean();
 
-    switch (status) {
-      case 'Accept': {
-        await Promise.all([
-          author
-            .updateOne(
-              { $push: { friends: string.getId(relationship.friendProfile) } },
-              { new: true },
-            )
-            .lean(),
-          friend
-            .updateOne(
-              { $push: { friends: string.getId(relationship.authorProfile) } },
-              { new: true },
-            )
-            .lean(),
-          relationship.updateOne({ status: 'Accept' }, { new: true }),
-        ]);
-        break;
-      }
-      case 'Reject': {
-        await relationship
-          .updateOne({ status: 'Reject' }, { new: true })
-          .lean();
-        break;
-      }
+    if (!newRelationShip) throw new FriendRequestExitedException();
+    if (status === 'Accept') {
+      await Promise.all([
+        author
+          .updateOne(
+            { $push: { friends: string.getId(relationship.friendProfile) } },
+            { new: true },
+          )
+          .lean(),
+        friend
+          .updateOne(
+            { $push: { friends: string.getId(relationship.authorProfile) } },
+            { new: true },
+          )
+          .lean(),
+      ]);
     }
 
     return {
-      ...relationship.toObject(),
+      ...relationship,
       authorProfile: author.toObject(),
       friendProfile: friend.toObject(),
+      status: status,
     };
   }
 
-  async cancel(friendRequestId: string): Promise<CancelFriendRequest> {
-    // const { relationship, author, friend } = await this.validateFriendById(
-    //   friendRequestId,
-    // );
-    // switch (relationship.status) {
-    //   case 'Accept':
-    //     throw new FriendRequestAcceptedException();
-    //   case 'Reject':
-    //     throw new FriendRequestRejectException();
-    //   case 'Request': {
-    //     await relationship.delete();
-    //     break;
-    //   }
-    // }
-    // return {
-    //   friend: string.getId(friend.user),
-    //   author: string.getId(author.user),
-    // };
-    throw new Error('Un implement');
+  async cancel(
+    friendRequestId: string,
+    friendAccountId: string,
+  ): Promise<FriendRequest<Profile<User>>> {
+    const { relationship, author, friend } = await this.validateFriendById(
+      friendRequestId,
+    );
+    if (relationship.authorId !== friendAccountId) {
+      throw new FriendRequestPermissionException();
+    }
+    switch (relationship.status) {
+      case 'Accept':
+        throw new FriendRequestAcceptedException();
+      case 'Reject':
+        throw new FriendRequestRejectException();
+      case 'Request': {
+        const currentRelationship = await this.friendModel
+          .findOneAndDelete({
+            _id: new Types.ObjectId(friendRequestId),
+            status: 'Request',
+          })
+          .lean();
+        if (!currentRelationship) throw new FriendRequestExitedException();
+        break;
+      }
+    }
+    return {
+      ...relationship,
+      authorProfile: author.toObject(),
+      friendProfile: friend.toObject(),
+    };
   }
 
   async listRequest(

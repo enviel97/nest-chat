@@ -1,6 +1,6 @@
 import environment from 'src/common/environment';
 import { MongooseModule } from '@nestjs/mongoose';
-import mongoose, { MongooseError } from 'mongoose';
+import { MongooseError } from 'mongoose';
 import { Logger } from '@nestjs/common';
 
 export default MongooseModule.forRoot(environment.mongoose.uri, {
@@ -9,7 +9,6 @@ export default MongooseModule.forRoot(environment.mongoose.uri, {
   dbName: environment.mongoose.dbName.dev,
   connectionFactory: (connection: any, name: string) => {
     Logger.log(`[${name}] Connect success`, 'Mongoose');
-    mongoose.set('debug', true);
     return connection;
   },
   connectionErrorFactory: (error: MongooseError) => {

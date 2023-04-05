@@ -62,4 +62,16 @@ export class FriendGateway {
         break;
     }
   }
+
+  @OnEvent(Event.EVENT_FRIEND_REQUEST_CANCEL)
+  handleFriendRequestCancel(
+    @MessageBody() payload: FriendRequest<Profile<User>>,
+  ) {
+    const { friendId } = payload;
+    this.sessions.emitSocket(
+      [friendId],
+      { _id: payload.getId() },
+      Event.EVENT_FRIEND_RECEIVE_CANCEL_FRIEND_REQUEST,
+    );
+  }
 }

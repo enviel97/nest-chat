@@ -76,7 +76,7 @@ export class FriendRequestController {
     };
   }
 
-  @Delete(':id')
+  @Delete('cancel/:id')
   async cancelFriendRequest(
     @AuthUser() user: User,
     @Param('id', ParseObjectIdPipe) friendRequestId: string,
@@ -85,9 +85,12 @@ export class FriendRequestController {
       friendRequestId,
       user.getId(),
     );
+    this.eventEmitter.emit(Event.EVENT_FRIEND_REQUEST_CANCEL, {
+      ...result,
+    });
     return {
       code: 200,
-      message: 'Delete friend request successfully',
+      message: 'Cancel friend request successfully',
       data: friendRequestId,
     };
   }

@@ -42,6 +42,7 @@ export const Event = Object.freeze({
   EVENT_PARTICIPANT_GET_STATUS: 'participant.getStatus',
 
   EVENT_FRIEND_SEND_REQUEST: 'friend-request.ack',
+  EVENT_FRIEND_REQUEST_CANCEL: 'friend-request.cancel',
 
   // event listen
   EVENT_USER_TYPING_START: 'onUserTypingStart',
@@ -67,6 +68,7 @@ export const Event = Object.freeze({
   EVENT_FRIEND_RECEIVE_FRIEND_REQUEST: 'onReceiveFriendRequest',
   EVENT_FRIEND_RECEIVE_ALLOW_FRIEND: 'onReceiveAllowFriendRequest',
   EVENT_FRIEND_RECEIVE_REJECT_FRIEND: 'onReceiveRejectFriendRequest',
+  EVENT_FRIEND_RECEIVE_CANCEL_FRIEND_REQUEST: 'onReceiveCancelFriendRequest',
 
   EVENT_SOCKET_CONNECTED: 'connected',
 });

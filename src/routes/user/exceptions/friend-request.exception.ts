@@ -31,3 +31,17 @@ export class FriendRequestException extends HttpException {
     super(message, HttpStatus.BAD_REQUEST);
   }
 }
+
+export class FriendRequestPermissionException extends HttpException {
+  constructor() {
+    const message = "Account don't have permission";
+    super(message, HttpStatus.BAD_REQUEST);
+  }
+}
+
+export class FriendRequestExitedException extends HttpException {
+  constructor() {
+    const message = 'Friend request is exits';
+    super(message, HttpStatus.CONFLICT);
+  }
+}

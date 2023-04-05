@@ -1,14 +1,3 @@
-interface AddFriendRequest {
-  author: Profile;
-  friend: Profile;
-  status: 'Accept' | 'Reject';
-}
-
-interface CancelFriendRequest {
-  author: string;
-  friend: string;
-}
-
 interface IFriendRequestService {
   create(
     friendId: string,
@@ -22,7 +11,7 @@ interface IFriendRequestService {
   cancel(
     friendRequestId: string,
     friendId: string,
-  ): Promise<CancelFriendRequest>;
+  ): Promise<FriendRequest<Profile<User>>>;
   listRequest(
     userId: string,
     action: 'pending' | 'request',

@@ -8,16 +8,16 @@ export type FriendRequestDocument = Model<
 
 @Schema({ timestamps: true })
 class SFriendRequest {
-  @Prop({ type: String, ref: ModelName.Profile })
+  @Prop({ type: String, ref: ModelName.Profile, required: true })
   authorProfile: string;
 
-  @Prop({ type: String, ref: ModelName.Profile })
+  @Prop({ type: String, ref: ModelName.Profile, required: true })
   friendProfile: string;
 
-  @Prop({ type: String, index: 1 })
+  @Prop({ type: String, required: true })
   authorId: string;
 
-  @Prop({ type: String, index: 1 })
+  @Prop({ type: String, required: true })
   friendId: string;
 
   @Prop({ type: String, default: 'Request' })
@@ -25,7 +25,7 @@ class SFriendRequest {
 }
 
 const FriendRequestSchema = SchemaFactory.createForClass(SFriendRequest);
-FriendRequestSchema.index({ authorProfile: 1, friendProfile: 1 });
+FriendRequestSchema.index({ friendId: 1, authorId: 1 }, { unique: true });
 FriendRequestSchema.index({ friendId: 1, status: 1 });
 FriendRequestSchema.index({ authorId: 1, status: 1 });
 FriendRequestSchema.index({ authorId: 1, friendId: 1, status: 1 });
