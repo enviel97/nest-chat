@@ -22,6 +22,12 @@ import EventConfigModule from './middleware/gateway/event.config';
 import { LoggerMiddleware } from './adapter/logger.module';
 import { Services } from './common/define';
 import ThrottlerModule from './middleware/throttler';
+import { ThrottlerGuard } from '@nestjs/throttler';
+
+const ThrottlerProvider = {
+  provide: Services.APP_GUARD,
+  useClass: ThrottlerGuard,
+};
 @Module({
   imports: [
     // route module
@@ -40,7 +46,7 @@ import ThrottlerModule from './middleware/throttler';
     ThrottlerModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [ThrottlerProvider],
 })
 export class AppModule {
   constructor(

@@ -18,6 +18,7 @@ export const Services = Object.freeze({
   FRIEND_REQUEST: 'FRIEND_REQUEST_SERVICE',
   PROFILE: 'PROFILE_SERVICE',
   REDIS: Symbol('SESSION:REDIS'),
+  APP_GUARD: 'APP_GUARD',
 });
 
 export const ModelName = Object.freeze({
