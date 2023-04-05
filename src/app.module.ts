@@ -21,7 +21,7 @@ import { GatewayModule } from './middleware/gateway/gateway.module';
 import EventConfigModule from './middleware/gateway/event.config';
 import { LoggerMiddleware } from './adapter/logger.module';
 import { Services } from './common/define';
-
+import ThrottlerModule from './middleware/throttler';
 @Module({
   imports: [
     // route module
@@ -37,6 +37,7 @@ import { Services } from './common/define';
     // middleware
     GatewayModule,
     EventConfigModule,
+    ThrottlerModule,
   ],
   controllers: [],
   providers: [],

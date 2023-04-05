@@ -13,6 +13,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { Event, Routes, Services } from 'src/common/define';
 import { ParseObjectIdPipe } from 'src/middleware/parse/mongoDb';
@@ -32,6 +33,7 @@ export class MessagesController {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
+  @Throttle(5, 10)
   @Post()
   async createMessage(
     @Param('conversationId', ParseObjectIdPipe) conversationId: string,

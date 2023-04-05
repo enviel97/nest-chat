@@ -14,6 +14,7 @@ import { UserDetailDTO } from 'src/models/users';
 import { AuthenticateGuard, LocalAuthGuard } from './utils/Guards';
 import { Response } from 'express';
 import { AuthUser } from 'src/utils/decorates';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller(Routes.AUTH)
 export class AuthController {
@@ -32,6 +33,7 @@ export class AuthController {
     });
   }
 
+  @Throttle(5, 10)
   @Post('login')
   @UseGuards(LocalAuthGuard)
   login(@AuthUser() user: User, @Res() res: Response) {
