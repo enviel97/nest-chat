@@ -11,9 +11,10 @@ import {
 import { CorsOption } from './middleware/cors';
 import { WebsocketAdapter } from './middleware/gateway/gateway.adapter';
 import 'src/extensions';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 const start = async () => {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['error', 'warn', 'log'],
   });
   app.enableCors(CorsOption);
@@ -28,6 +29,7 @@ const start = async () => {
     new HttpExceptionFilter(),
     new MongooseExceptionFilter(),
   );
+  app.set('trust proxy', 'loopback');
 
   try {
     await app.listen(environment.server.port, () => {

@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { DefaultValuePipe } from '@nestjs/common/pipes';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SkipThrottle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { Event, Routes, Services } from 'src/common/define';
 import { CreateConversationDTO } from 'src/models/conversations';
@@ -71,6 +72,7 @@ class ConversationController {
   }
 
   @Get()
+  @SkipThrottle()
   async getAllConversation(
     @Query('type') type: ConversationType,
     @AuthUser() author: User,
