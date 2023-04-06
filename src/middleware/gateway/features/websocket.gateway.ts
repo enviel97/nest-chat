@@ -1,4 +1,6 @@
 import {
+  ConnectedSocket,
+  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
   WebSocketGateway as WsG,
@@ -10,6 +12,7 @@ import { Server } from 'socket.io';
 import { AuthenticationSocket } from '../gateway.session';
 import { Inject } from '@nestjs/common';
 import string from 'src/utils/string';
+import { OnEvent } from '@nestjs/event-emitter';
 
 enum CONNECTED_STATUS {
   GOOD = 'good',
@@ -29,19 +32,23 @@ export class WebsocketGateway
   server: Server;
 
   handleConnection(client: AuthenticationSocket, ...args: any[]) {
-    console.log(`>>> New Incoming Connection >>> id: ${client.id}`);
+    console.log(`>>> New Incoming Connection from: ${client.id}`);
     this.sessions.setUserSocket(string.getId(client.user as any), client);
-    console.log(
-      `>>> User >>> name: ${client.user.firstName} ${client.user.lastName}`,
-    );
+
     client.emit(Event.EVENT_SOCKET_CONNECTED, {
       status: CONNECTED_STATUS.GOOD,
       client: client.id,
     });
   }
 
+  @OnEvent(Event.EVENT_FRIEND_LIST_RETRIEVE)
+  handleFriendListRetrieve(
+    @ConnectedSocket() socket: AuthenticationSocket,
+    @MessageBody() data: string,
+  ) {}
+
   handleDisconnect(client: AuthenticationSocket) {
-    console.log(`>>> New Out coming Connection >>> id: ${client.id}.`);
+    console.log(`>>> New Out coming Connection from: ${client.id}.`);
     this.sessions.removeUserSocket(client.user.id);
     console.log(
       `>>> User >>> name: ${client.user.firstName} ${client.user.lastName}`,

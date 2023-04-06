@@ -71,7 +71,7 @@ export class FriendRequestController {
       code: 200,
       message: `${friendResponse.friendProfile.user.getFullName()} ${
         friendResponse.status
-      } friend request from ${friendResponse.friendProfile.user.getFullName()}`,
+      } friend request from ${friendResponse.authorProfile.user.getFullName()}`,
       data: friendResponse.authorProfile,
     };
   }

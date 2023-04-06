@@ -50,7 +50,9 @@ export class FriendRequestService implements IFriendRequestService {
     ]);
     if (!author) throw new BadRequestException(`Author not found`);
     if (!newFriend) throw new BadRequestException(`User not found`);
-
+    if (author.friends.includes(string.getId(newFriend))) {
+      throw new BadRequestException(`You two are already friends`);
+    }
     return {
       author: author as Profile<User>,
       friend: newFriend as Profile<User>,

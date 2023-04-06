@@ -31,13 +31,13 @@ export class MemberService implements IMemberService {
 
   async findUser(params: FindUserParams): Promise<User> {
     const { password = false, ...param } = params;
-
     const result = await this.userModel
       .findOne({
         $or: [{ _id: string.cvtToObjectId(param.id) }, { email: param.email }],
       })
       .select(`firstName lastName email${password ? ' password' : ''}`)
       .lean();
+
     if (result) {
       const { id, _id, ...user } = result;
       return {

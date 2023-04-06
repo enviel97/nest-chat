@@ -8,9 +8,7 @@ export class LoggerMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     if (environment.server.env === 'dev') {
       // Gets the request log
-      console.log(
-        '\n>>>>>>>>>>>>>>>>>>>>>> INCOMING REQUEST >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>',
-      );
+      console.log('\n>>> INCOMING REQUEST >>>\n');
 
       Logger.log(`[ URI: ${req.originalUrl} ]`, req.method);
       console.log({

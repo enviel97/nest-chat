@@ -13,18 +13,19 @@ export class AuthService implements IAuthService {
   ) {}
 
   async validateUser(account: UserLogin) {
-    const { password, ...user } = await this.userService.findUser({
+    const result = await this.userService.findUser({
       email: account.email,
       password: true,
     });
 
-    if (!user) {
-      throw new BadRequestException('Not found');
-    }
-    if (!compare(account.password, password)) {
-      throw new UnauthorizedException('Invalid Credentials');
+    if (!result) {
+      throw new BadRequestException('Invalid email or password');
     }
 
+    if (!compare(account.password, result.password)) {
+      throw new UnauthorizedException('Invalid Credentials');
+    }
+    const { password, ...user } = result;
     return user;
   }
 }
