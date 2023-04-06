@@ -13,7 +13,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { SkipThrottle, Throttle } from '@nestjs/throttler';
+import { SkipThrottle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { Event, Routes, Services } from 'src/common/define';
 import { ParseObjectIdPipe } from 'src/middleware/parse/mongoDb';
@@ -26,6 +26,7 @@ import { AuthenticateGuard } from '../auth/utils/Guards';
 
 @Controller(Routes.MESSAGES)
 @UseGuards(AuthenticateGuard)
+@SkipThrottle()
 export class MessagesController {
   constructor(
     @Inject(Services.MESSAGES)
@@ -33,7 +34,6 @@ export class MessagesController {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  @Throttle(1, 5)
   @Post()
   async createMessage(
     @Param('conversationId', ParseObjectIdPipe) conversationId: string,
@@ -56,7 +56,6 @@ export class MessagesController {
   }
 
   @Get()
-  @SkipThrottle()
   async getMessagesByConversationId(
     @Param('conversationId', ParseObjectIdPipe) conversationId: string,
     @Query('limit') limit: number | undefined,
@@ -75,7 +74,6 @@ export class MessagesController {
   }
 
   @Delete(':id')
-  @SkipThrottle()
   async deleteMessage(
     @AuthUser() user: User,
     @Param('conversationId', ParseObjectIdPipe) conversationId: string,
@@ -110,7 +108,6 @@ export class MessagesController {
   }
 
   @Put(':id')
-  @SkipThrottle()
   async editMessage(
     @AuthUser() user: User,
     @Param('conversationId', ParseObjectIdPipe) conversationId: string,

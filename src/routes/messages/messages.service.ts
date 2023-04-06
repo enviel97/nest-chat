@@ -80,17 +80,17 @@ export class MessagesService implements IMessengerService {
     });
 
     const [_, messageFull] = await Promise.all([
-      async () => {
+      new Promise(async (resolve) => {
         if (params.action === 'Notice') return;
-        return await this.conversationModel
+        const conversationUpdate = await this.conversationModel
           .findByIdAndUpdate(conversation.getId(), {
             lastMessage: message.getId(),
           })
           .lean();
-      },
+        resolve(conversationUpdate);
+      }),
       message.populate('author', 'firstName lastName email'),
     ]);
-
     (<Participant<User>>conversation.participant).members.forEach((member) =>
       members.add(string.getId(member)),
     );
