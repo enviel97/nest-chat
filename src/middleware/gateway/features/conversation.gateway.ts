@@ -85,11 +85,7 @@ export class ConversationGateway implements OnGatewayConnection {
         data.conversationId
       }`,
     );
-    // client
-    //   .to(this.conversationRoom(conversationId))
-    //   .emit(Event.EVENT_CONNECTED_ROOM, {
-    //     message: `${string.getFullName(client.user)} join`,
-    //   });
+
     client
       .to(this.conversationRoom(conversationId))
       .emit(Event.EVENT_NOTIFICATION_CHANGE_STATUS, {

@@ -23,11 +23,11 @@ export class ProfileController {
 
   @Get('/friends')
   async getListFriends(@AuthUser() user: User) {
-    const response = await this.profileService.listFriends(user.getId());
+    const { friends } = await this.profileService.listFriends(user.getId());
 
     return {
       code: 200,
-      data: response,
+      data: friends,
       message: 'Get list friend successfully',
     };
   }

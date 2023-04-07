@@ -70,13 +70,17 @@ export class ProfileService implements IProfileService {
     return user.toObject();
   }
 
-  async listFriends(userId: string): Promise<Profile<User>[]> {
+  async listFriends(userId: string): Promise<ListFriendsResponse> {
     const { user } = await this.validateUserId(userId);
     const profile = await user.populate({
       path: 'friends',
+      select: 'user avatar bio status createdAt updatedAt',
       populate: { path: 'user', select: this.normalProjectionUser },
     });
-    return [...profile.friends] as Profile<User>[];
+    return {
+      profileId: user.getId(),
+      friends: [...profile.friends] as Profile<User>[],
+    };
   }
 
   async searchFriend(user: string, query: string): Promise<Profile<User>[]> {

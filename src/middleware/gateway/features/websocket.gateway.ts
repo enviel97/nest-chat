@@ -1,8 +1,9 @@
 import {
   ConnectedSocket,
-  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
+  SubscribeMessage,
   WebSocketGateway as WsG,
   WebSocketServer,
 } from '@nestjs/websockets';
@@ -12,7 +13,6 @@ import { Server } from 'socket.io';
 import { AuthenticationSocket } from '../gateway.session';
 import { Inject } from '@nestjs/common';
 import string from 'src/utils/string';
-import { OnEvent } from '@nestjs/event-emitter';
 
 enum CONNECTED_STATUS {
   GOOD = 'good',
@@ -26,12 +26,37 @@ export class WebsocketGateway
   constructor(
     @Inject(Services.GATEWAY_SESSION)
     private readonly sessions: IGatewaySession,
+    @Inject(Services.PROFILE)
+    private readonly profileService: IProfileService,
   ) {}
 
   @WebSocketServer()
   server: Server;
 
-  handleConnection(client: AuthenticationSocket, ...args: any[]) {
+  async handleNotificationRetrieve(
+    client: AuthenticationSocket,
+    status: 'online' | 'offline',
+  ) {
+    try {
+      const { friends, profileId } = await this.profileService.listFriends(
+        client.user.getId(),
+      );
+      const friendIds = friends.map((friend) => friend.user.getId());
+
+      this.sessions.emitSocket(
+        friendIds,
+        {
+          userId: profileId,
+          status: status,
+        },
+        Event.EVENT_FRIEND_LIST_RETRIEVE,
+      );
+    } catch (error) {
+      console.log(`Error:::${error}`);
+    }
+  }
+
+  async handleConnection(client: AuthenticationSocket, ...args: any[]) {
     console.log(`>>> New Incoming Connection from: ${client.id}`);
     this.sessions.setUserSocket(string.getId(client.user as any), client);
 
@@ -39,13 +64,51 @@ export class WebsocketGateway
       status: CONNECTED_STATUS.GOOD,
       client: client.id,
     });
+    /**
+     * Notification for all friend i online
+     */
+    await this.handleNotificationRetrieve(client, 'online').then(() => {
+      console.log(`>>> ${client.user.getFullName()} online successfully`);
+    });
+
+    /**
+     * Notification for all friend i disconnect
+     */
+    client.on('disconnecting', async (reason) => {
+      console.log(`>>> ${client.user.getFullName()} suddenly offline`);
+      await this.handleNotificationRetrieve(client, 'offline');
+    });
+    // Listen on disconnecting
   }
 
-  @OnEvent(Event.EVENT_FRIEND_LIST_RETRIEVE)
-  handleFriendListRetrieve(
-    @ConnectedSocket() socket: AuthenticationSocket,
-    @MessageBody() data: string,
-  ) {}
+  @SubscribeMessage(Event.EVENT_FRIEND_LIST_STATUS)
+  async handleGetFriendListRetrieve(
+    @ConnectedSocket() client: AuthenticationSocket,
+  ) {
+    const sockets = this.sessions.getSockets();
+    const { friends } = await this.profileService.listFriends(
+      client.user.getId(),
+    );
+    const { online, offline } = friends.reduce(
+      (reduceObject, currentValue) => {
+        if (sockets.has(currentValue.user.getId())) {
+          reduceObject.online.add(currentValue.getId());
+        } else {
+          reduceObject.offline.add(currentValue.getId());
+        }
+        return reduceObject;
+      },
+      {
+        online: new Set<string>(),
+        offline: new Set<string>(),
+      },
+    );
+    return {
+      online: [...online],
+      offline: [...offline],
+      listFriend: friends,
+    };
+  }
 
   handleDisconnect(client: AuthenticationSocket) {
     console.log(`>>> New Out coming Connection from: ${client.id}.`);

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ModelName } from 'src/common/define';
+import { ProfileDocument } from 'src/models/profile';
 import { UserDocument } from 'src/models/users';
 import { hash } from 'src/utils/bcrypt';
 import string from 'src/utils/string';
@@ -10,6 +11,8 @@ export class MemberService implements IMemberService {
   constructor(
     @InjectModel(ModelName.User)
     private readonly userModel: UserDocument,
+    @InjectModel(ModelName.Profile)
+    private readonly profileModel: ProfileDocument,
   ) {}
 
   async searchUsers(query: string): Promise<User[]> {
@@ -37,7 +40,6 @@ export class MemberService implements IMemberService {
       })
       .select(`firstName lastName email${password ? ' password' : ''}`)
       .lean();
-
     if (result) {
       const { id, _id, ...user } = result;
       return {
@@ -49,11 +51,14 @@ export class MemberService implements IMemberService {
 
   async createUser(user: UserDetailDTO) {
     const hashPassword = await hash(user.password);
-    const models = await this.userModel.create({
+    const model = await this.userModel.create({
       ...user,
       password: hashPassword,
     });
-    const result = models.toObject();
+    await this.profileModel.create({
+      user: model.getId(),
+    });
+    const result = model.toObject();
     delete result['password'];
     return { ...result };
   }

@@ -5,8 +5,10 @@ import { GatewaySessionManager } from './gateway.session';
 import { MessagingGateway } from './features/message.gateway';
 import { ConversationGateway } from './features/conversation.gateway';
 import { FriendGateway } from './features/friends.gateway';
+import { UserModule } from 'src/routes/user/user.module';
 
 @Module({
+  imports: [UserModule],
   providers: [
     MessagingGateway,
     ConversationGateway,
