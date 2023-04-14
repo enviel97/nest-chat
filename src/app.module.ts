@@ -23,6 +23,8 @@ import { LoggerMiddleware } from './adapter/logger.module';
 import { Services } from './common/define';
 import ThrottlerModule from './middleware/throttler';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { ImageStorageModule } from './adapter/image_storage';
+import CacheModule from './middleware/cache/cache.register';
 
 const ThrottlerProvider = {
   provide: Services.APP_GUARD,
@@ -35,15 +37,19 @@ const ThrottlerProvider = {
     UserModule,
     ConversationModule,
     MessagesModule,
+
     // environment module
     ConfigModule,
     PassportModule,
     MongooseModule,
     RedisModule,
+    ImageStorageModule,
+
     // middleware
     GatewayModule,
     EventConfigModule,
     ThrottlerModule,
+    CacheModule,
   ],
   controllers: [],
   providers: [ThrottlerProvider],

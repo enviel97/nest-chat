@@ -3,6 +3,7 @@ interface UserDetailDTO {
   lastName: string;
   email: string;
   password: string;
+  userName?: string;
 }
 
 interface IMemberService {

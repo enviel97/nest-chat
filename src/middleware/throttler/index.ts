@@ -1,6 +1,6 @@
 import { ThrottlerModule } from '@nestjs/throttler';
 
 export default ThrottlerModule.forRoot({
-  ttl: 60,
+  ttl: 30,
   limit: 10,
 });

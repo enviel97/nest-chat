@@ -29,7 +29,7 @@ class ConversationGroupService implements IParticipantService {
           select: 'content author _id createdAt',
           populate: {
             path: 'author',
-            select: 'firstName lastName email _id',
+            select: 'userName firstName lastName email _id',
           },
         },
       ])
@@ -84,7 +84,7 @@ class ConversationGroupService implements IParticipantService {
 
     return await this.participantModel
       .findByIdAndUpdate(id, { members, roles: _roles }, { new: true })
-      .populate('members', 'firstName lastName email')
+      .populate('members', 'userName firstName lastName email _id')
       .lean();
   }
 

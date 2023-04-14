@@ -50,7 +50,7 @@ export class MessagesService implements IMessengerService {
     await this.getConversationByID(conversationId);
     const data = await this.messageModel
       .find({ conversationId }, {}, { sort: { createdAt: 'desc' } })
-      .populate('author', 'firstName lastName')
+      .populate('author', 'firstName lastName userName')
       .lean();
 
     return {
@@ -89,7 +89,7 @@ export class MessagesService implements IMessengerService {
           .lean();
         resolve(conversationUpdate);
       }),
-      message.populate('author', 'firstName lastName email'),
+      message.populate('author', 'firstName lastName email userName'),
     ]);
     (<Participant<User>>conversation.participant).members.forEach((member) =>
       members.add(string.getId(member)),

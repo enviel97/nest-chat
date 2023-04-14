@@ -16,4 +16,6 @@ export default class UseDetailDTO {
   @IsNotEmpty()
   @MinLength(5)
   password: string;
+
+  userName?: string;
 }

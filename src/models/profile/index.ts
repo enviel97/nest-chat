@@ -18,6 +18,9 @@ class SProfile {
   @Prop({ type: String })
   avatar: string;
 
+  @Prop({ type: String })
+  banner: string;
+
   @Prop({ type: [String], ref: ModelName.Profile, index: true })
   blockList: string[];
 
@@ -26,6 +29,8 @@ class SProfile {
 }
 
 const ProfileSchema = SchemaFactory.createForClass(SProfile);
+
+export { default as UpdateProfileDTO } from './dto/updateProfileDTO';
 
 export default {
   name: ModelName.Profile,

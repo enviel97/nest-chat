@@ -5,6 +5,7 @@ export type UserDocument = Model<HydratedDocument<User>>;
 
 const UserSchema = new Schema<User>(
   {
+    userName: { type: String, index: true },
     firstName: { type: String, index: true },
     lastName: { type: String, index: true },
     email: { type: String, unique: true, sparse: true, index: true },
@@ -12,12 +13,6 @@ const UserSchema = new Schema<User>(
   },
   { timestamps: true },
 );
-
-UserSchema.index({
-  email: 'text',
-  firstName: 'text',
-  lastName: 'text',
-});
 
 export { default as UserLoginDTO } from './dto/UserLogin';
 export { default as UserDetailDTO } from './dto/UserDetail';

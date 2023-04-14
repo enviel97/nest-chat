@@ -34,7 +34,7 @@ class ConversationService implements IConversationsService {
           { members: { $size: entity.ids.length } },
         ],
       })
-      .populate('members', 'firstName lastName email')
+      .populate('members', 'firstName lastName email userName')
       .lean();
 
     return { participant, newUser: entity };

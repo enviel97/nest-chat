@@ -10,6 +10,7 @@ import FriendSchema from 'src/models/friend-request';
 import ProfileSchema from 'src/models/profile';
 import { ProfileService } from './profiles/profile.service';
 import { ProfileController } from './profiles/profile.controller';
+import { ImageStorageModule } from 'src/adapter/image_storage';
 
 const UserMemberProvider = {
   provide: Services.USERS,
@@ -28,6 +29,7 @@ const UserProfileProvider = {
 @Module({
   imports: [
     MongooseModule.forFeature([UserSchema, FriendSchema, ProfileSchema]),
+    ImageStorageModule,
   ],
   controllers: [MemberController, FriendRequestController, ProfileController],
   providers: [

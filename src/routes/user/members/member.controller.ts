@@ -7,7 +7,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Routes, Services } from 'src/common/define';
-import { AuthUser } from 'src/utils/decorates';
 import { mapToResponse } from 'src/utils/map';
 import { AuthenticateGuard } from '../../auth/utils/Guards';
 

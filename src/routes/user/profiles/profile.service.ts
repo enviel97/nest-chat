@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
-import { ModelName } from 'src/common/define';
+import { ModelName, Services } from 'src/common/define';
 import { FriendRequestDocument } from 'src/models/friend-request';
 import { ProfileDocument } from 'src/models/profile';
 import { UserDocument } from 'src/models/users';
@@ -11,7 +11,7 @@ import { UserNotfoundException } from '../exceptions/user.exception';
 
 @Injectable()
 export class ProfileService implements IProfileService {
-  private normalProjectionUser: string = 'email firstName lastName';
+  private normalProjectionUser: string = 'email firstName lastName userName';
 
   constructor(
     @InjectModel(ModelName.User)
@@ -89,7 +89,7 @@ export class ProfileService implements IProfileService {
     const [profiles, friendRequest] = await Promise.all([
       this.profileModel
         .find({ user: { $in: accountIds } }, 'user avatar bio')
-        .populate('user', 'firstName lastName email')
+        .populate('user', 'firstName lastName email userName')
         .lean(),
       this.friendRequestModel
         .find({
@@ -119,5 +119,45 @@ export class ProfileService implements IProfileService {
       });
       return !file;
     }) as Profile<User>[];
+  }
+
+  async updateProfile(
+    profileId: string,
+    updateProfileDTO: UpdateProfileDTO,
+  ): Promise<Profile<User>> {
+    const { user } = await this.validateUserId(profileId);
+
+    const [profile, account] = await Promise.all([
+      this.profileModel
+        .findByIdAndUpdate(
+          user.getId(),
+          {
+            bio: updateProfileDTO.bio,
+            avatar: updateProfileDTO.avatar,
+            banner: updateProfileDTO.banner,
+          },
+          { new: true },
+        )
+        .populate('user', this.normalProjectionUser)
+        .lean(),
+      new Promise(async (resolve) => {
+        if (!updateProfileDTO.userName) {
+          resolve(undefined);
+        } else {
+          const account = await this.userModel
+            .findByIdAndUpdate(
+              profileId,
+              { userName: updateProfileDTO.userName },
+              { new: true, projection: this.normalProjectionUser },
+            )
+            .lean();
+          resolve(account);
+        }
+      }),
+    ]);
+    return {
+      ...(profile as Profile<User>),
+      user: { ...(profile.user as User), ...(account as User) },
+    };
   }
 }

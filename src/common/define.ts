@@ -19,6 +19,7 @@ export const Services = Object.freeze({
   PROFILE: 'PROFILE_SERVICE',
   REDIS: Symbol('SESSION:REDIS'),
   APP_GUARD: 'APP_GUARD',
+  IMAGE_STORAGE: 'IMAGE_STORAGE',
 });
 
 export const ModelName = Object.freeze({

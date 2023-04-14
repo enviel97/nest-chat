@@ -17,4 +17,9 @@ export default Object.freeze({
     username: process.env.REDIS_USERNAME,
     password: process.env.REDIS_PASSWORD,
   },
+  image: {
+    publicKey: process.env.IMAGE_KIT_PUBLIC_KEY,
+    privateKey: process.env.IMAGE_KIT_PRIVATE_KEY,
+    urlEndpoint: process.env.IMAGE_KIT_URL_ENDPOINT,
+  },
 });
