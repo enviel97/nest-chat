@@ -37,12 +37,12 @@ enum ViewPortAvatarEnum {
 }
 
 enum ViewPortBannerEnum {
-  default = 'auto-900',
+  default = 'auto-910',
   s = '320',
-  sm = '874',
-  md = '1295',
-  lg = '1549',
-  xl = '1600',
+  sm = '663',
+  md = '910	',
+  lg = '1113',
+  xl = '1313',
 }
 @Injectable()
 export class ImageStorageService implements IImageStorageService {

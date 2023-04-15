@@ -99,7 +99,6 @@ export class ProfileController {
     // TTL 30day
     const { buffer, contentType } =
       await this.imageStorageService.getImageAvatar(id, viewPort);
-    res.attachment();
     res.contentType(contentType ?? 'image/jpeg');
     return new StreamableFile(buffer);
   }
@@ -114,7 +113,6 @@ export class ProfileController {
     // TTL 30day
     const { buffer, contentType } =
       await this.imageStorageService.getImageBanner(id, viewPort);
-    res.attachment();
     res.contentType(contentType ?? 'image/jpeg');
     return new StreamableFile(buffer);
   }
