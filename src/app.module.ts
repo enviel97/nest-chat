@@ -23,7 +23,7 @@ import { LoggerMiddleware } from './adapter/logger.module';
 import { Services } from './common/define';
 import ThrottlerModule from './middleware/throttler';
 import { ThrottlerGuard } from '@nestjs/throttler';
-import { ImageStorageModule } from './adapter/image_storage';
+import { ImageStorageModule } from './adapter/image_storage/image-storage.module';
 import CacheModule from './middleware/cache/cache.register';
 
 const ThrottlerProvider = {
@@ -84,7 +84,6 @@ export class AppModule {
         passport.session(),
       )
       .forRoutes('*');
-
     // middleware logger
     consumer
       .apply(LoggerMiddleware)

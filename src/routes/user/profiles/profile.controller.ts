@@ -2,13 +2,11 @@ import {
   BadRequestException,
   Body,
   CacheInterceptor,
-  CacheKey,
   CacheTTL,
   Controller,
   Get,
   Inject,
   Param,
-  ParseEnumPipe,
   Patch,
   Query,
   Res,
@@ -23,7 +21,7 @@ import type { Response } from 'express';
 import { Routes, Services } from 'src/common/define';
 import { ParseUUIDPipe } from 'src/middleware/parse/uuid';
 import { UpdateProfileDTO } from 'src/models/profile';
-import { AuthUser } from 'src/utils/decorates';
+import { AuthUser, SearchCache } from 'src/utils/decorates';
 import { mapToResponse } from 'src/utils/map';
 import { AuthenticateGuard } from '../../auth/utils/Guards';
 import { imageGenerationUID } from '../utils/image';
@@ -51,6 +49,7 @@ export class ProfileController {
     };
   }
 
+  @SearchCache()
   @Get('search')
   async searchProfile(@AuthUser() user: User, @Query('query') query: string) {
     if (!query) throw new BadRequestException('Query is invalid');
@@ -100,7 +99,22 @@ export class ProfileController {
     // TTL 30day
     const { buffer, contentType } =
       await this.imageStorageService.getImageAvatar(id, viewPort);
-    res.attachment(id);
+    res.attachment();
+    res.contentType(contentType ?? 'image/jpeg');
+    return new StreamableFile(buffer);
+  }
+
+  @Get('banner/:id')
+  async getBanner(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('size') viewPort: ViewPort,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    // TODO: add cache layout in redis
+    // TTL 30day
+    const { buffer, contentType } =
+      await this.imageStorageService.getImageBanner(id, viewPort);
+    res.attachment();
     res.contentType(contentType ?? 'image/jpeg');
     return new StreamableFile(buffer);
   }

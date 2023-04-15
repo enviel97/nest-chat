@@ -1,0 +1,3 @@
+interface Milliseconds {
+  ttl?: number;
+}

@@ -1,4 +1,5 @@
 import {
+  CACHE_MANAGER,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -6,6 +7,11 @@ import {
 } from '@nestjs/common';
 import ImageKitSDK from 'imagekit';
 import { ImageStorageException } from './image-storage.exception';
+import { Cache } from 'cache-manager';
+import {
+  GetImageCacheHandler,
+  DeleteImageCacheHandler,
+} from './image-storage.decorate';
 
 interface GenerationImageTransformation {
   size?: any;
@@ -41,9 +47,18 @@ enum ViewPortBannerEnum {
 @Injectable()
 export class ImageStorageService implements IImageStorageService {
   private bucket: string = 'ChatAppAssets';
-  private responseField: string[] = ['fileId', 'name', 'url', 'thumbnailUrl'];
+  private responseField: string[] = [
+    'fileId',
+    'name',
+    'url',
+    'thumbnailUrl',
+    'versionInfo',
+  ];
 
-  constructor(@Inject('ImageKitSDK') private readonly imagekit: ImageKitSDK) {}
+  constructor(
+    @Inject('ImageKitSDK') private readonly imagekit: ImageKitSDK,
+    @Inject(CACHE_MANAGER) private cacheService: Cache, //
+  ) {}
 
   private async fetchImage(url: string): Promise<FetchImageResponse> {
     return await fetch(url)
@@ -55,7 +70,7 @@ export class ImageStorageService implements IImageStorageService {
           contentType: res.headers.get('content-type') ?? 'image/jpeg',
         };
       })
-      .catch((error) => {
+      .catch(async (error) => {
         Logger.error(error, 'Image fetch error');
         throw new InternalServerErrorException();
       });
@@ -77,22 +92,21 @@ export class ImageStorageService implements IImageStorageService {
         },
         size,
       ],
-      signed: true,
-      expireSeconds: 300,
     });
 
-    return result;
+    return `${result}?updatedAt=${new Date().getTime()}`;
   }
 
+  @DeleteImageCacheHandler()
   async uploadImage(key: string, file: Express.Multer.File): Promise<any> {
     try {
-      const result = await this.imagekit.upload({
+      const result = (await this.imagekit.upload({
         file: file.buffer,
         fileName: key,
         folder: this.bucket,
         useUniqueFileName: false,
         responseFields: this.responseField,
-      });
+      })) as any as ImageKit<any>;
       return result;
     } catch (error) {
       Logger.error('Image storage error', error);
@@ -100,27 +114,32 @@ export class ImageStorageService implements IImageStorageService {
     }
   }
 
+  @GetImageCacheHandler()
   async getImageAvatar(
     fileName: string,
     viewPort?: ViewPort,
   ): Promise<FetchImageResponse> {
+    const size = viewPort ?? 'default';
     const url = this.generatorUrl(fileName, {
-      size: { width: ViewPortAvatarEnum[viewPort ?? 'default'] },
+      size: { width: ViewPortAvatarEnum[size] },
       aspectRatio: '1-1',
     });
     const image = await this.fetchImage(url);
     return image;
   }
 
+  @GetImageCacheHandler()
   async getImageBanner(
     fileName: string,
     viewPort?: ViewPort,
   ): Promise<FetchImageResponse> {
+    const size = viewPort ?? 'default';
     const url = this.generatorUrl(fileName, {
-      size: { height: ViewPortBannerEnum[viewPort ?? 'default'] },
+      size: { height: ViewPortBannerEnum[size] },
       aspectRatio: '16-9',
     });
     const image = await this.fetchImage(url);
+
     return image;
   }
 }

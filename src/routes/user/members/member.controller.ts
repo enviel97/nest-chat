@@ -7,6 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Routes, Services } from 'src/common/define';
+import { SearchCache } from 'src/utils/decorates';
 import { mapToResponse } from 'src/utils/map';
 import { AuthenticateGuard } from '../../auth/utils/Guards';
 
@@ -18,6 +19,7 @@ export class MemberController {
     private readonly userService: IMemberService,
   ) {}
 
+  @SearchCache()
   @Get('search')
   async searchUser(@Query('participant') participant: string) {
     if (!participant) throw new BadRequestException('Provide a valid query');

@@ -10,7 +10,7 @@ import FriendSchema from 'src/models/friend-request';
 import ProfileSchema from 'src/models/profile';
 import { ProfileService } from './profiles/profile.service';
 import { ProfileController } from './profiles/profile.controller';
-import { ImageStorageModule } from 'src/adapter/image_storage';
+import { ImageStorageModule } from 'src/adapter/image_storage/image-storage.module';
 
 const UserMemberProvider = {
   provide: Services.USERS,
