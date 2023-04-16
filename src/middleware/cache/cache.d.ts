@@ -1,3 +1,3 @@
-interface Milliseconds {
+interface Milliseconds extends number {
   ttl?: number;
 }
