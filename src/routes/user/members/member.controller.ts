@@ -7,7 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Routes, Services } from 'src/common/define';
-import { SearchCache } from 'src/utils/decorates';
+import { SearchCache } from 'src/middleware/cache/decorates/SearchCache';
 import { mapToResponse } from 'src/utils/map';
 import { AuthenticateGuard } from '../../auth/utils/Guards';
 

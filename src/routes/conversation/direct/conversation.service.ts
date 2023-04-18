@@ -34,7 +34,7 @@ class ConversationService implements IConversationsService {
           { members: { $size: entity.ids.length } },
         ],
       })
-      .populate('members', 'firstName lastName email userName')
+      .populate('members', 'firstName lastName email')
       .lean();
 
     return { participant, newUser: entity };
@@ -102,7 +102,7 @@ class ConversationService implements IConversationsService {
 
   async getConversations(authorId: string, options: GetConversationsOption) {
     if (!authorId) throw new BadRequestException();
-    const { type } = options;
+    const { type, limit, bucket } = options;
     const { ids } = mapToEntities(
       await this.participantModel.find({ members: authorId }).lean(),
     );
@@ -110,7 +110,7 @@ class ConversationService implements IConversationsService {
       .find(
         { participant: { $in: ids }, type: type },
         {},
-        { sort: { updatedAt: -1 } },
+        { sort: { updatedAt: -1 }, limit, skip: bucket * limit },
       )
       .populate([populateParticipant, populateLastMessage])
       .lean();

@@ -7,7 +7,10 @@ import MessageSchema from 'src/models/messages';
 import ConversationSchema from 'src/models/conversations';
 
 @Module({
-  imports: [MongooseModule.forFeature([MessageSchema, ConversationSchema])],
+  imports: [
+    MongooseModule.forFeature([ConversationSchema]),
+    MongooseModule.forFeatureAsync([MessageSchema]),
+  ],
   controllers: [MessagesController],
   providers: [
     {

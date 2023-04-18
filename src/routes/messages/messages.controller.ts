@@ -37,11 +37,11 @@ export class MessagesController {
   @Post()
   async createMessage(
     @Param('conversationId', ParseObjectIdPipe) conversationId: string,
-    @AuthUser() user: IUser,
+    @AuthUser() user: User,
     @Body() createMessageDTO: CreateMessageDTO,
   ) {
     const newMessage = await this.messageService.createMessage({
-      author: user.id ?? user._id,
+      author: user,
       conversationId,
       ...createMessageDTO,
     });

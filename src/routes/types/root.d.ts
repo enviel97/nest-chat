@@ -11,8 +11,8 @@ interface Pagination<T> {
 }
 
 interface PaginationOption {
-  bucket: number | 1;
-  limit: number | 20;
+  bucket: number;
+  limit: number;
 }
 
 interface Entity<T> {

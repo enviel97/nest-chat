@@ -17,8 +17,3 @@ interface ConversationCreateParams {
   creator: string;
   idParticipant: string[];
 }
-
-interface ConversationModifiedMembers {
-  author: string;
-  idParticipant: string[];
-}

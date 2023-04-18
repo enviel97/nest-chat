@@ -8,7 +8,8 @@ import {
 import { HydratedDocument, Model } from 'mongoose';
 import { ModelName } from 'src/common/define';
 import string from 'src/utils/string';
-import ConversationSchema, { ConversationDocument } from '../conversations';
+import ConversationSchema from '../conversations';
+import type { ConversationDocument } from '../conversations';
 
 export type ParticipantDocument = Model<HydratedDocument<Participant<string>>>;
 

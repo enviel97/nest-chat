@@ -1,8 +1,6 @@
 import {
   BadRequestException,
   Body,
-  CacheInterceptor,
-  CacheTTL,
   Controller,
   Get,
   Inject,
@@ -19,9 +17,10 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { Routes, Services } from 'src/common/define';
+import { SearchCache } from 'src/middleware/cache/decorates/SearchCache';
 import { ParseUUIDPipe } from 'src/middleware/parse/uuid';
 import { UpdateProfileDTO } from 'src/models/profile';
-import { AuthUser, SearchCache } from 'src/utils/decorates';
+import { AuthUser } from 'src/utils/decorates';
 import { mapToResponse } from 'src/utils/map';
 import { AuthenticateGuard } from '../../auth/utils/Guards';
 import { imageGenerationUID } from '../utils/image';

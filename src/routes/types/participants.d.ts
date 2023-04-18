@@ -1,15 +1,21 @@
 interface ResponseModified {
-  conversation: Conversation;
+  conversation: Conversation<any>;
   newUsers: User[];
 }
+
+interface ConversationModifiedMembers {
+  author: string;
+  idParticipant: string[];
+}
+
 interface IParticipantService {
   addMoreMembers(
     conversationId: string,
-    params: ConversationModifiedMembers,
+    inviterIds: string[],
   ): Promise<ResponseModified>;
   removeMoreMembers(
     conversationId: string,
-    params: ConversationModifiedMembers,
+    bannedIds: string[],
   ): Promise<ResponseModified>;
   leave(conversationId: string, authorId: string): Promise<Conversation>;
 }

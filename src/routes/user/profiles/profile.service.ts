@@ -11,7 +11,7 @@ import { UserNotfoundException } from '../exceptions/user.exception';
 
 @Injectable()
 export class ProfileService implements IProfileService {
-  private normalProjectionUser: string = 'email firstName lastName userName';
+  private normalProjectionUser: string = 'email firstName lastName';
 
   constructor(
     @InjectModel(ModelName.User)
@@ -127,37 +127,22 @@ export class ProfileService implements IProfileService {
   ): Promise<Profile<User>> {
     const { user } = await this.validateUserId(profileId);
 
-    const [profile, account] = await Promise.all([
-      this.profileModel
-        .findByIdAndUpdate(
-          user.getId(),
-          {
-            bio: updateProfileDTO.bio,
-            avatar: updateProfileDTO.avatar,
-            banner: updateProfileDTO.banner,
-          },
-          { new: true },
-        )
-        .populate('user', this.normalProjectionUser)
-        .lean(),
-      new Promise(async (resolve) => {
-        if (!updateProfileDTO.userName) {
-          resolve(undefined);
-        } else {
-          const account = await this.userModel
-            .findByIdAndUpdate(
-              profileId,
-              { userName: updateProfileDTO.userName },
-              { new: true, projection: this.normalProjectionUser },
-            )
-            .lean();
-          resolve(account);
-        }
-      }),
-    ]);
+    const profile: Profile<User> = await this.profileModel
+      .findByIdAndUpdate(
+        user.getId(),
+        {
+          bio: updateProfileDTO.bio,
+          avatar: updateProfileDTO.avatar,
+          banner: updateProfileDTO.banner,
+          displayName: updateProfileDTO.displayName,
+        },
+        { new: true },
+      )
+      .populate('user', this.normalProjectionUser)
+      .lean();
     return {
-      ...(profile as Profile<User>),
-      user: { ...(profile.user as User), ...(account as User) },
+      ...profile,
+      user: profile.user as User,
     };
   }
 }

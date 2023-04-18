@@ -1,14 +1,16 @@
-import { Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { Cache } from 'cache-manager';
-import { CacheWrapper } from 'src/middleware/cache/cache.utils';
+import { Services } from 'src/common/define';
 const genKey = (fileName: string, viewPort?: string) =>
   `${fileName}:${viewPort ?? 'default'}`;
 
 export function GetImageCacheHandler() {
+  const cacheInject = Inject(Services.CACHE);
   return (target: any, nameMethod: string, descriptor: PropertyDescriptor) => {
+    cacheInject(target, 'cacheService');
     const originalMethod = descriptor.value;
     descriptor.value = async function (...args: any[]) {
-      const cache = CacheWrapper(this.cacheService);
+      const cache: Cache = this.cacheService;
       if (!cache) return await originalMethod.apply(this, args);
       const [fileName, viewPort] = args;
       const key = genKey(fileName, viewPort);
@@ -26,20 +28,16 @@ export function GetImageCacheHandler() {
 }
 
 export function DeleteImageCacheHandler() {
+  const cacheInject = Inject(Services.CACHE);
   return (target: any, nameMethod: string, descriptor: PropertyDescriptor) => {
+    cacheInject(target, 'cacheService');
     const originalMethod = descriptor.value;
     descriptor.value = async function (...args: any[]) {
-      const cache = this.cacheService as Cache;
+      const cache: Cache = this.cacheService;
       if (!cache) return await originalMethod.apply(this, args);
       const [key] = args;
       const result = await Promise.all([
         originalMethod.apply(this, args),
-        // this.cacheService.del(genKey(key, 'default')),
-        // this.cacheService.del(genKey(key, 's')),
-        // this.cacheService.del(genKey(key, 'sm')),
-        // this.cacheService.del(genKey(key, 'md')),
-        // this.cacheService.del(genKey(key, 'lg')),
-        // this.cacheService.del(genKey(key, 'xl')),
         cache.store.keys(`${key}:*`),
       ]).then(async ([result, keys]) => {
         if (keys.length === 0) {

@@ -20,13 +20,12 @@ export class MemberService implements IMemberService {
     const result = await this.userModel
       .find({
         $or: [
-          { userName: { $regex: containReg } },
           { email: { $regex: containReg } },
           { firstName: { $regex: containReg } },
           { lastName: { $regex: containReg } },
         ],
       })
-      .select('firstName lastName email userName')
+      .select('firstName lastName email')
       .sort({ email: 1, userName: 1, firstName: 1, lastName: 1 })
       .limit(10)
       .lean();
@@ -39,12 +38,12 @@ export class MemberService implements IMemberService {
       .findOne({
         $or: [{ _id: string.cvtToObjectId(param.id) }, { email: param.email }],
       })
-      .select(`firstName lastName userName email${password ? ' password' : ''}`)
+      .select(`profile firstName lastName email${password ? ' password' : ''}`)
       .lean();
     if (result) {
       const { id, _id, ...user } = result;
       return {
-        id: id ?? _id.toString(),
+        id: (id ?? _id).toString(),
         ...user,
       };
     }

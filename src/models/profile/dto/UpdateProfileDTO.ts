@@ -9,7 +9,7 @@ class UpdateProfileDTO {
   @IsString()
   @MaxLength(50)
   @ValidateIf((_, value) => !value)
-  userName?: string;
+  displayName?: string;
 }
 
 export default UpdateProfileDTO;

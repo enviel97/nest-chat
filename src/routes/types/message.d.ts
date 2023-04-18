@@ -15,9 +15,7 @@ interface EmitDeleteMessage {
 }
 
 interface IMessengerService {
-  createMessage(
-    messengerCreateParams: MessageCreateParams,
-  ): Promise<ResponseMessage>;
+  createMessage(params: MessageCreateParams): Promise<ResponseMessage>;
   getMessages(
     conversationId: string,
     option: PaginationOption,

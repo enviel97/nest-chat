@@ -1,11 +1,8 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { CacheModel } from 'src/common/cache';
 import { ModelName } from 'src/common/define';
+import ModelCache from 'src/middleware/cache/decorates/ModelCache';
 import { ConversationDocument } from 'src/models/conversations';
 import { MessageDocument } from 'src/models/messages';
 import string from 'src/utils/string';
@@ -19,27 +16,12 @@ export class MessagesService implements IMessengerService {
     @InjectModel(ModelName.Message)
     private readonly messageModel: MessageDocument,
   ) {}
-
-  private validConversation(
-    participant: Participant<string>,
-    participantId: string,
-  ) {
-    if (participant.members.indexOf(participantId) < 0) {
-      throw new ForbiddenException('Messenger failure');
-    }
-  }
-
+  @ModelCache({ modelName: CacheModel.MESSAGE_CONVERSATION })
   private async getConversationByID(conversationId: string) {
     const conversation = await this.conversationModel
       .findById(conversationId)
       .populate('participant')
       .lean();
-
-    if (!conversation) throw new BadRequestException('Conversation not found');
-
-    if (!conversation.participant) {
-      throw new InternalServerErrorException();
-    }
     return conversation;
   }
 
@@ -49,7 +31,15 @@ export class MessagesService implements IMessengerService {
   ): Promise<Pagination<IMessage>> {
     await this.getConversationByID(conversationId);
     const data = await this.messageModel
-      .find({ conversationId }, {}, { sort: { createdAt: 'desc' } })
+      .find(
+        { conversationId },
+        {},
+        {
+          sort: { createdAt: 'desc' },
+          limit: limit,
+          skip: bucket * limit,
+        },
+      )
       .populate('author', 'firstName lastName userName')
       .lean();
 
@@ -57,7 +47,7 @@ export class MessagesService implements IMessengerService {
       total: data.length,
       bucket: bucket,
       limit: limit,
-      data: data.splice(Math.max(bucket - 1, 0), limit) as IMessage[],
+      data: data as IMessage[],
     };
   }
 
@@ -65,39 +55,22 @@ export class MessagesService implements IMessengerService {
     const members = new Set<string>();
     const { conversationId, content, author } = params;
     const conversation = await this.getConversationByID(conversationId);
-    if (params.action !== 'Notice') {
-      this.validConversation(
-        <Participant<string>>conversation.participant,
-        params.author,
-      );
-    }
-
+    const participant = conversation.participant as Participant<User>;
+    participant.members.forEach((member) => members.add(string.getId(member)));
     const message = await this.messageModel.create({
       conversationId: conversationId,
       content: content,
-      author: author,
-      action: params.action ?? 'New',
+      author: author.getId(),
+      action: 'New',
     });
-
-    const [_, messageFull] = await Promise.all([
-      new Promise(async (resolve) => {
-        if (params.action === 'Notice') return;
-        const conversationUpdate = await this.conversationModel
-          .findByIdAndUpdate(conversation.getId(), {
-            lastMessage: message.getId(),
-          })
-          .lean();
-        resolve(conversationUpdate);
-      }),
-      message.populate('author', 'firstName lastName email userName'),
-    ]);
-    (<Participant<User>>conversation.participant).members.forEach((member) =>
-      members.add(string.getId(member)),
-    );
-
     return {
-      message: messageFull.toObject(),
-      members: members.add(author).add(conversation.participant.toString()),
+      message: {
+        ...message.toObject(),
+        author: params.author,
+      },
+      members: members
+        .add(author.getId())
+        .add(conversation.participant.toString()),
     };
   }
 

@@ -55,10 +55,7 @@ export class ImageStorageService implements IImageStorageService {
     'versionInfo',
   ];
 
-  constructor(
-    @Inject('ImageKitSDK') private readonly imagekit: ImageKitSDK,
-    @Inject(CACHE_MANAGER) private cacheService: Cache, //
-  ) {}
+  constructor(@Inject('ImageKitSDK') private readonly imagekit: ImageKitSDK) {}
 
   private async fetchImage(url: string): Promise<FetchImageResponse> {
     return await fetch(url)

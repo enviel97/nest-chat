@@ -24,7 +24,7 @@ import { Services } from './common/define';
 import ThrottlerModule from './middleware/throttler';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { ImageStorageModule } from './adapter/image_storage/image-storage.module';
-import CacheModule from './middleware/cache/cache.register';
+import { CacheModule } from './middleware/cache/cache.module';
 
 const ThrottlerProvider = {
   provide: Services.APP_GUARD,

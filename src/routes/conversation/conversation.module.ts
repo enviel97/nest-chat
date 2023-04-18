@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ModelName, Services } from 'src/common/define';
+import { Services } from 'src/common/define';
 import ConversationSchema from 'src/models/conversations';
 import UserSchema from 'src/models/users';
 import ParticipantSchema from 'src/models/participants';
 import MessageSchema from 'src/models/messages';
-import { MessagesModule } from '../messages/messages.module';
 import { ConversationController, ConversationService } from './direct';
 import { ConversationGroupController, ConversationGroupService } from './group';
 const ConversationProvider: Provider = {
@@ -18,9 +17,8 @@ const ConversationGroupProvider: Provider = {
 };
 @Module({
   imports: [
-    MessagesModule,
-    MongooseModule.forFeature([UserSchema, MessageSchema, ConversationSchema]),
-    MongooseModule.forFeatureAsync([ParticipantSchema]),
+    MongooseModule.forFeature([UserSchema, ConversationSchema]),
+    MongooseModule.forFeatureAsync([ParticipantSchema, MessageSchema]),
   ],
   controllers: [ConversationController, ConversationGroupController],
   providers: [ConversationProvider, ConversationGroupProvider],

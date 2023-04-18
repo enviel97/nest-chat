@@ -1,14 +1,12 @@
 type MessageAction = 'New' | 'Edited' | 'Removed' | 'Seen' | 'Notice';
+type MessageType = 'banned' | 'invite' | 'leave';
 
 interface MessageCreateParams {
-  author: string;
+  author: User;
   conversationId: string;
   content: string;
-  action?: MessageAction;
-
-  // // TODO: Base 64
-  // attachment?: string;
 }
+
 interface MessageDeleteParams {
   userId: string;
   conversationId: string;

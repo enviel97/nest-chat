@@ -5,7 +5,7 @@ interface ListFriendsResponse {
 
 interface UpdateProfileDTO {
   bio?: string;
-  userName?: string;
+  displayName?: string;
   avatar?: string;
   banner?: string;
 }

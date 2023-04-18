@@ -12,12 +12,14 @@ import { CorsOption } from './middleware/cors';
 import { WebsocketAdapter } from './middleware/gateway/gateway.adapter';
 import 'src/extensions';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import helmet from 'helmet';
 
 const start = async () => {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['error', 'warn', 'log'],
   });
   app.enableCors(CorsOption);
+  app.use(helmet());
   const websocketAdapter = new WebsocketAdapter(app);
   const httpAdapterHost = app.get(HttpAdapterHost);
   // setup

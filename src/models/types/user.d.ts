@@ -3,6 +3,7 @@ interface UserDetail {
   firstName: string;
   lastName: string;
   email: string;
+  profile: Profile<User>;
 }
 type IUser = UserDetail & Identity & { password: string };
 
