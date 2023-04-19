@@ -6,6 +6,9 @@ export type ProfileDocument = Model<HydratedDocument<Profile<UserRef>>>;
 
 @Schema({ timestamps: true })
 class SProfile {
+  @Prop({ type: String })
+  displayName: string;
+
   @Prop({ type: String, ref: ModelName.User, index: true, unique: true })
   user: string;
 

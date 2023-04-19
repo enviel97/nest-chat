@@ -89,6 +89,7 @@ export class WebsocketGateway
     const { friends } = await this.profileService.listFriends(
       client.user.getId(),
     );
+
     const { online, offline } = friends.reduce(
       (reduceObject, currentValue) => {
         if (sockets.has(currentValue.user.getId())) {
@@ -103,11 +104,11 @@ export class WebsocketGateway
         offline: new Set<string>(),
       },
     );
-    return {
+    client.emit(Event.EVENT_FRIEND_LIST_STATUS_RESPONSE, {
       online: [...online],
       offline: [...offline],
       listFriend: friends,
-    };
+    });
   }
 
   handleDisconnect(client: AuthenticationSocket) {

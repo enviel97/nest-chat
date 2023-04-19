@@ -4,4 +4,7 @@ export const CacheModel = Object.freeze({
 
   // store full conversation
   CONVERSATION: 'CONVERSATION',
+
+  // store full user
+  USER: 'USER',
 });
