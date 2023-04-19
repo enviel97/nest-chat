@@ -1,8 +1,6 @@
 import { Inject, InternalServerErrorException, Logger } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import { InjectModel } from '@nestjs/mongoose';
-import { Event, ModelName } from 'src/common/define';
-import type { MessageDocument } from 'src/models/messages';
+import { Event, Services } from 'src/common/define';
 
 export interface MessageCreateSystemParams {
   conversationId: string;
@@ -30,31 +28,29 @@ const createContentSystem = (
 };
 
 export const NotificationMessage = (action: MessageType) => {
-  const messageModelInject = InjectModel(ModelName.Message);
-  const userInject = Inject(REQUEST);
+  const messageServicesInject = Inject(Services.MESSAGES);
+  const requestInject = Inject(REQUEST);
   return (target: any, nameMethod: string, descriptor: PropertyDescriptor) => {
     try {
       const originalMethod = descriptor.value;
-      messageModelInject(target, 'messageModel');
-      userInject(target, 'author');
+      messageServicesInject(target, 'messageServices');
+      requestInject(target, 'ctx');
       descriptor.value = async function (...args: any) {
-        const messageModel: MessageDocument = this.messageModel;
-        const author: User = this.author;
+        const messageServices: IMessengerService = this.messageServices;
+        const author: User = this.ctx.user;
         const [conversationId] = args;
-        const result = await originalMethod.call(this, args);
-
+        const result = await originalMethod.call(this, ...args);
         const content = createContentSystem(action, author, result);
-        const message = await messageModel.create({
+        const message = await messageServices.createMessage({
           conversationId: conversationId,
           content: content,
-          author: author.getId(),
+          author: author,
           action: 'Notice',
         });
 
         this.eventEmitter.emit(Event.EVENT_MESSAGE_SENDING, message);
       };
     } catch (err) {
-      Logger.error(err, 'NotificationMessage:::Reason');
       throw new InternalServerErrorException();
     }
   };

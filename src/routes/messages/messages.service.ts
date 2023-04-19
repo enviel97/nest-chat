@@ -61,7 +61,7 @@ export class MessagesService implements IMessengerService {
       conversationId: conversationId,
       content: content,
       author: author.getId(),
-      action: 'New',
+      action: params.action ?? 'New',
     });
     return {
       message: {

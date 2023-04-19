@@ -5,6 +5,7 @@ interface MessageCreateParams {
   author: User;
   conversationId: string;
   content: string;
+  action?: MessageAction;
 }
 
 interface MessageDeleteParams {

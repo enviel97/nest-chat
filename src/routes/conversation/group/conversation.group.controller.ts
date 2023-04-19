@@ -28,8 +28,8 @@ class ConversationGroupController {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  @NotificationMessage('invite')
   @Post()
+  @NotificationMessage('invite')
   async addMembers(
     @Param('id') id: string,
     @Body() body: ConversationAddMember,
@@ -52,8 +52,8 @@ class ConversationGroupController {
     return newUsers;
   }
 
-  @NotificationMessage('leave')
   @Delete('leave')
+  @NotificationMessage('leave')
   async leave(
     @Param('id') conversationId: string,
     @AuthUser() author: User,
@@ -76,8 +76,8 @@ class ConversationGroupController {
     return [author];
   }
 
-  @NotificationMessage('banned')
   @Delete(':userId')
+  @NotificationMessage('banned')
   async removeMembers(
     @Param('id') conversationId: string,
     @Param('userId') userId: string,
@@ -93,7 +93,6 @@ class ConversationGroupController {
       bannerId: userId,
       type: result.type,
     } as BannedMemberPayload);
-
     res.json({
       code: HttpStatus.OK,
       message: 'Remove member out off group chat successfully',

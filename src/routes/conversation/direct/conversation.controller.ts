@@ -5,13 +5,10 @@ import {
   HttpStatus,
   Inject,
   Query,
-  ParseEnumPipe,
   Post,
   Res,
   UseGuards,
-  Param,
 } from '@nestjs/common';
-import { DefaultValuePipe } from '@nestjs/common/pipes';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SkipThrottle } from '@nestjs/throttler';
 import { Response } from 'express';
