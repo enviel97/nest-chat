@@ -7,7 +7,6 @@ import { ProfileDocument } from 'src/models/profile';
 import { UserDocument } from 'src/models/users';
 import { hash } from 'src/utils/bcrypt';
 import string from 'src/utils/string';
-import { UserNotfoundException } from '../exceptions/user.exception';
 import { ProtectPassword } from './member.decorate';
 
 @Injectable()
@@ -35,6 +34,7 @@ export class MemberService implements IMemberService {
       .lean();
     return result;
   }
+
   @ModelCache({ modelName: CacheModel.USER, keyIndex: [0] })
   private async findUserById(id: string, select: string) {
     const result = await this.userModel
@@ -43,10 +43,10 @@ export class MemberService implements IMemberService {
       .populate('profile', 'displayName status avatar banner')
       .lean();
 
-    if (!result) throw new UserNotfoundException();
     return result;
   }
 
+  @ModelCache({ modelName: CacheModel.USER, keyIndex: [0] })
   private async findUserByEmail(email: string, select: string) {
     const result = await this.userModel
       .findOne({ email })
@@ -54,7 +54,6 @@ export class MemberService implements IMemberService {
       .populate('profile', 'displayName status avatar banner')
       .lean();
 
-    if (!result) throw new UserNotfoundException();
     return result;
   }
 
@@ -63,10 +62,14 @@ export class MemberService implements IMemberService {
     const select = `profile firstName lastName email${
       password ? ' password' : ''
     }`;
-    if (param.id) {
-      return await this.findUserById(param.id, select);
-    }
-    return await this.findUserByEmail(param.email, select);
+    const user = param.id
+      ? await this.findUserById(param.id, select)
+      : await this.findUserByEmail(param.email, select);
+
+    return {
+      id: user.getId(),
+      ...user,
+    };
   }
 
   @ProtectPassword({ isHidden: true })

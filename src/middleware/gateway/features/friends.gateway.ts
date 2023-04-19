@@ -29,10 +29,10 @@ export class FriendGateway {
   }
 
   private handleAcceptResponse(payload: FriendRequest<Profile<User>>) {
-    const { authorId, authorProfile } = payload;
+    const { authorId, friendProfile, authorProfile } = payload;
     this.sessions.emitSocket(
       [authorId],
-      { authorProfile, _id: payload.getId() },
+      { friendProfile, authorProfile, _id: payload.getId() },
       Event.EVENT_FRIEND_RECEIVE_ALLOW_FRIEND,
     );
   }
