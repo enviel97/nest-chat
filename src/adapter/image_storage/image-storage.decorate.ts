@@ -1,5 +1,4 @@
-import { Inject, Logger } from '@nestjs/common';
-import { Cache } from 'cache-manager';
+import { Inject } from '@nestjs/common';
 import { Services } from 'src/common/define';
 const genKey = (fileName: string, viewPort?: string) =>
   `${fileName}:${viewPort ?? 'default'}`;
@@ -10,7 +9,7 @@ export function GetImageCacheHandler() {
     cacheInject(target, 'cacheService');
     const originalMethod = descriptor.value;
     descriptor.value = async function (...args: any[]) {
-      const cache: Cache = this.cacheService;
+      const cache: ICacheService = this.cacheService;
       if (!cache) return await originalMethod.apply(this, args);
       const [fileName, viewPort] = args;
       const key = genKey(fileName, viewPort);
@@ -33,22 +32,13 @@ export function DeleteImageCacheHandler() {
     cacheInject(target, 'cacheService');
     const originalMethod = descriptor.value;
     descriptor.value = async function (...args: any[]) {
-      const cache: Cache = this.cacheService;
+      const cache: ICacheService = this.cacheService;
       if (!cache) return await originalMethod.apply(this, args);
       const [key] = args;
       const result = await Promise.all([
         originalMethod.apply(this, args),
-        cache.store.keys(`${key}:*`),
-      ]).then(async ([result, keys]) => {
-        if (keys.length === 0) {
-          Logger.warn(
-            `Don't find any key like ${key}:*`,
-            'Del multi cache by pattern',
-          );
-        }
-        await cache.store.mdel(...keys);
-        return result;
-      });
+        cache.delP(`${key}:*`),
+      ]).then(async ([result, _]) => result);
       return result;
     };
   };
