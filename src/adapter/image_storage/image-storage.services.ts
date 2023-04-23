@@ -102,7 +102,7 @@ export class ImageStorageService implements IImageStorageService {
     try {
       const base64 = Buffer.from(file.buffer);
       const result = this.imagekit.upload({
-        file: '', //base64.toString('base64'),
+        file: base64.toString('base64'),
         fileName: key,
         folder: this.bucket,
         useUniqueFileName: false,
