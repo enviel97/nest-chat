@@ -11,6 +11,9 @@ import ProfileSchema from 'src/models/profile';
 import { ProfileService } from './profiles/profile.service';
 import { ProfileController } from './profiles/profile.controller';
 import { ImageStorageModule } from 'src/adapter/image_storage/image-storage.module';
+import { BullModule } from '@nestjs/bull/dist/bull.module';
+import { QueuesModel } from 'src/common/queues';
+import { FileHandlerConsumer } from 'src/middleware/queues/consumer/FileHandler';
 
 const UserMemberProvider = {
   provide: Services.USERS,
@@ -30,12 +33,17 @@ const UserProfileProvider = {
   imports: [
     MongooseModule.forFeature([UserSchema, FriendSchema, ProfileSchema]),
     ImageStorageModule,
+    BullModule.registerQueue({
+      configKey: Services.BACKGROUND,
+      name: QueuesModel.FILE_HANDLER,
+    }),
   ],
   controllers: [MemberController, FriendRequestController, ProfileController],
   providers: [
     UserMemberProvider,
     UserFriendRequestProvider,
     UserProfileProvider,
+    FileHandlerConsumer,
   ],
   exports: [UserMemberProvider, UserProfileProvider],
 })

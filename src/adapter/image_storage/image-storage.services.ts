@@ -1,5 +1,4 @@
 import {
-  CACHE_MANAGER,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -7,11 +6,11 @@ import {
 } from '@nestjs/common';
 import ImageKitSDK from 'imagekit';
 import { ImageStorageException } from './image-storage.exception';
-import { Cache } from 'cache-manager';
 import {
   GetImageCacheHandler,
   DeleteImageCacheHandler,
 } from './image-storage.decorate';
+import { LogDuration } from 'src/utils/decorates';
 
 interface GenerationImageTransformation {
   size?: any;
@@ -55,7 +54,10 @@ export class ImageStorageService implements IImageStorageService {
     'versionInfo',
   ];
 
-  constructor(@Inject('ImageKitSDK') private readonly imagekit: ImageKitSDK) {}
+  constructor(
+    @Inject('ImageKitSDK')
+    private readonly imagekit: ImageKitSDK,
+  ) {}
 
   private async fetchImage(url: string): Promise<FetchImageResponse> {
     return await fetch(url)
@@ -95,15 +97,17 @@ export class ImageStorageService implements IImageStorageService {
   }
 
   @DeleteImageCacheHandler()
+  @LogDuration()
   async uploadImage(key: string, file: Express.Multer.File): Promise<any> {
     try {
-      const result = (await this.imagekit.upload({
-        file: file.buffer,
+      const base64 = Buffer.from(file.buffer);
+      const result = this.imagekit.upload({
+        file: '', //base64.toString('base64'),
         fileName: key,
         folder: this.bucket,
         useUniqueFileName: false,
         responseFields: this.responseField,
-      })) as any as ImageKit<any>;
+      });
       return result;
     } catch (error) {
       Logger.error('Image storage error', error);
@@ -112,31 +116,20 @@ export class ImageStorageService implements IImageStorageService {
   }
 
   @GetImageCacheHandler()
-  async getImageAvatar(
+  async getImage(
     fileName: string,
+    type: 'avatar' | 'banner',
     viewPort?: ViewPort,
   ): Promise<FetchImageResponse> {
     const size = viewPort ?? 'default';
     const url = this.generatorUrl(fileName, {
-      size: { width: ViewPortAvatarEnum[size] },
-      aspectRatio: '1-1',
+      size:
+        type == 'avatar'
+          ? { width: ViewPortAvatarEnum[size] }
+          : { height: ViewPortBannerEnum[size] },
+      aspectRatio: type == 'avatar' ? '1-1' : '16-9',
     });
     const image = await this.fetchImage(url);
-    return image;
-  }
-
-  @GetImageCacheHandler()
-  async getImageBanner(
-    fileName: string,
-    viewPort?: ViewPort,
-  ): Promise<FetchImageResponse> {
-    const size = viewPort ?? 'default';
-    const url = this.generatorUrl(fileName, {
-      size: { height: ViewPortBannerEnum[size] },
-      aspectRatio: '16-9',
-    });
-    const image = await this.fetchImage(url);
-
     return image;
   }
 }

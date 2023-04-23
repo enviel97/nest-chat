@@ -5,6 +5,7 @@ import { ModelName, Services } from 'src/common/define';
 import type { FriendRequestDocument } from 'src/models/friend-request';
 import type { ProfileDocument } from 'src/models/profile';
 import type { UserDocument } from 'src/models/users';
+import { LogDuration } from 'src/utils/decorates';
 import string from 'src/utils/string';
 import { UserProfileNotFoundException } from '../exceptions/profile.exception';
 import { UserNotfoundException } from '../exceptions/user.exception';
@@ -23,9 +24,9 @@ export class ProfileService implements IProfileService {
   ) {}
 
   private async validateUserId(userId: string) {
-    const user = await this.profileModel.findOne({ user: userId });
+    const user = await this.profileModel.findOne({ user: userId }).lean();
     if (!user) throw new UserNotfoundException();
-    return { user };
+    return user;
   }
 
   private async findBaseAccountId(query: string, user: string) {
@@ -66,13 +67,13 @@ export class ProfileService implements IProfileService {
   }
 
   async getProfile(userId: string): Promise<Profile<User>> {
-    const { user } = await this.validateUserId(userId);
-    return user.toObject();
+    const user = await this.validateUserId(userId);
+    return user as Profile<User>;
   }
 
   async listFriends(userId: string): Promise<ListFriendsResponse> {
-    const { user } = await this.validateUserId(userId);
-    const profile = await user.populate({
+    const user = await this.validateUserId(userId);
+    const profile = await this.profileModel.findById(user.getId()).populate({
       path: 'friends',
       select: 'user avatar bio status createdAt updatedAt',
       populate: { path: 'user', select: this.normalProjectionUser },
@@ -125,7 +126,7 @@ export class ProfileService implements IProfileService {
     profileId: string,
     updateProfileDTO: UpdateProfileDTO,
   ): Promise<Profile<User>> {
-    const { user } = await this.validateUserId(profileId);
+    const user = await this.validateUserId(profileId);
 
     const profile: Profile<User> = await this.profileModel
       .findByIdAndUpdate(

@@ -1,7 +1,7 @@
 // https://docs.imagekit.io/features/image-transformations
 
 type ViewPort = 'default' | 's' | 'sm' | 'md' | 'lg' | 'xl';
-
+type UploadImageType = 'avatar' | 'banner';
 interface FetchImageResponse {
   contentType: string;
   buffer: Buffer;
@@ -12,12 +12,9 @@ interface IImageStorageService {
     fileName: string,
     file: Express.Multer.File,
   ): Promise<ImageKit<any>>;
-  getImageAvatar(
+  getImage(
     fileName: string,
+    type: UploadImageType,
     viewPort?: ViewPortAvatar,
-  ): Promise<FetchImageResponse>;
-  getImageBanner(
-    fileName: string,
-    viewPort?: string,
   ): Promise<FetchImageResponse>;
 }

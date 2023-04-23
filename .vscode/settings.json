@@ -19,5 +19,6 @@
     "..\\..\\Projects-react\\web\\react-chat\\README.md": true,
     "..\\..\\Projects-react\\web\\react-chat\\tsconfig.json": true,
     "..\\..\\Projects-react\\web\\react-chat\\tsconfig.paths.json": true
-  }
+  },
+  "cSpell.words": ["successfull"]
 }

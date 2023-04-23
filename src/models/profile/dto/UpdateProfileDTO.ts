@@ -4,12 +4,12 @@ class UpdateProfileDTO {
   @IsString()
   @MaxLength(200)
   @ValidateIf((_, value) => !value)
-  bio?: string;
+  readonly bio?: string;
 
   @IsString()
   @MaxLength(50)
   @ValidateIf((_, value) => !value)
-  displayName?: string;
+  readonly displayName?: string;
 }
 
 export default UpdateProfileDTO;

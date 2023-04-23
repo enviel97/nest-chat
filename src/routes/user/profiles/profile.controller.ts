@@ -1,10 +1,15 @@
+import { InjectQueue } from '@nestjs/bull';
 import {
   BadRequestException,
   Body,
   Controller,
+  FileTypeValidator,
   Get,
   Inject,
+  MaxFileSizeValidator,
   Param,
+  ParseEnumPipe,
+  ParseFilePipe,
   Patch,
   Query,
   Res,
@@ -15,15 +20,22 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FileInterceptor } from '@nestjs/platform-express';
+import type { Queue } from 'bull';
 import type { Response } from 'express';
 import { Routes, Services } from 'src/common/define';
+import { QueuesModel } from 'src/common/queues';
 import { SearchCache } from 'src/middleware/cache/decorates/SearchCache';
 import { ParseUUIDPipe } from 'src/middleware/parse/uuid';
 import { UpdateProfileDTO } from 'src/models/profile';
-import { AuthUser } from 'src/utils/decorates';
+import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
 import { mapToResponse } from 'src/utils/map';
 import { AuthenticateGuard } from '../../auth/utils/Guards';
 import { imageGenerationUID } from '../utils/image';
+
+enum UploadImageType {
+  avatar = 'avatar',
+  banner = 'banner',
+}
 
 @Controller(Routes.PROFILE)
 @UseGuards(AuthenticateGuard)
@@ -34,6 +46,10 @@ export class ProfileController {
 
     @Inject(Services.IMAGE_STORAGE)
     private readonly imageStorageService: IImageStorageService,
+
+    @InjectQueue(QueuesModel.FILE_HANDLER)
+    private readonly fileHandlerQueue: Queue,
+
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -73,6 +89,7 @@ export class ProfileController {
   }
 
   @Patch('update')
+  @ResponseSuccess({ code: 200, message: 'Update profile successfully' })
   async updateProfile(
     @AuthUser() user: User,
     @Body() updateProfileDTO: UpdateProfileDTO,
@@ -82,71 +99,54 @@ export class ProfileController {
       updateProfileDTO,
     );
 
-    return mapToResponse({
-      code: 200,
-      data: result,
-    });
+    return result;
   }
 
-  @Get('avatar/:id')
+  @Get(':type/:id')
   async getAvatar(
+    @Param('type', new ParseEnumPipe(UploadImageType))
+    type: UploadImageType,
     @Param('id', ParseUUIDPipe) id: string,
     @Query('size') viewPort: ViewPort,
     @Res({ passthrough: true }) res: Response,
   ) {
     // TODO: add cache layout in redis
     // TTL 30day
-    const { buffer, contentType } =
-      await this.imageStorageService.getImageAvatar(id, viewPort);
+    const { buffer, contentType } = await this.imageStorageService.getImage(
+      id,
+      type,
+      viewPort,
+    );
     res.contentType(contentType ?? 'image/jpeg');
     return new StreamableFile(buffer);
   }
 
-  @Get('banner/:id')
-  async getBanner(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Query('size') viewPort: ViewPort,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    // TODO: add cache layout in redis
-    // TTL 30day
-    const { buffer, contentType } =
-      await this.imageStorageService.getImageBanner(id, viewPort);
-    res.contentType(contentType ?? 'image/jpeg');
-    return new StreamableFile(buffer);
-  }
-
-  @Patch('update/banner')
-  @UseInterceptors(FileInterceptor('banner'))
-  async updateBanner(
-    @AuthUser() user: User,
-    @UploadedFile() banner: Express.Multer.File,
-  ) {
-    const fileId = imageGenerationUID(user.getId(), 'Banner');
-    const image = await this.imageStorageService.uploadImage(fileId, banner);
-    const result = await this.profileService.updateProfile(user.getId(), {
-      avatar: image.name,
-    });
-    return mapToResponse({
-      code: 200,
-      data: result,
-    });
-  }
-
-  @Patch('update/avatar')
-  @UseInterceptors(FileInterceptor('avatar'))
+  @Patch('update/:type')
+  @UseInterceptors(FileInterceptor('image'))
   async updateAvatar(
+    @Param('type', new ParseEnumPipe(UploadImageType))
+    type: UploadImageType,
     @AuthUser() user: User,
-    @UploadedFile() avatar: Express.Multer.File,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /(image\/)(jpg|png|jpeg|webp)/g }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
   ) {
-    const fileId = imageGenerationUID(user.getId(), 'Avatar');
-    const image = await this.imageStorageService.uploadImage(fileId, avatar);
+    const fileId = imageGenerationUID(user.getId(), type.toUpperCase());
+    await this.fileHandlerQueue.add('upload:image', {
+      fileId,
+      file,
+      id: user.getId(),
+    });
     const result = await this.profileService.updateProfile(user.getId(), {
-      avatar: image.name,
+      avatar: fileId,
     });
-    return mapToResponse({
-      code: 200,
-      data: result,
-    });
+
+    return result;
   }
 }

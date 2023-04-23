@@ -21,6 +21,7 @@ export const Services = Object.freeze({
   APP_GUARD: 'APP_GUARD',
   IMAGE_STORAGE: 'IMAGE_STORAGE',
   CACHE: 'CACHE',
+  BACKGROUND: 'BACKGROUND',
 });
 
 export const ModelName = Object.freeze({

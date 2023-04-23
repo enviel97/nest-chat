@@ -13,6 +13,8 @@ import { Server } from 'socket.io';
 import { AuthenticationSocket } from '../gateway.session';
 import { Inject } from '@nestjs/common';
 import string from 'src/utils/string';
+import { OnEvent } from '@nestjs/event-emitter';
+import { QueuesEmit, QueuesEvent } from 'src/common/queues';
 
 enum CONNECTED_STATUS {
   GOOD = 'good',
@@ -79,6 +81,18 @@ export class WebsocketGateway
       await this.handleNotificationRetrieve(client, 'offline');
     });
     // Listen on disconnecting
+  }
+
+  @OnEvent(QueuesEvent.IMAGE_UPLOAD_ERROR)
+  async handleImageUploadError(payload: string) {
+    console.log({ payload });
+    this.sessions.emitSocket(
+      [payload],
+      {
+        imageError: 'Error loaded',
+      },
+      QueuesEmit.IMAGE_UPLOAD_ERROR,
+    );
   }
 
   @SubscribeMessage(Event.EVENT_FRIEND_LIST_STATUS)

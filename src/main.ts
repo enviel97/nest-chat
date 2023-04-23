@@ -13,6 +13,7 @@ import { WebsocketAdapter } from './middleware/gateway/gateway.adapter';
 import 'src/extensions';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
+import * as compression from 'compression';
 
 const start = async () => {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -20,6 +21,7 @@ const start = async () => {
   });
   app.enableCors(CorsOption);
   app.use(helmet());
+  app.use(compression());
   const websocketAdapter = new WebsocketAdapter(app);
   const httpAdapterHost = app.get(HttpAdapterHost);
   // setup

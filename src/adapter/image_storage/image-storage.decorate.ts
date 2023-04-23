@@ -20,7 +20,7 @@ export function GetImageCacheHandler() {
           buffer: Buffer.from(imageFetch.buffer),
         };
       const result = await originalMethod.apply(this, args);
-      await cache.set(key, result, { ttl: 24 * 60 * 60 * 30 * 1000 } as any); // TTL 1 month
+      await cache.set(key, result, 24 * 60 * 60 * 30); // TTL 1 month
       return result;
     };
   };
