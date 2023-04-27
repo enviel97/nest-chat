@@ -1,11 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
-import { ModelName, Services } from 'src/common/define';
+import { ModelName } from 'src/common/define';
 import type { FriendRequestDocument } from 'src/models/friend-request';
 import type { ProfileDocument } from 'src/models/profile';
 import type { UserDocument } from 'src/models/users';
-import { LogDuration } from 'src/utils/decorates';
 import string from 'src/utils/string';
 import { UserProfileNotFoundException } from '../exceptions/profile.exception';
 import { UserNotfoundException } from '../exceptions/user.exception';
@@ -125,9 +124,10 @@ export class ProfileService implements IProfileService {
   async updateProfile(
     profileId: string,
     updateProfileDTO: UpdateProfileDTO,
+    option: { new?: boolean },
   ): Promise<Profile<User>> {
     const user = await this.validateUserId(profileId);
-
+    const { new: isNew = true } = option ?? { new: true };
     const profile: Profile<User> = await this.profileModel
       .findByIdAndUpdate(
         user.getId(),
@@ -137,7 +137,8 @@ export class ProfileService implements IProfileService {
           banner: updateProfileDTO.banner,
           displayName: updateProfileDTO.displayName,
         },
-        { new: true },
+        // default true
+        { new: isNew },
       )
       .populate('user', this.normalProjectionUser)
       .lean();

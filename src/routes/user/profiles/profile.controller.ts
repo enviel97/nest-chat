@@ -20,6 +20,7 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { SkipThrottle } from '@nestjs/throttler';
 import type { Queue } from 'bull';
 import type { Response } from 'express';
 import { Routes, Services } from 'src/common/define';
@@ -102,6 +103,7 @@ export class ProfileController {
     return result;
   }
 
+  @SkipThrottle()
   @Get(':type/:id')
   async getAvatar(
     @Param('type', new ParseEnumPipe(UploadImageType))
@@ -110,8 +112,6 @@ export class ProfileController {
     @Query('size') viewPort: ViewPort,
     @Res({ passthrough: true }) res: Response,
   ) {
-    // TODO: add cache layout in redis
-    // TTL 30day
     const { buffer, contentType } = await this.imageStorageService.getImage(
       id,
       type,
@@ -123,6 +123,7 @@ export class ProfileController {
 
   @Patch('update/:type')
   @UseInterceptors(FileInterceptor('image'))
+  @ResponseSuccess({ code: 206, message: 'Upload avatar success' })
   async updateAvatar(
     @Param('type', new ParseEnumPipe(UploadImageType))
     type: UploadImageType,
@@ -138,15 +139,21 @@ export class ProfileController {
     file: Express.Multer.File,
   ) {
     const fileId = imageGenerationUID(user.getId(), type.toUpperCase());
-    await this.fileHandlerQueue.add('upload:image', {
-      fileId,
-      file,
-      id: user.getId(),
-    });
-    const result = await this.profileService.updateProfile(user.getId(), {
-      avatar: fileId,
-    });
-
-    return result;
+    const result = await this.profileService.updateProfile(
+      user.getId(),
+      { avatar: fileId },
+      { new: false },
+    );
+    this.fileHandlerQueue.add(
+      'upload:image',
+      { fileId, file, profile: result },
+      {
+        removeOnComplete: true,
+        removeOnFail: true,
+        priority: 1,
+        timeout: 1000 * 60 * 60, // 1 hours
+      },
+    );
+    return { ...result, avatar: fileId };
   }
 }

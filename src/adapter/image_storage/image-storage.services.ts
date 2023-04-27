@@ -96,6 +96,16 @@ export class ImageStorageService implements IImageStorageService {
     return `${result}?updatedAt=${new Date().getTime()}`;
   }
 
+  async deleteImage(fileId: string): Promise<any> {
+    try {
+      const result = this.imagekit.deleteFile(fileId);
+      return result;
+    } catch (error) {
+      Logger.error('Image storage delete error', error);
+      throw new ImageStorageException();
+    }
+  }
+
   @DeleteImageCacheHandler()
   @LogDuration()
   async uploadImage(key: string, file: Express.Multer.File): Promise<any> {
@@ -110,7 +120,7 @@ export class ImageStorageService implements IImageStorageService {
       });
       return result;
     } catch (error) {
-      Logger.error('Image storage error', error);
+      Logger.error('Image storage upload error', error);
       throw new ImageStorageException();
     }
   }

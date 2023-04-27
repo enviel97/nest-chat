@@ -20,7 +20,11 @@ const start = async () => {
     logger: ['error', 'warn', 'log'],
   });
   app.enableCors(CorsOption);
-  app.use(helmet());
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
   app.use(compression());
   const websocketAdapter = new WebsocketAdapter(app);
   const httpAdapterHost = app.get(HttpAdapterHost);

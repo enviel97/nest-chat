@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { Services } from 'src/common/define';
 const genKey = (fileName: string, viewPort?: string) =>
-  `${fileName}:${viewPort ?? 'default'}`;
+  `IMAGE:${fileName}:${viewPort ?? 'default'}`;
 
 export function GetImageCacheHandler() {
   const cacheInject = Inject(Services.CACHE);
@@ -11,7 +11,7 @@ export function GetImageCacheHandler() {
     descriptor.value = async function (...args: any[]) {
       const cache: ICacheService = this.cacheService;
       if (!cache) return await originalMethod.apply(this, args);
-      const [fileName, viewPort] = args;
+      const [fileName, _, viewPort] = args;
       const key = genKey(fileName, viewPort);
       const imageFetch = await cache.get<FetchImageResponse>(key);
       if (imageFetch)
@@ -20,7 +20,7 @@ export function GetImageCacheHandler() {
           buffer: Buffer.from(imageFetch.buffer),
         };
       const result = await originalMethod.apply(this, args);
-      await cache.set(key, result, 24 * 60 * 60 * 30); // TTL 1 month
+      await cache.set(key, result, 24 * 60 * 60 * 2); // TTL 1 month
       return result;
     };
   };

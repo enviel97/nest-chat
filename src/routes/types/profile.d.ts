@@ -22,5 +22,6 @@ interface IProfileService {
   updateProfile(
     profileId: string,
     updateProfileDTO: UpdateProfileDTO,
+    option?: { new?: boolean },
   ): Promise<Profile<User>>;
 }

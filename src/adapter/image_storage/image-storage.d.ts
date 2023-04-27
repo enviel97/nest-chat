@@ -8,6 +8,7 @@ interface FetchImageResponse {
 }
 
 interface IImageStorageService {
+  deleteImage(fileId: string): Promise<any>;
   uploadImage(
     fileName: string,
     file: Express.Multer.File,

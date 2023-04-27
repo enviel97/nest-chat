@@ -9,4 +9,13 @@ export default BullModule.forRoot(Services.BACKGROUND, {
     host: environment.redis.host,
     port: environment.redis.port,
   },
+  settings: {
+    lockDuration: 60 * 60 * 1000,
+    maxStalledCount: 0,
+  },
+  defaultJobOptions: {
+    removeOnComplete: true,
+    removeOnFail: true,
+    timeout: 10 * 1000,
+  },
 });
