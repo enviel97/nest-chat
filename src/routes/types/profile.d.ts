@@ -10,9 +10,17 @@ interface UpdateProfileDTO {
   banner?: string;
 }
 
+interface UpdateStatusDTO {
+  status: ProfileStatus;
+}
+
 interface UpdateAvatarResponse {
   url: string;
   thumbnail: string;
+}
+interface UpdateStatusResponse {
+  profile: Profile<User>;
+  notChange: boolean;
 }
 
 interface IProfileService {
@@ -24,4 +32,8 @@ interface IProfileService {
     updateProfileDTO: UpdateProfileDTO,
     option?: { new?: boolean },
   ): Promise<Profile<User>>;
+  changeStatus(
+    profile: User,
+    status: UpdateStatusDTO,
+  ): Promise<UpdateStatusResponse>;
 }

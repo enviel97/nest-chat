@@ -9,7 +9,11 @@ import { ParticipantDocument } from 'src/models/participants';
 import { UserDocument } from 'src/models/users';
 import { mapToEntities, merge } from 'src/utils/map';
 import string from 'src/utils/string';
-import { populateLastMessage, populateParticipant } from '../utils/config';
+import {
+  populateLastMessage,
+  populateMember,
+  populateParticipant,
+} from '../utils/config';
 import { CheckPermissionModifyConversation } from './decorate/checkPermission';
 
 @Injectable()
@@ -64,7 +68,7 @@ class ConversationGroupService implements IParticipantService {
 
     const newParticipant = await this.participantModel
       .findByIdAndUpdate(id, { members, roles: _roles }, { new: true })
-      .populate('members', 'firstName lastName email _id')
+      .populate(populateMember)
       .lean();
 
     return {

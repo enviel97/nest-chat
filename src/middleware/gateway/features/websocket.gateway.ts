@@ -12,6 +12,8 @@ import { Server } from 'socket.io';
 import { AuthenticationSocket } from '../gateway.session';
 import { Inject } from '@nestjs/common';
 import string from 'src/utils/string';
+import { OnEvent } from '@nestjs/event-emitter';
+import { Event2 } from 'src/common/event/event';
 
 enum CONNECTED_STATUS {
   GOOD = 'good',
@@ -32,7 +34,7 @@ export class WebsocketGateway
   @WebSocketServer()
   server: Server;
 
-  async handleNotificationRetrieve(
+  private async handleNotificationRetrieve(
     client: AuthenticationSocket,
     status: 'online' | 'offline',
   ) {
@@ -54,7 +56,6 @@ export class WebsocketGateway
       console.log(`Error:::${error}`);
     }
   }
-
   async handleConnection(client: AuthenticationSocket, ...args: any[]) {
     console.log(`>>> New Incoming Connection from: ${client.id}`);
     this.sessions.setUserSocket(string.getId(client.user as any), client);
@@ -78,6 +79,18 @@ export class WebsocketGateway
       await this.handleNotificationRetrieve(client, 'offline');
     });
     // Listen on disconnecting
+  }
+
+  @OnEvent([
+    Event2.subscribe.PROFILE_UPDATE_INFO,
+    Event2.subscribe.PROFILE_CHANGE_STATUS,
+  ])
+  async handleUpdateProfile(payload: Profile<User>) {
+    const { friends } = await this.profileService.listFriends(
+      payload.user.getId(),
+    );
+    const ids = friends.map((friend) => friend.user.getId());
+    this.sessions.emitSocket(ids, payload, Event2.emit.PROFILE_UPLOAD_IMAGE);
   }
 
   @SubscribeMessage(Event.EVENT_FRIEND_LIST_STATUS)

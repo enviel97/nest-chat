@@ -24,10 +24,12 @@ import { SkipThrottle } from '@nestjs/throttler';
 import type { Queue } from 'bull';
 import type { Response } from 'express';
 import { Routes, Services } from 'src/common/define';
+import { Event2 } from 'src/common/event/event';
 import { QueuesModel } from 'src/common/queues';
 import { SearchCache } from 'src/middleware/cache/decorates/SearchCache';
 import { ParseUUIDPipe } from 'src/middleware/parse/uuid';
 import { UpdateProfileDTO } from 'src/models/profile';
+import UpdateStatusDTO from 'src/models/profile/dto/UpdateStatus.DTO';
 import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
 import { mapToResponse } from 'src/utils/map';
 import { AuthenticateGuard } from '../../auth/utils/Guards';
@@ -89,6 +91,21 @@ export class ProfileController {
     });
   }
 
+  @Patch('change/status')
+  async updateStatus(@AuthUser() user: User, @Body() status: UpdateStatusDTO) {
+    const { profile, notChange } = await this.profileService.changeStatus(
+      user,
+      status,
+    );
+    this.eventEmitter.emit(Event2.subscribe.PROFILE_CHANGE_STATUS, profile);
+    // emit
+    return {
+      code: notChange ? 304 : 200,
+      message: 'Change status profile success',
+      data: profile,
+    };
+  }
+
   @Patch('update')
   @ResponseSuccess({ code: 200, message: 'Update profile successfully' })
   async updateProfile(
@@ -99,7 +116,7 @@ export class ProfileController {
       user.getId(),
       updateProfileDTO,
     );
-
+    this.eventEmitter.emit(Event2.subscribe.PROFILE_UPDATE_INFO, result);
     return result;
   }
 
@@ -154,6 +171,7 @@ export class ProfileController {
         timeout: 1000 * 60 * 60, // 1 hours
       },
     );
-    return { ...result, avatar: fileId };
+    const newProfile = { ...result, avatar: fileId };
+    return newProfile;
   }
 }

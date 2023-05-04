@@ -40,7 +40,11 @@ export class MessagesService implements IMessengerService {
           skip: bucket * limit,
         },
       )
-      .populate('author', 'firstName lastName userName')
+      .populate({
+        path: 'author',
+        select: 'firstName lastName userName profile',
+        populate: { path: 'profile', select: 'display avatar' },
+      })
       .lean();
 
     return {

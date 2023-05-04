@@ -72,11 +72,14 @@ export class ProfileService implements IProfileService {
 
   async listFriends(userId: string): Promise<ListFriendsResponse> {
     const user = await this.validateUserId(userId);
-    const profile = await this.profileModel.findById(user.getId()).populate({
-      path: 'friends',
-      select: 'user avatar bio status createdAt updatedAt',
-      populate: { path: 'user', select: this.normalProjectionUser },
-    });
+    const profile = await this.profileModel
+      .findById(user.getId())
+      .populate({
+        path: 'friends',
+        select: 'user avatar bio status createdAt updatedAt displayName',
+        populate: { path: 'user', select: this.normalProjectionUser },
+      })
+      .lean();
     return {
       profileId: user.getId(),
       friends: [...profile.friends] as Profile<User>[],
@@ -145,6 +148,35 @@ export class ProfileService implements IProfileService {
     return {
       ...profile,
       user: profile.user as User,
+    };
+  }
+
+  async changeStatus(
+    user: User,
+    updateStatusDTO: UpdateStatusDTO,
+  ): Promise<UpdateStatusResponse> {
+    console.log({ updateStatusDTO, user });
+    const profile = await this.validateUserId(user.getId());
+    if (profile.status !== updateStatusDTO.status) {
+      const profile: Profile<User> = await this.profileModel
+        .findByIdAndUpdate(
+          user.getId(),
+          { status: updateStatusDTO.status },
+          { new: true },
+        )
+        .populate('user', this.normalProjectionUser)
+        .lean();
+      return {
+        notChange: false,
+        profile,
+      };
+    }
+    return {
+      profile: {
+        ...profile,
+        user: user,
+      } as Profile<User>,
+      notChange: true,
     };
   }
 }
