@@ -155,28 +155,26 @@ export class ProfileService implements IProfileService {
     user: User,
     updateStatusDTO: UpdateStatusDTO,
   ): Promise<UpdateStatusResponse> {
-    console.log({ updateStatusDTO, user });
     const profile = await this.validateUserId(user.getId());
     if (profile.status !== updateStatusDTO.status) {
-      const profile: Profile<User> = await this.profileModel
+      const updatedProfile: Profile<User> = await this.profileModel
         .findByIdAndUpdate(
-          user.getId(),
+          profile.getId(),
           { status: updateStatusDTO.status },
           { new: true },
         )
-        .populate('user', this.normalProjectionUser)
         .lean();
       return {
         notChange: false,
-        profile,
+        profile: { ...updatedProfile, user: user },
       };
     }
     return {
+      notChange: profile.status === updateStatusDTO.status,
       profile: {
         ...profile,
         user: user,
       } as Profile<User>,
-      notChange: true,
     };
   }
 }

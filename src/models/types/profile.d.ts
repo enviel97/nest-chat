@@ -6,6 +6,7 @@ interface ProfileCommon extends Identity, TimeStamps {
   status?: UserStatus;
   avatar?: string;
   thumbnail?: string;
+  displayName?: string;
 }
 
 interface Profile<T extends UserRef> extends ProfileCommon {

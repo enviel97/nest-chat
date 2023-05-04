@@ -45,12 +45,6 @@ export default {
       }
     });
 
-    schema.pre('findOneAndUpdate', async function (next) {
-      const doc = this.getUpdate();
-      // TODO::
-      console.log(doc);
-    });
-
     return schema;
   },
   imports: [MongooseModule.forFeature([ConversationSchema])],

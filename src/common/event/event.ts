@@ -10,7 +10,6 @@ export const Event2 = Object.freeze({
   // server emit to client
   emit: {
     PROFILE_UPLOAD_IMAGE: 'onFriendUploadImage',
-    PROFILE_UPDATE_INFO: 'onFriendUpdateInfo',
-    PROFILE_CHANGE_STATUS: 'onFriendChangeStatus',
+    PROFILE_UPDATE: 'onFriendUploadProfile',
   },
 });

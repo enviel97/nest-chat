@@ -81,16 +81,34 @@ export class WebsocketGateway
     // Listen on disconnecting
   }
 
-  @OnEvent([
-    Event2.subscribe.PROFILE_UPDATE_INFO,
-    Event2.subscribe.PROFILE_CHANGE_STATUS,
-  ])
-  async handleUpdateProfile(payload: Profile<User>) {
+  @OnEvent(Event2.subscribe.PROFILE_UPDATE_INFO)
+  async handleUpdateProfileInfo(payload: Profile<User>) {
     const { friends } = await this.profileService.listFriends(
       payload.user.getId(),
     );
     const ids = friends.map((friend) => friend.user.getId());
-    this.sessions.emitSocket(ids, payload, Event2.emit.PROFILE_UPLOAD_IMAGE);
+    this.sessions.emitSocket(
+      ids,
+      {
+        id: payload.getId(),
+        bio: payload.bio,
+        displayName: payload.displayName,
+      },
+      Event2.emit.PROFILE_UPDATE,
+    );
+  }
+
+  @OnEvent(Event2.subscribe.PROFILE_CHANGE_STATUS)
+  async handleUpdateProfileStatus(payload: Profile<User>) {
+    const { friends } = await this.profileService.listFriends(
+      payload.user.getId(),
+    );
+    const ids = friends.map((friend) => friend.user.getId());
+    this.sessions.emitSocket(
+      ids,
+      { id: payload.getId(), status: payload.status },
+      Event2.emit.PROFILE_UPDATE,
+    );
   }
 
   @SubscribeMessage(Event.EVENT_FRIEND_LIST_STATUS)
