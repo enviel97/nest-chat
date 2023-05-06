@@ -9,7 +9,7 @@ const UserSchema = new Schema<User>(
     lastName: { type: String, index: true },
     email: { type: String, unique: true, sparse: true, index: true },
     password: { type: String, select: false },
-    profile: { type: String, ref: ModelName.Profile },
+    profile: { type: String, ref: ModelName.Profile, index: true },
   },
   { timestamps: true },
 );

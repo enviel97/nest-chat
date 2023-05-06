@@ -4,8 +4,8 @@ import { Services } from 'src/common/define';
 import generateKeyByParams from '../utils/generateKeyByParams';
 
 interface ModelCacheProps {
-  ttl?: number;
   modelName: string;
+  ttl?: number;
   keyIndex?: number[];
 }
 const ModelCache = ({
@@ -22,7 +22,7 @@ const ModelCache = ({
       // Normal call
       if (!cache) return await originalMethod.call(this, ...args);
 
-      const key = generateKeyByParams([...args], keyIndex);
+      const key = generateKeyByParams([...args], { keyIndex });
       const modalKey = `${modelName}:${key}`;
       const cacheData = await cache.get(modalKey);
       if (cacheData) return cacheData;

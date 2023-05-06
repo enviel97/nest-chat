@@ -45,6 +45,6 @@ const UserProfileProvider = {
     UserProfileProvider,
     FileHandlerConsumer,
   ],
-  exports: [UserMemberProvider, UserProfileProvider],
+  exports: [UserMemberProvider, UserProfileProvider, UserFriendRequestProvider],
 })
 export class UserModule {}

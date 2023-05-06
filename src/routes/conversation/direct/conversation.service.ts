@@ -4,9 +4,14 @@ import { ModelName } from 'src/common/define';
 import { ConversationDocument } from 'src/models/conversations';
 import { ParticipantDocument } from 'src/models/participants';
 import { UserDocument } from 'src/models/users';
-import { mapToEntities } from 'src/utils/map';
+import { LogDuration } from 'src/utils/decorates';
+import { mapToEntities, mapToMapEntities } from 'src/utils/map';
 import string from 'src/utils/string';
-import { populateLastMessage, populateParticipant } from '../utils/config';
+import {
+  populateLastMessage,
+  populateMember,
+  populateParticipant,
+} from '../utils/config';
 
 @Injectable()
 class ConversationService implements IConversationsService {
@@ -72,19 +77,24 @@ class ConversationService implements IConversationsService {
     if (!participant) {
       const roles = this.createRoles(newUser.ids, conversationDTO.creator);
       const type = this.createType(unique);
-      const newParticipant = await this.participantModel.create({
-        members: newUser.ids,
-        roles: roles,
-      });
-      const model = await this.conversationModel.create({
-        participant: string.getId(newParticipant),
-        type: type,
-        name: this.createNameConversation(newUser.entities, {
+      const idParticipant = string.generatorId();
+      const [conversation, newParticipant] = await Promise.all([
+        this.conversationModel.create({
+          participant: idParticipant,
           type: type,
+          name: this.createNameConversation(newUser.entities, {
+            type: type,
+          }),
         }),
-      });
+        this.participantModel.create({
+          _id: idParticipant,
+          members: newUser.ids,
+          roles: roles,
+        }),
+      ]);
+
       return {
-        ...model.toObject(),
+        ...conversation.toObject(),
         participant: {
           ...newParticipant.toObject(),
           roles: roles,
@@ -100,20 +110,40 @@ class ConversationService implements IConversationsService {
     return conversation;
   }
 
-  async getConversations(authorId: string, options: GetConversationsOption) {
-    if (!authorId) throw new BadRequestException();
+  private async findParticipant(authorId: string) {
+    const result = await this.participantModel
+      .find({ members: authorId })
+      .populate(populateMember)
+      .lean();
+    return mapToMapEntities(result, 'members roles');
+  }
+
+  private async findConversation(
+    ids: string[],
+    options: GetConversationsOption,
+  ) {
     const { type, limit, bucket } = options;
-    const { ids } = mapToEntities(
-      await this.participantModel.find({ members: authorId }).lean(),
-    );
-    return await this.conversationModel
+    const conversations = await this.conversationModel
       .find(
         { participant: { $in: ids }, type: type },
         {},
         { sort: { updatedAt: -1 }, limit, skip: bucket * limit },
       )
-      .populate([populateParticipant, populateLastMessage])
+      .populate(populateLastMessage)
       .lean();
+    return conversations;
+  }
+
+  async getConversations(authorId: string, options: GetConversationsOption) {
+    if (!authorId) throw new BadRequestException();
+    const { ids, entities } = await this.findParticipant(authorId);
+    const conversations = await this.findConversation(ids, options);
+    return conversations.map((conversation) => {
+      return {
+        ...conversation,
+        participant: entities.get(string.getId(conversation.participant)),
+      };
+    });
   }
 }
 

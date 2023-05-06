@@ -12,7 +12,12 @@ class SConversation {
   @Prop({ default: 'direct' })
   type: ConversationType;
 
-  @Prop({ type: String, required: true, ref: ModelName.Participant, index: 1 })
+  @Prop({
+    type: String,
+    required: true,
+    ref: ModelName.Participant,
+    index: true,
+  })
   participant: Participant<User>;
 
   @Prop({ type: String, ref: ModelName.Message })
@@ -21,6 +26,8 @@ class SConversation {
 
 const ConversationSchema = SchemaFactory.createForClass(SConversation);
 ConversationSchema.index({ createdAt: 1 });
+ConversationSchema.index({ updatedAt: 1 });
+ConversationSchema.index({ participant: 1, type: 1 });
 
 export { default as CreateConversationDTO } from './dto/ConversationCreate';
 

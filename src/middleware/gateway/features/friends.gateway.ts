@@ -1,5 +1,7 @@
 import {
+  ConnectedSocket,
   MessageBody,
+  SubscribeMessage,
   WebSocketGateway as WsG,
   WebSocketServer,
 } from '@nestjs/websockets';
@@ -8,12 +10,17 @@ import { Event, Services } from 'src/common/define';
 import { Server } from 'socket.io';
 import { Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { Event2 } from 'src/common/event/event';
+import { AuthenticationSocket } from '../gateway.session';
 
 @WsG({ cors: CorsOption })
 export class FriendGateway {
   constructor(
     @Inject(Services.GATEWAY_SESSION)
     private readonly sessions: IGatewaySession,
+
+    @Inject(Services.FRIEND_REQUEST)
+    private readonly friendRequestServices: IFriendRequestService,
   ) {}
 
   @WebSocketServer()
@@ -73,5 +80,19 @@ export class FriendGateway {
       { _id: payload.getId() },
       Event.EVENT_FRIEND_RECEIVE_CANCEL_FRIEND_REQUEST,
     );
+  }
+
+  @SubscribeMessage(Event2.client.FRIEND_REQUEST_QUANTITY)
+  async handleGetFriendRequestQuantity(
+    @ConnectedSocket() client: AuthenticationSocket,
+    @MessageBody() data: { quantity?: number },
+  ) {
+    const { quantity } = data;
+    const friendReq = await this.friendRequestServices.getQuantity(
+      client.user.getId(),
+      'request',
+    );
+    if (!quantity || friendReq === quantity) return;
+    return friendReq;
   }
 }

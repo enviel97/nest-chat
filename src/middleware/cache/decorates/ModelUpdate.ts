@@ -6,7 +6,6 @@ interface ModelCacheProps {
   ttl?: number;
   modelName: string;
   keyIndex?: number[];
-  fieldUpdate?: string[];
 }
 const ModelUpdate = ({
   ttl = 24 * 60 * 60,
@@ -21,7 +20,7 @@ const ModelUpdate = ({
       const cache: ICacheService = this.cache;
       // Normal call
       if (!cache) return await originalMethod.call(this, ...args);
-      const key = generateKeyByParams([...args], keyIndex);
+      const key = generateKeyByParams([...args], { keyIndex });
       const modalKey = `${modelName}:${key}`;
       const value = await originalMethod.call(this, ...args);
       await cache.update(modalKey, value, ttl);

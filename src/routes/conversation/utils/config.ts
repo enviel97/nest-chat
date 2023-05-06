@@ -1,6 +1,6 @@
 export const populateLastMessage = {
   path: 'lastMessage',
-  select: '_id content author updatedAt',
+  select: 'content author updatedAt',
   populate: {
     path: 'author',
     select: 'firstName lastName email profile',
@@ -13,7 +13,7 @@ export const populateLastMessage = {
 
 export const populateMember = {
   path: 'members',
-  select: 'firstName lastName email',
+  select: 'firstName lastName email profile',
   populate: {
     path: 'profile',
     select: 'avatar displayName',

@@ -16,4 +16,8 @@ interface IFriendRequestService {
     userId: string,
     action: 'pending' | 'request',
   ): Promise<FriendRequest<Profile<User>>[]>;
+  getQuantity(
+    userId: string,
+    action: 'pending' | 'request',
+  ): Promise<number | undefined>;
 }

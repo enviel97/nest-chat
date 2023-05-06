@@ -1,4 +1,12 @@
-const generateKeyByParams = (args: any[], keyIndex?: number[]) => {
+interface GenerateKeyByParamsProps {
+  keyIndex?: number[];
+}
+
+const generateKeyByParams = (
+  args: any[],
+  config?: GenerateKeyByParamsProps,
+) => {
+  const { keyIndex } = config;
   // Generate key for cache
   if (!keyIndex || keyIndex.length === 0) {
     // Get all params in function

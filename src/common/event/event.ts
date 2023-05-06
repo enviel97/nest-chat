@@ -1,4 +1,8 @@
 export const Event2 = Object.freeze({
+  client: {
+    FRIEND_REQUEST_QUANTITY: 'get.quantity',
+  },
+
   // server subscribe
   subscribe: {
     // Profile

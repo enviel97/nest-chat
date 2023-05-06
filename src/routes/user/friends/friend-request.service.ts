@@ -1,9 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UseGuards } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { ModelName } from 'src/common/define';
 import { FriendRequestDocument } from 'src/models/friend-request';
 import { ProfileDocument } from 'src/models/profile';
+import { AuthenticateGuard } from 'src/routes/auth/utils/Guards';
 import string from 'src/utils/string';
 import {
   FriendNotFoundException,
@@ -21,6 +22,7 @@ import {
 } from './friend-request.populate';
 
 @Injectable()
+@UseGuards(AuthenticateGuard)
 export class FriendRequestService implements IFriendRequestService {
   constructor(
     @InjectModel(ModelName.FriendRequest)
@@ -28,6 +30,18 @@ export class FriendRequestService implements IFriendRequestService {
     @InjectModel(ModelName.Profile)
     private readonly profileModel: ProfileDocument,
   ) {}
+
+  async getQuantity(
+    userId: string,
+    action: 'pending' | 'request',
+  ): Promise<number> {
+    const query =
+      action === 'request'
+        ? { friendId: userId, status: 'Request' }
+        : { authorId: userId, status: 'Request' };
+    const quantity = await this.friendModel.count(query);
+    return quantity;
+  }
 
   private async validateFriendByUser(authorId: string, userId: string) {
     const [friendRelationships, author, newFriend] = await Promise.all([

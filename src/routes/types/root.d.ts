@@ -20,6 +20,11 @@ interface Entity<T> {
   entities: T[];
 }
 
+interface MapEntity<T> {
+  ids: string[];
+  entities: Map<string, T>;
+}
+
 interface Provider {
   provide: any;
   useClass: any;

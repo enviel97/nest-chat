@@ -4,8 +4,11 @@ import { MongooseError } from 'mongoose';
 import { Logger } from '@nestjs/common';
 
 export default MongooseModule.forRoot(environment.mongoose.uri, {
-  retryWrites: true,
-  w: 'majority',
+  retryWrites: false,
+  writeConcern: {
+    w: 'majority',
+    wtimeoutMS: 3000, // 3 second
+  },
   dbName: environment.mongoose.dbName.dev,
   connectionFactory: (connection: any, name: string) => {
     Logger.log(`[${name}] Connect success`, 'Mongoose');
