@@ -141,7 +141,7 @@ export class ProfileController {
   @Patch('update/:type')
   @UseInterceptors(FileInterceptor('image'))
   @ResponseSuccess({ code: 206, message: 'Upload avatar success' })
-  async updateAvatar(
+  async uploadImage(
     @Param('type', new ParseEnumPipe(UploadImageType))
     type: UploadImageType,
     @AuthUser() user: User,
@@ -158,12 +158,12 @@ export class ProfileController {
     const fileId = imageGenerationUID(user.getId(), type.toUpperCase());
     const result = await this.profileService.updateProfile(
       user.getId(),
-      { avatar: fileId },
+      { [type]: fileId },
       { new: false },
     );
     this.fileHandlerQueue.add(
       'upload:image',
-      { fileId, file, profile: result },
+      { fileId, file, profile: result, type },
       {
         removeOnComplete: true,
         removeOnFail: true,

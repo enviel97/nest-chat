@@ -14,6 +14,7 @@ interface JobData {
   fileId: string;
   file: Express.Multer.File;
   profile: Profile<User>;
+  type: 'banner' | 'avatar';
 }
 
 @Processor(QueuesModel.FILE_HANDLER)
@@ -51,18 +52,23 @@ export class FileHandlerConsumer {
   @OnQueueCompleted()
   async onSuccess(job: Job<JobData>) {
     try {
-      const { fileId, profile } = job.data;
+      const {
+        fileId,
+        profile: { user },
+        type,
+      } = job.data;
       const result = job.returnvalue as { fileId: string };
       const updateValue = await this.profileService.updateProfile(
-        profile.user.getId(),
-        { avatar: `${fileId}+${result.fileId}` },
+        user.getId(),
+        { [type]: `${fileId}+${result.fileId}` },
       );
       Logger.log(job.returnvalue, 'File upload successfully');
       // TODO: upload image here
       this.eventEmitter.emit(QueuesEvent.IMAGE_UPLOAD_SUCCESS, {
-        user: profile.user.getId(),
-        avatar: `${fileId}+${result.fileId}`,
+        user: user.getId(),
+        [type]: `${fileId}+${result.fileId}`,
       });
+      await job.finished();
       return {
         ...updateValue,
         ...job.returnvalue,
@@ -72,21 +78,32 @@ export class FileHandlerConsumer {
         job.failedReason ?? error.message,
         job.failedReason ? 'Job:::Upload Image' : 'Native:::Upload Image',
       );
+      await job.finished();
     }
   }
 
   @OnQueueFailed()
   async onError(job: Job<JobData>, err: Error) {
-    const { profile } = job.data;
-    this.eventEmitter.emit(
-      QueuesEvent.IMAGE_UPLOAD_ERROR,
-      profile.user.getId(),
-    );
-
-    Logger.error(
-      job.failedReason ?? err.message,
-      job.failedReason ? 'Job:::Upload Image' : 'Native:::Upload Image',
-    );
-    await job.remove();
+    try {
+      const {
+        profile: { user },
+        type,
+      } = job.data;
+      await this.profileService.updateProfile(user.getId(), {
+        [type]: ``,
+      });
+      Logger.log(job.returnvalue, 'File upload failure');
+      this.eventEmitter.emit(QueuesEvent.IMAGE_UPLOAD_ERROR, user.getId());
+      Logger.error(
+        job.failedReason ?? err.message,
+        job.failedReason ? 'Job:::Upload Image' : 'Native:::Upload Image',
+      );
+      await job.remove();
+    } catch (error) {
+      Logger.error(
+        job.failedReason ?? error.message,
+        job.failedReason ? 'Job:::Upload Image' : 'Native:::Upload Image',
+      );
+    }
   }
 }
