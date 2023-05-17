@@ -4,7 +4,6 @@ import { Services } from 'src/common/define';
 import { Server } from 'socket.io';
 import { Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { QueuesEmit, QueuesEvent } from 'src/common/queues';
 import { Event2 } from 'src/common/event/event';
 
 @WsG({ cors: CorsOption })
@@ -20,7 +19,7 @@ export class MediaGateway {
   @WebSocketServer()
   server: Server;
 
-  @OnEvent(QueuesEvent.IMAGE_UPLOAD_ERROR)
+  @OnEvent(Event2.subscribe.image_profile.error)
   async handleImageUploadError(payload: string) {
     this.sessions.emitSocket(
       [payload],
@@ -28,7 +27,7 @@ export class MediaGateway {
         imageError: 'Error loaded',
         reason: 'Image upload failure',
       },
-      QueuesEmit.IMAGE_UPLOAD_ERROR,
+      Event2.emit.image_profile.error,
     );
   }
 
@@ -42,13 +41,13 @@ export class MediaGateway {
     );
   }
 
-  @OnEvent(QueuesEvent.IMAGE_UPLOAD_SUCCESS)
+  @OnEvent(Event2.subscribe.image_profile.success)
   async handleImageUploadSuccess(payload: { user: string; avatar: string }) {
     this.sessions.emitSocket(
       [payload.user],
       { ...payload },
-      QueuesEmit.IMAGE_UPLOAD_SUCCESS,
+      Event2.emit.image_profile.success,
     );
-    this.notificationToFriend(payload.user, payload.avatar);
+    await this.notificationToFriend(payload.user, payload.avatar);
   }
 }

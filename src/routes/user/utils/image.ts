@@ -1,5 +1,5 @@
-import { v5 as uuid, v4 as namespace } from 'uuid';
+import { v5 as uuid } from 'uuid';
+const NAME_SPACE_FREEZE = 'e0af99f4-d365-4654-af84-99f09f7eab71';
 export const imageGenerationUID = (base: string, nameSpace: string) => {
-  const MY_NAMESPACE = namespace();
-  return uuid(`${nameSpace}$${base}`, MY_NAMESPACE);
+  return uuid(`${nameSpace}$${base}`, NAME_SPACE_FREEZE);
 };

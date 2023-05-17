@@ -37,7 +37,7 @@ export function DeleteImageCacheHandler() {
       const [key] = args;
       const result = await Promise.all([
         originalMethod.apply(this, args),
-        cache.delP(`${key}:*`),
+        cache.delP(`IMAGE:${key}:*`),
       ]).then(async ([result, _]) => result);
       return result;
     };

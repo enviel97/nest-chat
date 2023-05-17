@@ -2,19 +2,27 @@ import { Module } from '@nestjs/common';
 import { Services } from 'src/common/define';
 import environment from 'src/common/environment';
 import { ImageStorageService } from './image-storage.services';
-const ImageKit = require('imagekit');
+import { v2 as Cloudinary } from 'cloudinary';
 
 const ImageStorageProvider = {
   provide: Services.IMAGE_STORAGE,
   useClass: ImageStorageService,
 };
-const ImageKitSDK = {
-  provide: 'ImageKitSDK',
-  useValue: new ImageKit(environment.image),
+const CloudinarySdk = {
+  provide: 'CloudinarySDK',
+  useFactory: () => {
+    Cloudinary.config({
+      ...environment.image,
+      secure: true,
+      shorten: true,
+      ssl_detected: true,
+    });
+    return Cloudinary;
+  },
 };
 
 @Module({
-  providers: [ImageKitSDK, ImageStorageProvider],
+  providers: [CloudinarySdk, ImageStorageProvider],
   exports: [ImageStorageProvider],
 })
 export class ImageStorageModule {}

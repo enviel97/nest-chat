@@ -1,15 +1,12 @@
-import { InjectQueue } from '@nestjs/bull';
 import {
   BadRequestException,
   Body,
   Controller,
-  FileTypeValidator,
   Get,
   Inject,
-  MaxFileSizeValidator,
+  Logger,
   Param,
   ParseEnumPipe,
-  ParseFilePipe,
   Patch,
   Query,
   Res,
@@ -21,11 +18,10 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SkipThrottle } from '@nestjs/throttler';
-import type { Queue } from 'bull';
 import type { Response } from 'express';
+import { IImageStorageService } from 'src/adapter/image_storage/types/image-storage.types';
 import { Routes, Services } from 'src/common/define';
 import { Event2 } from 'src/common/event/event';
-import { QueuesModel } from 'src/common/queues';
 import { SearchCache } from 'src/middleware/cache/decorates/SearchCache';
 import { ParseUUIDPipe } from 'src/middleware/parse/uuid';
 import { UpdateProfileDTO } from 'src/models/profile';
@@ -34,6 +30,7 @@ import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
 import { mapToResponse } from 'src/utils/map';
 import { AuthenticateGuard } from '../../auth/utils/Guards';
 import { imageGenerationUID } from '../utils/image';
+import { ValidateProfileImage } from './profile.validate';
 
 enum UploadImageType {
   avatar = 'avatar',
@@ -49,9 +46,6 @@ export class ProfileController {
 
     @Inject(Services.IMAGE_STORAGE)
     private readonly imageStorageService: IImageStorageService,
-
-    @InjectQueue(QueuesModel.FILE_HANDLER)
-    private readonly fileHandlerQueue: Queue,
 
     private readonly eventEmitter: EventEmitter2,
   ) {}
@@ -122,7 +116,7 @@ export class ProfileController {
 
   @SkipThrottle()
   @Get(':type/:id')
-  async getAvatar(
+  async getImage(
     @Param('type', new ParseEnumPipe(UploadImageType))
     type: UploadImageType,
     @Param('id', ParseUUIDPipe) id: string,
@@ -140,38 +134,44 @@ export class ProfileController {
 
   @Patch('update/:type')
   @UseInterceptors(FileInterceptor('image'))
-  @ResponseSuccess({ code: 206, message: 'Upload avatar success' })
+  // @ResponseSuccess({ code: 206, message: 'Upload avatar success' })
   async uploadImage(
     @Param('type', new ParseEnumPipe(UploadImageType))
     type: UploadImageType,
-    @AuthUser() user: User,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 1024 * 1024 }),
-          new FileTypeValidator({ fileType: /(image\/)(jpg|png|jpeg|webp)/g }),
-        ],
-      }),
-    )
+
+    @AuthUser()
+    user: User,
+
+    @UploadedFile(ValidateProfileImage)
     file: Express.Multer.File,
   ) {
     const fileId = imageGenerationUID(user.getId(), type.toUpperCase());
-    const result = await this.profileService.updateProfile(
+    const profile = await this.profileService.updateProfile(
       user.getId(),
       { [type]: fileId },
       { new: false },
     );
-    this.fileHandlerQueue.add(
-      'upload:image',
-      { fileId, file, profile: result, type },
-      {
-        removeOnComplete: true,
-        removeOnFail: true,
-        priority: 1,
-        timeout: 1000 * 60 * 60, // 1 hours
-      },
-    );
-    const newProfile = { ...result, avatar: fileId };
-    return newProfile;
+
+    return await this.imageStorageService
+      .uploadImage(fileId, file)
+      .then((response) => {
+        this.eventEmitter.emit(Event2.subscribe.image_profile.success, {
+          user: user.getId(),
+          avatar: response.url,
+        });
+        return {
+          code: 206,
+          message: 'Upload image successfully',
+          data: { ...profile, [type]: fileId, [`${type}Url`]: response.url },
+        };
+      })
+      .catch((error) => {
+        Logger.error('Upload image error', error);
+        this.eventEmitter.emit(
+          Event2.subscribe.image_profile.error,
+          user.getId(),
+        );
+        throw new BadRequestException('Upload image failure');
+      });
   }
 }

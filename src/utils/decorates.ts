@@ -1,13 +1,26 @@
-import { createParamDecorator, ExecutionContext, Logger } from '@nestjs/common';
+import {
+  createParamDecorator,
+  ExecutionContext,
+  ForbiddenException,
+  Logger,
+} from '@nestjs/common';
 import { performance } from 'perf_hooks';
 
 export const AuthUser = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext) => {
+  (data: string, ctx: ExecutionContext) => {
     const request = <AuthenticatedRequest>ctx.switchToHttp().getRequest();
-    return request.user as IUser;
+    const user = request.user;
+    if (!data) return user;
+    if (data === 'id') return user.getId();
+    const field = user[data];
+    if (!field) throw new ForbiddenException('User property not found');
+    return field;
   },
 );
-
+/**
+ * Show run time of function/feature
+ *
+ */
 export function LogDuration() {
   return (target: any, nameMethod: string, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value;

@@ -1,64 +1,65 @@
+// https://cloudinary.com/documentation/node_image_manipulation
 import {
+  BadGatewayException,
   Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import ImageKitSDK from 'imagekit';
-import { ImageStorageException } from './image-storage.exception';
 import {
   GetImageCacheHandler,
   DeleteImageCacheHandler,
 } from './image-storage.decorate';
 import { LogDuration } from 'src/utils/decorates';
+import { v2 as Cloudinary, TransformationOptions } from 'cloudinary';
+import {
+  CloudinaryResponse,
+  IImageStorageService,
+  ViewPortAvatarEnum,
+  ViewPortBannerEnum,
+} from './types/image-storage.types';
+import { Readable } from 'stream';
 
-interface GenerationImageTransformation {
-  size?: any;
-  aspectRatio: string;
-}
-
-export enum ViewPortEnum {
-  default = 'default',
-  s = 's',
-  sm = 'sm',
-  md = 'md',
-  lg = 'lg',
-  xl = 'xl',
-}
-
-enum ViewPortAvatarEnum {
-  default = 'auto-200',
-  s = '190',
-  sm = '1032',
-  md = '1438',
-  lg = '1493',
-  xl = '1534',
-}
-
-enum ViewPortBannerEnum {
-  default = 'auto-910',
-  s = '320',
-  sm = '663',
-  md = '910	',
-  lg = '1113',
-  xl = '1313',
+interface TemplateTransform {
+  avatar: TransformationOptions;
+  banner: TransformationOptions;
 }
 @Injectable()
 export class ImageStorageService implements IImageStorageService {
-  private bucket: string = 'ChatAppAssets';
-  private responseField: string[] = [
-    'fileId',
-    'name',
-    'url',
-    'thumbnailUrl',
-    'versionInfo',
-  ];
-
   constructor(
-    @Inject('ImageKitSDK')
-    private readonly imagekit: ImageKitSDK,
+    @Inject('CloudinarySDK')
+    private readonly imageStorageSdk: typeof Cloudinary,
   ) {}
 
+  private readonly bucket: string = 'ChatAppAsset';
+
+  private generateTransformTemplate(size?: ViewPort) {
+    const _size = size ?? 'md';
+    const transform = Object.freeze<TemplateTransform>({
+      avatar: {
+        width: ViewPortAvatarEnum[_size],
+        aspectRatio: '1:1',
+        crop: 'fill',
+        gravity: 'face',
+      },
+      banner: {
+        height: ViewPortBannerEnum[_size],
+        aspectRatio: '16:9',
+        crop: 'scale',
+        gravity: 'center',
+      },
+    });
+
+    return (type: 'avatar' | 'banner') => transform[type];
+  }
+
+  /**
+   *
+   * @param url image url to download to cache redis
+   * @returns binary content and content type
+   * @errors InternalServerErrorException()
+   *
+   */
   private async fetchImage(url: string): Promise<FetchImageResponse> {
     return await fetch(url)
       .then(async (res) => {
@@ -75,70 +76,62 @@ export class ImageStorageService implements IImageStorageService {
       });
   }
 
+  /**
+   *
+   * @param public_id public key of image in cloudinary
+   * @param customTransform transform image by ai (cloudinary)
+   * @returns url as string
+   */
   private generatorUrl(
-    fileName: string,
-    { size, aspectRatio }: GenerationImageTransformation,
+    public_id: string,
+    customTransform: TransformationOptions,
   ) {
-    const result = this.imagekit.url({
-      path: `${this.bucket}/${fileName}`,
+    // return `${result}?updatedAt=${new Date().getTime()}`;
+    return this.imageStorageSdk.url(`${this.bucket}/${public_id}`, {
       transformation: [
-        {
-          aspectRatio: aspectRatio,
-          focus: 'auto',
-          effectSharpen: '-',
-          effectContrast: '1',
-          dpr: 'auto',
-        },
-        size,
+        customTransform,
+        { quality: 'auto' },
+        { fetch_format: 'auto' },
       ],
     });
-
-    return `${result}?updatedAt=${new Date().getTime()}`;
   }
 
+  @LogDuration()
   async deleteImage(fileId: string): Promise<any> {
-    try {
-      const result = this.imagekit.deleteFile(fileId);
-      return result;
-    } catch (error) {
-      Logger.error('Image storage delete error', error);
-      throw new ImageStorageException();
-    }
+    throw new BadGatewayException('Method not implement');
   }
 
   @DeleteImageCacheHandler()
   @LogDuration()
-  async uploadImage(key: string, file: Express.Multer.File): Promise<any> {
-    try {
-      const base64 = Buffer.from(file.buffer);
-      const result = this.imagekit.upload({
-        file: base64.toString('base64'),
-        fileName: key,
-        folder: this.bucket,
-        useUniqueFileName: false,
-        responseFields: this.responseField,
-      });
-      return result;
-    } catch (error) {
-      Logger.error('Image storage upload error', error);
-      throw new ImageStorageException();
-    }
+  async uploadImage(public_id: string, file: Express.Multer.File) {
+    return new Promise<CloudinaryResponse>((resolve, reject) => {
+      const cloudinaryStream = this.imageStorageSdk.uploader.upload_stream(
+        {
+          resource_type: 'image',
+          folder: this.bucket,
+          public_id: public_id,
+          overwrite: true,
+        },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        },
+      );
+      Readable.from(file.buffer).pipe(cloudinaryStream);
+    });
   }
 
   @GetImageCacheHandler()
+  @LogDuration()
   async getImage(
     fileName: string,
     type: 'avatar' | 'banner',
     viewPort?: ViewPort,
   ): Promise<FetchImageResponse> {
-    const size = viewPort ?? 'default';
-    const url = this.generatorUrl(fileName, {
-      size:
-        type == 'avatar'
-          ? { width: ViewPortAvatarEnum[size] }
-          : { height: ViewPortBannerEnum[size] },
-      aspectRatio: type == 'avatar' ? '1-1' : '16-9',
-    });
+    const transform = this.generateTransformTemplate(viewPort);
+
+    const url = this.generatorUrl(fileName, transform(type));
+
     const image = await this.fetchImage(url);
     return image;
   }
