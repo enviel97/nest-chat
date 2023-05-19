@@ -9,7 +9,7 @@ import {
 import {
   GetImageCacheHandler,
   DeleteImageCacheHandler,
-} from './image-storage.decorate';
+} from '../decorate/image-storage.decorate';
 import { LogDuration } from 'src/utils/decorates';
 import { v2 as Cloudinary, TransformationOptions } from 'cloudinary';
 import {
@@ -17,7 +17,7 @@ import {
   IImageStorageService,
   ViewPortAvatarEnum,
   ViewPortBannerEnum,
-} from './types/image-storage.types';
+} from '../types/image-storage.types';
 import { Readable } from 'stream';
 
 interface TemplateTransform {
@@ -55,7 +55,7 @@ export class ImageStorageService implements IImageStorageService {
 
   /**
    *
-   * @param url image url to download to cache redis
+   * @param url {string} image url to download to cache redis
    * @returns binary content and content type
    * @errors InternalServerErrorException()
    *

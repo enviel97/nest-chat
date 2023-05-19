@@ -6,21 +6,27 @@ import {
   HttpStatus,
   Inject,
   Param,
+  ParseFilePipe,
   Post,
   Put,
   Query,
   Res,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { SkipThrottle } from '@nestjs/throttler';
 import { Response } from 'express';
+import { Multer } from 'multer';
+import { MultipleFileValidator } from 'src/adapter/image_storage/validator/MultipleFileValidator';
 import { Event, Routes, Services } from 'src/common/define';
 import { ParseObjectIdPipe } from 'src/middleware/parse/mongoDb';
 import { CreateMessageDTO } from 'src/models/messages';
 import EditContentMessageDTO from 'src/models/messages/dto/EditContentMessageDTO';
 
-import { AuthUser } from 'src/utils/decorates';
+import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
 import string from 'src/utils/string';
 import { AuthenticateGuard } from '../auth/utils/Guards';
 
@@ -35,24 +41,23 @@ export class MessagesController {
   ) {}
 
   @Post()
+  @UseInterceptors(FilesInterceptor('attachments'))
+  @ResponseSuccess({ message: 'Create message successfully' })
   async createMessage(
     @Param('conversationId', ParseObjectIdPipe) conversationId: string,
     @AuthUser() user: User,
+    @UploadedFiles(MultipleFileValidator())
+    attachments: Express.Multer.File[],
     @Body() createMessageDTO: CreateMessageDTO,
   ) {
     const newMessage = await this.messageService.createMessage({
       author: user,
       conversationId,
-      ...createMessageDTO,
+      attachments,
+      content: createMessageDTO.content,
     });
-
     this.eventEmitter.emit(Event.EVENT_MESSAGE_SENDING, newMessage);
-
-    return {
-      code: 200,
-      message: 'Create message success',
-      data: newMessage.message,
-    };
+    return newMessage.message;
   }
 
   @Get()

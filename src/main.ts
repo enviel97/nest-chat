@@ -10,10 +10,10 @@ import {
 } from './middleware/error';
 import { CorsOption } from './middleware/cors';
 import { WebsocketAdapter } from './middleware/gateway/gateway.adapter';
-import 'src/extensions';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import * as compression from 'compression';
+import 'src/extensions';
 
 const start = async () => {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {

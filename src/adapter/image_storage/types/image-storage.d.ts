@@ -6,3 +6,5 @@ interface FetchImageResponse {
   contentType: string;
   buffer: Buffer;
 }
+
+type MediaData = Express.Multer.File;

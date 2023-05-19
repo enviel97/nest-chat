@@ -1,11 +1,10 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsBase64, IsOptional, IsString } from 'class-validator';
 
 class CreateMessagesDTO {
-  // @IsNotEmpty()
-  // @IsMongoId()
-  // conversationId: string;
+  @IsOptional()
+  attachments: string[];
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   content: string;
 }

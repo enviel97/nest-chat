@@ -20,6 +20,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { SkipThrottle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { IImageStorageService } from 'src/adapter/image_storage/types/image-storage.types';
+import { SingleFileValidator } from 'src/adapter/image_storage/validator/SingleFileValidator';
 import { Routes, Services } from 'src/common/define';
 import { Event2 } from 'src/common/event/event';
 import { SearchCache } from 'src/middleware/cache/decorates/SearchCache';
@@ -30,7 +31,6 @@ import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
 import { mapToResponse } from 'src/utils/map';
 import { AuthenticateGuard } from '../../auth/utils/Guards';
 import { imageGenerationUID } from '../utils/image';
-import { ValidateProfileImage } from './profile.validate';
 
 enum UploadImageType {
   avatar = 'avatar',
@@ -142,7 +142,7 @@ export class ProfileController {
     @AuthUser()
     user: User,
 
-    @UploadedFile(ValidateProfileImage)
+    @UploadedFile(SingleFileValidator())
     file: Express.Multer.File,
   ) {
     const fileId = imageGenerationUID(user.getId(), type.toUpperCase());

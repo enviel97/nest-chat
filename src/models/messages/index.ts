@@ -7,12 +7,21 @@ import type { ConversationDocument } from '../conversations';
 
 export type MessageDocument = Model<HydratedDocument<Message>>;
 
+const MessageAttachment = new Schema<MessageAttachment>(
+  {
+    downloadLink: { type: String, default: '' },
+    previewLink: { type: String, default: '' },
+  },
+  { timestamps: true },
+);
+
 const MessageSchema = new Schema<Message>(
   {
     conversationId: { type: String, index: true },
     content: { type: String },
     author: { type: String, ref: ModelName.User },
     action: { type: String, default: 'New' },
+    attachments: { type: [MessageAttachment], default: [] },
   },
   { timestamps: true },
 );

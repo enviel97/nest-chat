@@ -1,2 +1,5 @@
-export * from './identity.extension';
-export * from './user.extension';
+// extensions roots
+
+// extensions models
+export * from './models/identity.extension';
+export * from './models/user.extension';

@@ -1,8 +1,4 @@
-import type {
-  UploadApiErrorResponse,
-  UploadApiResponse,
-  UploadStream,
-} from 'cloudinary';
+import type { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
 
 export enum ViewPortAvatarEnum {
   s = '190',
@@ -32,4 +28,10 @@ export interface IImageStorageService {
     type: UploadImageType,
     viewPort?: ViewPort,
   ): Promise<FetchImageResponse>;
+}
+
+export enum UploadTypesEnum {
+  ANY = 'jpg|jpeg|png|gif|pdf|docx|doc|xlsx|xls',
+  IMAGES = 'jpg|jpeg|png|gif',
+  DOCS = 'pdf|docx|doc|xlsx|xls',
 }

@@ -21,4 +21,26 @@ const generatorId = () => {
   return new Types.ObjectId().toString();
 };
 
-export default { cvtToObjectId, getId, getFullName, generatorId };
+/**
+ *
+ * @param size {number} size of file
+ * @param decimals {number | undefine} number behind dot
+ * @returns {string} normal size format like MB, GB, Bytes, ...
+ */
+const K_UNIT = 1024;
+const SIZES = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
+const cvtToNormalSize = (size: number, decimals?: number) => {
+  if (size === 0) return '0 Byte';
+  const i = Math.floor(Math.log(size) / Math.log(K_UNIT));
+  const resp = `${parseFloat(
+    (size / Math.pow(K_UNIT, i)).toFixed(decimals ?? 2),
+  )} ${SIZES[i]}`;
+  return resp;
+};
+export default {
+  cvtToObjectId,
+  getId,
+  getFullName,
+  generatorId,
+  cvtToNormalSize,
+};

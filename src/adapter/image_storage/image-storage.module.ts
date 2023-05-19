@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { Services } from 'src/common/define';
 import environment from 'src/common/environment';
-import { ImageStorageService } from './image-storage.services';
+import { ImageStorageService } from './services/image-storage.services';
 import { v2 as Cloudinary } from 'cloudinary';
 
 const ImageStorageProvider = {
