@@ -10,7 +10,8 @@ export type MessageDocument = Model<HydratedDocument<Message>>;
 const MessageAttachment = new Schema<MessageAttachment>(
   {
     downloadLink: { type: String, default: '' },
-    previewLink: { type: String, default: '' },
+    publicId: { type: String, required: true },
+    type: { type: String, required: true },
   },
   { timestamps: true },
 );
@@ -47,7 +48,7 @@ export default {
             })
             .lean(),
           // update full conversation assets
-          cache.update('conversation', { lastMessage: doc }),
+          cache.update('conversation', { lastMessage: doc.toObject() }),
         ]).catch((error) => {
           next(error);
         });

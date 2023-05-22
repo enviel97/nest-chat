@@ -8,6 +8,11 @@ import { FriendGateway } from './features/friends.gateway';
 import { MediaGateway } from './features/media.gateway';
 import { UserModule } from 'src/routes/user/user.module';
 
+const SessionsManager = {
+  provide: Services.GATEWAY_SESSION,
+  useClass: GatewaySessionManager,
+};
+
 @Module({
   imports: [UserModule],
   providers: [
@@ -16,7 +21,7 @@ import { UserModule } from 'src/routes/user/user.module';
     WebsocketGateway,
     FriendGateway,
     MediaGateway,
-    { provide: Services.GATEWAY_SESSION, useClass: GatewaySessionManager },
+    SessionsManager,
   ],
 })
 export class GatewayModule {}

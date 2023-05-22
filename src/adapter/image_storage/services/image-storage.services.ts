@@ -13,17 +13,13 @@ import {
 import { LogDuration } from 'src/utils/decorates';
 import { v2 as Cloudinary, TransformationOptions } from 'cloudinary';
 import {
-  CloudinaryResponse,
-  IImageStorageService,
+  TemplateTransform,
   ViewPortAvatarEnum,
   ViewPortBannerEnum,
+  ViewPortImageEnum,
 } from '../types/image-storage.types';
 import { Readable } from 'stream';
 
-interface TemplateTransform {
-  avatar: TransformationOptions;
-  banner: TransformationOptions;
-}
 @Injectable()
 export class ImageStorageService implements IImageStorageService {
   constructor(
@@ -48,9 +44,13 @@ export class ImageStorageService implements IImageStorageService {
         crop: 'scale',
         gravity: 'center',
       },
+      normal: {
+        height: ViewPortImageEnum[_size],
+        crop: 'scale',
+      },
     });
 
-    return (type: 'avatar' | 'banner') => transform[type];
+    return (type: UploadImageType) => transform[type];
   }
 
   /**
@@ -114,7 +114,12 @@ export class ImageStorageService implements IImageStorageService {
         },
         (error, result) => {
           if (error) return reject(error);
-          resolve(result);
+          resolve({
+            url: result.url,
+            publicId: result.public_id,
+            createdAt: result.created_at,
+            type: result.type,
+          });
         },
       );
       Readable.from(file.buffer).pipe(cloudinaryStream);
@@ -125,7 +130,7 @@ export class ImageStorageService implements IImageStorageService {
   @LogDuration()
   async getImage(
     fileName: string,
-    type: 'avatar' | 'banner',
+    type: UploadImageType,
     viewPort?: ViewPort,
   ): Promise<FetchImageResponse> {
     const transform = this.generateTransformTemplate(viewPort);

@@ -1,10 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ModelName } from 'src/common/define';
+import { ModelName, Services } from 'src/common/define';
 import { ConversationDocument } from 'src/models/conversations';
 import { ParticipantDocument } from 'src/models/participants';
 import { UserDocument } from 'src/models/users';
-import { LogDuration } from 'src/utils/decorates';
 import { mapToEntities, mapToMapEntities } from 'src/utils/map';
 import string from 'src/utils/string';
 import {
@@ -77,14 +76,15 @@ class ConversationService implements IConversationsService {
     if (!participant) {
       const roles = this.createRoles(newUser.ids, conversationDTO.creator);
       const type = this.createType(unique);
+      const name = this.createNameConversation(newUser.entities, {
+        type: type,
+      });
       const idParticipant = string.generatorId();
       const [conversation, newParticipant] = await Promise.all([
         this.conversationModel.create({
           participant: idParticipant,
           type: type,
-          name: this.createNameConversation(newUser.entities, {
-            type: type,
-          }),
+          name: name,
         }),
         this.participantModel.create({
           _id: idParticipant,

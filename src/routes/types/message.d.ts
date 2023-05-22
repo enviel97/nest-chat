@@ -1,12 +1,3 @@
-interface ResponseMessage {
-  message: IMessage;
-  members: Set<string>;
-}
-
-interface ResponseMessageWithLastMessage extends ResponseMessage {
-  lastMessage?: IMessage;
-}
-
 interface EmitDeleteMessage {
   lastMessage?: IMessage;
   messageId: string;
@@ -14,13 +5,15 @@ interface EmitDeleteMessage {
   members: Set<string>;
 }
 
+interface MessageRequest extends Request {
+  conversation: Conversation;
+}
+
 interface IMessengerService {
-  createMessage(params: MessageCreateParams): Promise<ResponseMessage>;
+  createMessage(params: MessageCreateParams): Promise<Message>;
   getMessages(
     conversationId: string,
     option: PaginationOption,
   ): Promise<Pagination<IMessage>>;
-  editContentMessage(
-    params: MessageEditParams,
-  ): Promise<ResponseMessageWithLastMessage>;
+  editContentMessage(params: MessageEditParams): Promise<Message>;
 }

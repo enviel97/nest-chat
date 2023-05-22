@@ -11,9 +11,18 @@ type IConversation<T extends any> = ConversationDetail<T> &
   TimeStamps &
   Identity & { messages: IMessages[] };
 
-type Conversation<T extends any> = Partial<IConversation<T>>;
+type Conversation<T = any> = Partial<IConversation<T>>;
 
 interface ConversationCreateParams {
   creator: string;
   idParticipant: string[];
+}
+
+// Type v2
+
+interface ConversationMembers extends Identity {
+  participant: Participant<string>;
+  lastMessage: Message;
+  name: string;
+  type: ConversationType;
 }

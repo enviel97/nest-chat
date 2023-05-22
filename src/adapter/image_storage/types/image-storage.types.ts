@@ -1,5 +1,12 @@
-import type { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
+import type { TransformationOptions } from 'cloudinary';
 
+export type TemplateTransform = {
+  [type in UploadImageType]: TransformationOptions;
+};
+
+/**
+ * Common define
+ */
 export enum ViewPortAvatarEnum {
   s = '190',
   sm = '1032',
@@ -16,18 +23,12 @@ export enum ViewPortBannerEnum {
   xl = '1313',
 }
 
-export type CloudinaryResponse = UploadApiResponse | UploadApiErrorResponse;
-
-export interface IImageStorageService {
-  uploadImage(
-    public_id: string,
-    file: Express.Multer.File,
-  ): Promise<CloudinaryResponse>;
-  getImage(
-    public_id: string,
-    type: UploadImageType,
-    viewPort?: ViewPort,
-  ): Promise<FetchImageResponse>;
+export enum ViewPortImageEnum {
+  s = '150',
+  sm = '300',
+  md = '450',
+  lg = '600',
+  xl = '1000',
 }
 
 export enum UploadTypesEnum {

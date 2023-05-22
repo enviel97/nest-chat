@@ -12,6 +12,7 @@ import { Server } from 'socket.io';
 import { AuthenticationSocket } from '../gateway.session';
 import { Inject } from '@nestjs/common';
 import string from 'src/utils/string';
+import { Event2 } from 'src/common/event/event';
 
 @WebSocketGateway({ cors: CorsOption })
 export class MessagingGateway {
@@ -23,48 +24,62 @@ export class MessagingGateway {
   @WebSocketServer()
   server: Server;
 
+  private getMembersInConversation(payload: MessageModifiedPayload) {
+    const { conversation, message } = payload;
+    return new Set([
+      ...(conversation.participant?.members ?? []),
+      message.author.getId(),
+    ]);
+  }
+
   @OnEvent(Event.EVENT_MESSAGE_SENDING)
-  handleNotificationMessageSend(payload: ResponseMessage) {
-    const { message, members } = payload;
-    this.sessions.emitSocket<IMessage>(
-      [...members],
-      message,
+  handleNotificationMessageSend(payload: MessageModifiedPayload) {
+    const { message } = payload;
+    this.sessions.emitSocket(
+      [...this.getMembersInConversation(payload)],
+      payload.message,
       Event.EVENT_MESSAGE_CREATED,
-      {
-        ignoreIds:
-          message.action === 'Notice' ? [] : [string.getId(message.author)],
-      },
+      { ignoreIds: [message.author.getId()] },
     );
   }
 
   @OnEvent(Event.EVENT_MESSAGE_DELETE)
-  handleNotificationMessageDelete(payload: ResponseMessageWithLastMessage) {
-    const { members, lastMessage, message } = payload;
+  handleNotificationMessageDelete(payload: MessageModifiedPayload) {
+    const { message } = payload;
     this.sessions.emitSocket(
-      [...members],
+      [...this.getMembersInConversation(payload)],
       {
-        lastMessage: lastMessage,
         messageId: string.getId(message),
         conversationId: message.conversationId,
       },
       Event.EVENT_MESSAGE_REMOVE,
-      { ignoreIds: [string.getId(message.author)] },
+      { ignoreIds: [message.author.getId()] },
     );
   }
 
   @OnEvent(Event.EVENT_MESSAGE_UPDATE)
-  handleNotificationMessageEdited(payload: ResponseMessageWithLastMessage) {
-    const { members, lastMessage, message } = payload;
+  handleNotificationMessageEdited(payload: MessageModifiedPayload) {
+    const { message } = payload;
     this.sessions.emitSocket(
-      [...members],
+      [...this.getMembersInConversation(payload)],
       {
-        lastMessage: lastMessage,
-        messageId: string.getId(message),
+        messageId: message.getId(),
         content: message.content,
         conversationId: message.conversationId,
       },
       Event.EVENT_MESSAGE_EDITED,
-      { ignoreIds: [string.getId(message.author)] },
+      { ignoreIds: [message.author.getId()] },
+    );
+  }
+
+  @OnEvent(Event2.subscribe.EVENT_MESSAGE_UPDATE_LAST_MESSAGE)
+  handleUpdateLastMessage(payload: MessageUploadLastMessagePayload) {
+    const { message } = payload;
+    this.sessions.emitSocket(
+      [...this.getMembersInConversation(payload)],
+      message,
+      Event2.emit.EVENT_MESSAGE_UPDATE_LAST_MESSAGE,
+      { ignoreIds: [message.author.getId()] },
     );
   }
 

@@ -19,7 +19,6 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SkipThrottle } from '@nestjs/throttler';
 import type { Response } from 'express';
-import { IImageStorageService } from 'src/adapter/image_storage/types/image-storage.types';
 import { SingleFileValidator } from 'src/adapter/image_storage/validator/SingleFileValidator';
 import { Routes, Services } from 'src/common/define';
 import { Event2 } from 'src/common/event/event';
@@ -145,7 +144,7 @@ export class ProfileController {
     @UploadedFile(SingleFileValidator())
     file: Express.Multer.File,
   ) {
-    const fileId = imageGenerationUID(user.getId(), type.toUpperCase());
+    const fileId = imageGenerationUID(`${user.getId()}${type.toUpperCase()}`);
     const profile = await this.profileService.updateProfile(
       user.getId(),
       { [type]: fileId },

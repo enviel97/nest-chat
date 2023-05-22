@@ -52,7 +52,7 @@ class ConversationController {
         author: string.getId(author),
         content: conversation.message,
       });
-      lastMessage = newMessage.message;
+      lastMessage = newMessage;
     }
     const data = {
       ...result,

@@ -1,18 +1,18 @@
 type MessageAction = 'New' | 'Edited' | 'Removed' | 'Seen' | 'Notice';
 type MessageType = 'banned' | 'invite' | 'leave';
 
-interface MessageAttachment extends TimeStamps, Identity {
+interface IMessageAttachment {
   downloadLink: string;
-  previewLink: string;
+  publicId: string;
   type: string;
 }
 
 interface MessageCreateParams {
   author: User;
   conversationId: string;
-  content: string;
+  content?: string;
   action?: MessageAction;
-  attachments?: Express.Multer.File[];
+  attachments?: MediaData[];
 }
 
 interface MessageDeleteParams {
@@ -21,19 +21,19 @@ interface MessageDeleteParams {
   messageId: string;
 }
 interface MessageEditParams {
-  userId: string;
-  conversationId: string;
   messageId: string;
   content: string;
   action: MessageAction;
 }
 interface MessageDetail {
   conversationId: string;
-  content: string;
   author: User;
   action: MessageAction;
-  attachments: MessageAttachment[];
+  attachments?: MessageAttachment[];
+  content?: string;
 }
+
+type MessageAttachment = TimeStamps & Identity & IMessageAttachment;
 
 type IMessage = MessageDetail & TimeStamps & Identity;
 
