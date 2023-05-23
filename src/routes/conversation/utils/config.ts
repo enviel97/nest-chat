@@ -3,11 +3,7 @@ export const populateLastMessage = {
   select: 'content author updatedAt',
   populate: {
     path: 'author',
-    select: 'firstName lastName email profile',
-    populate: {
-      path: 'profile',
-      select: 'avatar displayName',
-    },
+    select: 'firstName lastName email',
   },
 };
 

@@ -1,6 +1,6 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ModelName, Services } from 'src/common/define';
+import { ModelName } from 'src/common/define';
 import { ConversationDocument } from 'src/models/conversations';
 import { ParticipantDocument } from 'src/models/participants';
 import { UserDocument } from 'src/models/users';

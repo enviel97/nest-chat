@@ -15,7 +15,14 @@ export type ParticipantDocument = Model<HydratedDocument<Participant<string>>>;
 
 @Schema({ timestamps: true, versionKey: false })
 class SParticipant {
-  @Prop({ type: [String], ref: ModelName.User, default: [], index: true })
+  @Prop({
+    type: [String],
+    ref: ModelName.User,
+    default: [],
+    unique: true,
+    sparse: true,
+    index: 1,
+  })
   members: User[];
 
   @Prop({ type: Map, of: String, default: {} })

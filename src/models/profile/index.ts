@@ -9,7 +9,13 @@ class SProfile {
   @Prop({ type: String })
   displayName: string;
 
-  @Prop({ type: String, ref: ModelName.User, index: true, unique: true })
+  @Prop({
+    type: String,
+    ref: ModelName.User,
+    unique: true,
+    sparse: true,
+    index: 1,
+  })
   user: string;
 
   @Prop({ type: String })
@@ -24,10 +30,10 @@ class SProfile {
   @Prop({ type: String })
   banner: string;
 
-  @Prop({ type: [String], ref: ModelName.Profile, index: true })
+  @Prop({ type: [String], ref: ModelName.Profile, index: 1 })
   blockList: string[];
 
-  @Prop({ type: [String], ref: ModelName.Profile, index: true })
+  @Prop({ type: [String], ref: ModelName.Profile, index: 1 })
   friends: string[];
 }
 
