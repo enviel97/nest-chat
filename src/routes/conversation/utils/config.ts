@@ -1,9 +1,9 @@
 export const populateLastMessage = {
   path: 'lastMessage',
-  select: 'content author updatedAt',
+  select: 'content author updatedAt attachments._id',
   populate: {
     path: 'author',
-    select: 'firstName lastName email',
+    select: 'lastName',
   },
 };
 

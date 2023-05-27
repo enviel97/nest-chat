@@ -76,12 +76,15 @@ export class MessagesService implements IMessengerService {
 
   async editContentMessage(params: MessageEditParams): Promise<Message> {
     const { messageId, action = 'Edited', content } = params;
+
     const message = await this.messageModel
       .findByIdAndUpdate(messageId, { content, action }, { new: true })
       .lean();
 
     if (!message) throw new BadRequestException('Message not found');
-
+    if (action === 'Removed' && !message.attachments.isEmpty()) {
+      this.attachmentService.deletes(message.attachments);
+    }
     return message;
   }
 }

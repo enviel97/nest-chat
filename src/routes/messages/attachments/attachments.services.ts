@@ -13,6 +13,14 @@ export class AttachmentsServices implements IAttachmentServices {
     return imageGenerationUID(file.originalname, unique);
   }
 
+  async deletes(attachments: MessageAttachment[]): Promise<void> {
+    await Promise.all(
+      attachments.map(({ publicId }) => {
+        return this.imageStorageService.deleteImage(publicId);
+      }),
+    );
+  }
+
   async creates(attachments: MediaData[]): Promise<IMessageAttachment[]> {
     const attachmentsStream = await Promise.all(
       attachments.map((attachment) => {

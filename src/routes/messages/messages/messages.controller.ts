@@ -75,6 +75,7 @@ export class MessagesController {
       message: newMessage,
       conversation: conversation,
     });
+    this.updateLastMessage(conversation, newMessage);
     return newMessage;
   }
 

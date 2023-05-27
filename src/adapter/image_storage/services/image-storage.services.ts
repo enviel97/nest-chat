@@ -1,6 +1,5 @@
 // https://cloudinary.com/documentation/node_image_manipulation
 import {
-  BadGatewayException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -97,8 +96,17 @@ export class ImageStorageService implements IImageStorageService {
   }
 
   @LogDuration()
-  async deleteImage(fileId: string): Promise<any> {
-    throw new BadGatewayException('Method not implement');
+  async deleteImage(public_id: string): Promise<any> {
+    this.imageStorageSdk.uploader.destroy(
+      `${this.bucket}/${public_id}`,
+      (error, result) => {
+        if (error) {
+          Logger.error('File delete failure', error, 'IMAGE_SERVICES');
+          return;
+        }
+        Logger.log('File delete successfully', 'IMAGE_SERVICES');
+      },
+    );
   }
 
   @DeleteImageCacheHandler()

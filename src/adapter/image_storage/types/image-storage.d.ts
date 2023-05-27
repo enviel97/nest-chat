@@ -26,6 +26,7 @@ type CloudinaryResponse = CloudinaryErrorResponse | CloudinarySuccessResponse;
 type MediaData = Express.Multer.File;
 
 interface IImageStorageService {
+  deleteImage(public_id: string): Promise;
   uploadImage(public_id: string, file: MediaData): Promise<CloudinaryResponse>;
   getImage(
     public_id: string,
