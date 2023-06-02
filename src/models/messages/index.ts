@@ -4,6 +4,8 @@ import { Schema } from 'mongoose';
 import { ModelName, Services } from 'src/common/define';
 import ConversationSchema from '../conversations';
 import type { ConversationDocument } from '../conversations';
+import { CacheModel } from 'src/common/cache';
+import getCacheModelKey from 'src/middleware/cache/utils/getCacheModelKey';
 
 export type MessageDocument = Model<HydratedDocument<Message>>;
 
@@ -40,19 +42,21 @@ export default {
     const schema = MessageSchema;
     schema.pre('save', async function (next) {
       const doc = this;
-      if (['New', 'Seen'].includes(doc.action)) {
-        await Promise.all([
-          conversationModel
-            .findByIdAndUpdate(doc.conversationId, {
-              lastMessage: doc.getId(),
-            })
-            .lean(),
-          // update full conversation assets
-          cache.update('conversation', { lastMessage: doc.toObject() }),
-        ]).catch((error) => {
-          next(error);
-        });
-      }
+      if (!['New', 'Seen'].includes(doc.action)) return;
+      await Promise.all([
+        conversationModel
+          .findByIdAndUpdate(doc.conversationId, {
+            lastMessage: doc.getId(),
+          })
+          .lean(),
+        // update full conversation assets
+        cache.update(
+          getCacheModelKey(CacheModel.MESSAGE_CONVERSATION, doc.conversationId),
+          { lastMessage: doc },
+        ),
+      ]).catch((error) => {
+        next(error);
+      });
     });
 
     return schema;

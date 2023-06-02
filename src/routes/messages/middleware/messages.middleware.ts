@@ -5,6 +5,10 @@ import type { ConversationDocument } from 'src/models/conversations';
 import type { Response, NextFunction } from 'express';
 import ModelCache from 'src/middleware/cache/decorates/ModelCache';
 import { CacheModel } from 'src/common/cache';
+import {
+  populateLastMessage,
+  populateParticipant,
+} from 'src/routes/conversation/utils/config';
 
 export class MessagesMiddleware implements NestMiddleware {
   constructor(
@@ -16,7 +20,7 @@ export class MessagesMiddleware implements NestMiddleware {
   private async getConversationByID(conversationId: string) {
     const conversation = await this.conversationModel
       .findById(conversationId)
-      .populate('participant')
+      .populate([populateParticipant, populateLastMessage])
       .lean();
     return conversation;
   }

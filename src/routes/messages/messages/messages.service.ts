@@ -84,6 +84,9 @@ export class MessagesService implements IMessengerService {
     if (!message) throw new BadRequestException('Message not found');
     if (action === 'Removed' && !message.attachments.isEmpty()) {
       this.attachmentService.deletes(message.attachments);
+      await this.messageModel
+        .findByIdAndUpdate(messageId, { attachments: [] })
+        .lean();
     }
     return message;
   }

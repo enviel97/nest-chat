@@ -17,15 +17,13 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { SkipThrottle } from '@nestjs/throttler';
 import { MultipleFileValidator } from 'src/adapter/image_storage/validator/MultipleFileValidator';
 import { Event, Routes, Services } from 'src/common/define';
-import { Event2 } from 'src/common/event/event';
 import { ParseObjectIdPipe } from 'src/middleware/parse/mongoDb';
 import { CreateMessageDTO } from 'src/models/messages';
 import EditContentMessageDTO from 'src/models/messages/dto/EditContentMessageDTO';
 import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
 import string from 'src/utils/string';
 import { AuthenticateGuard } from '../../auth/utils/Guards';
-import { MessageConversation } from '../utils/messages.decorate';
-
+import { EmitModifiedMessage } from '../decorates/EmitModifiedMessage';
 @Controller(Routes.MESSAGES)
 @UseGuards(AuthenticateGuard)
 @SkipThrottle()
@@ -37,45 +35,22 @@ export class MessagesController {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  private updateLastMessage(
-    conversation: ConversationMembers,
-    message: Message,
-  ) {
-    const { lastMessage } = conversation;
-    if (
-      // message edit is not last message
-      (lastMessage.getId() === message.getId() &&
-        ['Edited', 'Removed'].includes(message.action)) ||
-      // message is new
-      message.action === 'New'
-    ) {
-      this.eventEmitter.emit(
-        Event2.subscribe.EVENT_MESSAGE_UPDATE_LAST_MESSAGE,
-        { conversation, message },
-      );
-    }
-  }
-
   @Post()
   @UseInterceptors(FilesInterceptor('attachments'))
   @ResponseSuccess({ message: 'Create message successfully' })
+  @EmitModifiedMessage(Event.EVENT_MESSAGE_SENDING)
   async createMessage(
-    @MessageConversation() conversation: ConversationMembers,
+    @Param('conversationId') conversationId: string,
     @AuthUser() user: User,
     @UploadedFiles(MultipleFileValidator()) attachments: Express.Multer.File[],
     @Body() createMessageDTO: CreateMessageDTO,
   ) {
     const newMessage = await this.messageService.createMessage({
-      conversationId: conversation.getId(),
+      conversationId: conversationId,
       author: user,
       content: createMessageDTO.content,
       attachments: attachments,
     });
-    this.eventEmitter.emit(Event.EVENT_MESSAGE_SENDING, {
-      message: newMessage,
-      conversation: conversation,
-    });
-    this.updateLastMessage(conversation, newMessage);
     return newMessage;
   }
 
@@ -95,34 +70,27 @@ export class MessagesController {
 
   @Delete(':id')
   @ResponseSuccess({ message: 'Delete message successfully' })
-  async deleteMessage(
-    @MessageConversation() conversation: ConversationMembers,
-    @Param('id', ParseObjectIdPipe) messageId: string,
-  ) {
+  @EmitModifiedMessage(Event.EVENT_MESSAGE_DELETE)
+  async deleteMessage(@Param('id', ParseObjectIdPipe) messageId: string) {
     const result = await this.messageService.editContentMessage({
       content: 'This chat is removed',
       action: 'Removed',
       messageId,
     });
 
-    this.eventEmitter.emit(Event.EVENT_MESSAGE_DELETE, {
-      message: result,
-      conversation: conversation,
-    });
-    this.updateLastMessage(conversation, result);
-
     return {
       conversationId: result.conversationId,
-      messageId: string.getId(result),
+      id: string.getId(result),
       content: result.content,
+      author: result.author,
       action: 'Removed',
     };
   }
 
   @Put(':id')
   @ResponseSuccess({ message: 'Edit message successfully' })
+  @EmitModifiedMessage(Event.EVENT_MESSAGE_UPDATE)
   async editMessage(
-    @MessageConversation() conversation: ConversationMembers,
     @Param('id', ParseObjectIdPipe) messageId: string,
     @Body() editMessageDTO: EditContentMessageDTO,
   ) {
@@ -132,16 +100,11 @@ export class MessagesController {
       action: 'Edited',
     });
 
-    this.eventEmitter.emit(Event.EVENT_MESSAGE_UPDATE, {
-      message: result,
-      conversation: conversation,
-    });
-    this.updateLastMessage(conversation, result);
-
     return {
       conversationId: result.conversationId,
-      messageId: string.getId(result),
+      id: string.getId(result),
       content: result.content,
+      author: result.author,
       action: 'Edited',
     };
   }

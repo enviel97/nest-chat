@@ -27,7 +27,9 @@ export class MessagingGateway {
   private getMembersInConversation(payload: MessageModifiedPayload) {
     const { conversation, message } = payload;
     return new Set([
-      ...(conversation.participant?.members ?? []),
+      ...(conversation.participant?.members.map((member) =>
+        string.getId(member),
+      ) ?? []),
       message.author.getId(),
     ]);
   }
@@ -60,6 +62,7 @@ export class MessagingGateway {
   @OnEvent(Event.EVENT_MESSAGE_UPDATE)
   handleNotificationMessageEdited(payload: MessageModifiedPayload) {
     const { message } = payload;
+    console.log(payload);
     this.sessions.emitSocket(
       [...this.getMembersInConversation(payload)],
       {
