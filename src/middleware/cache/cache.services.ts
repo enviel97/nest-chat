@@ -27,6 +27,10 @@ export class CacheService implements ICacheService {
       );
       return;
     }
+    Logger.log(
+      `Del multi cache by pattern ${pattern} - size: ${keys.length}`,
+      `Redis Del Pattern`,
+    );
     await this.cache.store.mdel(...keys);
   }
 

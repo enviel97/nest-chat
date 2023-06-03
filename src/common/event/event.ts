@@ -12,10 +12,7 @@ export const Event2 = Object.freeze({
     PROFILE_CHANGE_STATUS: 'profile.update.status',
     PROFILE_UPDATE_INFO: 'profile.update.info',
 
-    image_profile: {
-      error: 'image.error',
-      success: 'image.success',
-    },
+    image_profile: 'image.upload',
   },
 
   // server emit to client
@@ -26,9 +23,6 @@ export const Event2 = Object.freeze({
     // Profile
     PROFILE_UPLOAD_IMAGE: 'onFriendUploadImage',
     PROFILE_UPDATE: 'onFriendUploadProfile',
-    image_profile: {
-      error: 'image_profile_upload_error',
-      success: 'image_profile_upload_success',
-    },
+    image_profile: 'onFriendUploadImage',
   },
 });

@@ -31,22 +31,28 @@ export class ImageStorageService implements IImageStorageService {
   private generateTransformTemplate(size?: ViewPort) {
     const _size = size ?? 'md';
     const transform = Object.freeze<TemplateTransform>({
-      avatar: {
-        width: ViewPortAvatarEnum[_size],
-        aspectRatio: '1:1',
-        crop: 'fill',
-        gravity: 'face',
-      },
-      banner: {
-        height: ViewPortBannerEnum[_size],
-        aspectRatio: '16:9',
-        crop: 'scale',
-        gravity: 'center',
-      },
-      normal: {
-        height: ViewPortImageEnum[_size],
-        crop: 'scale',
-      },
+      avatar: [
+        {
+          width: ViewPortAvatarEnum[_size],
+          aspectRatio: '1:1',
+          crop: 'thumb',
+          gravity: 'face',
+        },
+      ],
+      banner: [
+        {
+          height: ViewPortBannerEnum[_size],
+          aspectRatio: '16:9',
+          crop: 'lfill',
+          gravity: 'auto',
+        },
+      ],
+      normal: [
+        {
+          height: ViewPortImageEnum[_size],
+          crop: 'scale',
+        },
+      ],
     });
 
     return (type: UploadImageType) => transform[type];
@@ -83,19 +89,19 @@ export class ImageStorageService implements IImageStorageService {
    */
   private generatorUrl(
     public_id: string,
-    customTransform: TransformationOptions,
+    customTransform: TransformationOptions[],
   ) {
     // return `${result}?updatedAt=${new Date().getTime()}`;
     return this.imageStorageSdk.url(`${this.bucket}/${public_id}`, {
       transformation: [
-        customTransform,
-        { quality: 'auto' },
-        { fetch_format: 'auto' },
+        ...customTransform,
+        { quality: 'auto', fetch_format: 'auto' },
       ],
     });
   }
 
   @LogDuration()
+  @DeleteImageCacheHandler()
   async deleteImage(public_id: string): Promise<any> {
     this.imageStorageSdk.uploader.destroy(
       `${this.bucket}/${public_id}`,
@@ -109,8 +115,8 @@ export class ImageStorageService implements IImageStorageService {
     );
   }
 
-  @DeleteImageCacheHandler()
   @LogDuration()
+  @DeleteImageCacheHandler()
   async uploadImage(public_id: string, file: Express.Multer.File) {
     return new Promise<CloudinaryResponse>((resolve, reject) => {
       const cloudinaryStream = this.imageStorageSdk.uploader.upload_stream(
@@ -122,8 +128,9 @@ export class ImageStorageService implements IImageStorageService {
         },
         (error, result) => {
           if (error) return reject(error);
+          const transform = this.generateTransformTemplate('sm');
           resolve({
-            url: result.url,
+            url: this.generatorUrl(public_id, transform('normal')),
             publicId: result.public_id,
             createdAt: result.created_at,
             type: result.type,
@@ -142,9 +149,8 @@ export class ImageStorageService implements IImageStorageService {
     viewPort?: ViewPort,
   ): Promise<FetchImageResponse> {
     const transform = this.generateTransformTemplate(viewPort);
-
     const url = this.generatorUrl(fileName, transform(type));
-
+    Logger.log(`Url transform image: ${url}`, 'Image');
     const image = await this.fetchImage(url);
     return image;
   }

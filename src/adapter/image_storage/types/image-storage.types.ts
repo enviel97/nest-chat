@@ -1,7 +1,7 @@
 import type { TransformationOptions } from 'cloudinary';
 
 export type TemplateTransform = {
-  [type in UploadImageType]: TransformationOptions;
+  [type in UploadImageType]: TransformationOptions[];
 };
 
 /**
@@ -18,7 +18,7 @@ export enum ViewPortAvatarEnum {
 export enum ViewPortBannerEnum {
   s = '320',
   sm = '663',
-  md = '910	',
+  md = '910',
   lg = '1113',
   xl = '1313',
 }

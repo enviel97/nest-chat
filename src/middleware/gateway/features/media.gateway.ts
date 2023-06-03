@@ -19,35 +19,13 @@ export class MediaGateway {
   @WebSocketServer()
   server: Server;
 
-  @OnEvent(Event2.subscribe.image_profile.error)
-  async handleImageUploadError(payload: string) {
+  @OnEvent(Event2.subscribe.image_profile)
+  async handleImageUploadSuccess(payload: ImageUploadPayload) {
+    const { friends } = await this.profileServices.listFriends(payload.user);
     this.sessions.emitSocket(
-      [payload],
-      {
-        imageError: 'Error loaded',
-        reason: 'Image upload failure',
-      },
-      Event2.emit.image_profile.error,
-    );
-  }
-
-  private async notificationToFriend(user: string, avatarId: string) {
-    const { profileId, friends } = await this.profileServices.listFriends(user);
-    const ids = friends.map((friend) => friend.user.getId());
-    this.sessions.emitSocket(
-      ids,
-      { avatar: avatarId, id: profileId },
+      friends.map((friend) => friend.user.getId()),
+      payload,
       Event2.emit.PROFILE_UPLOAD_IMAGE,
     );
-  }
-
-  @OnEvent(Event2.subscribe.image_profile.success)
-  async handleImageUploadSuccess(payload: { user: string; avatar: string }) {
-    this.sessions.emitSocket(
-      [payload.user],
-      { ...payload },
-      Event2.emit.image_profile.success,
-    );
-    await this.notificationToFriend(payload.user, payload.avatar);
   }
 }

@@ -7,4 +7,7 @@ export const CacheModel = Object.freeze({
 
   // store full user
   USER: 'USER',
+
+  // store full friends,
+  USER_FRIEND: 'USER:FRIEND',
 });
