@@ -33,11 +33,12 @@ export const EmitModifiedMessage = (eventName: string) => {
         const message = await originalMethod.call(this, ...args);
         const params = { message, conversation };
         this.eventEmitter.emit(eventName, params);
-        if (!lastMessageValidate(conversation, message)) return;
-        this.eventEmitter.emit(
-          Event2.subscribe.EVENT_MESSAGE_UPDATE_LAST_MESSAGE,
-          params,
-        );
+        if (lastMessageValidate(conversation, message)) {
+          this.eventEmitter.emit(
+            Event2.subscribe.EVENT_MESSAGE_UPDATE_LAST_MESSAGE,
+            params,
+          );
+        }
         return message;
       };
     } catch (err) {

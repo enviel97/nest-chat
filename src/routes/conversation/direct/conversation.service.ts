@@ -53,51 +53,65 @@ class ConversationService implements IConversationsService {
     return roles;
   }
 
-  private createType(ids: Set<string>) {
-    const type: ConversationType = ids.size > 2 ? 'group' : 'direct';
-    return type;
-  }
-
   private createNameConversation(
     users: User[],
     options?: { type?: 'group' | 'direct' },
   ) {
-    const { type = 'direct' } = options;
+    const { type = 'direct' } = options ?? {};
     if (type === 'direct') return '';
     return `Group of ${users.map((user) => user.lastName).join(', ')}`;
   }
 
-  async createConversation(conversationDTO: ConversationCreateParams) {
-    const unique = new Set<string>([...conversationDTO.idParticipant]);
+  private async createNewConversation(idParticipant: string, newUser: User[]) {
+    // type
+    const type: ConversationType = newUser.length > 2 ? 'group' : 'direct';
+
+    const name = this.createNameConversation(newUser, {
+      type: type,
+    });
+
+    const newConversation = await this.conversationModel.create({
+      participant: idParticipant,
+      type: type,
+      name: name,
+    });
+
+    return newConversation.toObject();
+  }
+
+  private async createNewParticipant(
+    id: string,
+    newUser: string[],
+    creator: string,
+  ) {
+    const roles = this.createRoles(newUser, creator);
+    const newParticipant = await this.participantModel.create({
+      _id: id,
+      members: newUser,
+      roles: roles,
+    });
+    return newParticipant.toObject();
+  }
+
+  async createConversation({
+    creator,
+    idParticipant,
+  }: ConversationCreateParams) {
+    const unique = new Set<string>([...idParticipant]);
     const { participant, newUser } = await this.getParticipantByUsers([
       ...unique,
     ]);
-
     if (!participant) {
-      const roles = this.createRoles(newUser.ids, conversationDTO.creator);
-      const type = this.createType(unique);
-      const name = this.createNameConversation(newUser.entities, {
-        type: type,
-      });
       const idParticipant = string.generatorId();
       const [conversation, newParticipant] = await Promise.all([
-        this.conversationModel.create({
-          participant: idParticipant,
-          type: type,
-          name: name,
-        }),
-        this.participantModel.create({
-          _id: idParticipant,
-          members: newUser.ids,
-          roles: roles,
-        }),
+        this.createNewConversation(idParticipant, newUser.entities),
+        this.createNewParticipant(idParticipant, newUser.ids, creator),
       ]);
 
       return {
-        ...conversation.toObject(),
+        ...conversation,
         participant: {
-          ...newParticipant.toObject(),
-          roles: roles,
+          ...newParticipant,
           members: newUser.entities,
         },
       };

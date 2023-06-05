@@ -62,7 +62,6 @@ export class MessagingGateway {
   @OnEvent(Event.EVENT_MESSAGE_UPDATE)
   handleNotificationMessageEdited(payload: MessageModifiedPayload) {
     const { message } = payload;
-    console.log(payload);
     this.sessions.emitSocket(
       [...this.getMembersInConversation(payload)],
       {
