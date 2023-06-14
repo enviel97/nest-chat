@@ -5,6 +5,8 @@ interface IMessageAttachment {
   downloadLink: string;
   publicId: string;
   type: string;
+  originName: string;
+  size: number;
 }
 
 interface MessageCreateParams {

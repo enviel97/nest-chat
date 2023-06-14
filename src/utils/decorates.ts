@@ -1,10 +1,14 @@
 import {
+  applyDecorators,
+  Controller,
   createParamDecorator,
   ExecutionContext,
   ForbiddenException,
   Logger,
+  UseGuards,
 } from '@nestjs/common';
 import { performance } from 'perf_hooks';
+import { AuthenticateGuard } from 'src/routes/auth/utils/Guards';
 
 export const AuthUser = createParamDecorator(
   (data: string, ctx: ExecutionContext) => {
@@ -21,7 +25,7 @@ export const AuthUser = createParamDecorator(
  * Show run time of function/feature
  *
  */
-export function LogDuration() {
+export function LogDuration(keyIndex?: number) {
   return (target: any, nameMethod: string, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value;
     descriptor.value = async function (...args: any[]) {
@@ -29,6 +33,12 @@ export function LogDuration() {
       const result = await originalMethod.apply(this, args);
       const duration = performance.now() - start;
       Logger.log(`Executed in ::: ${duration.toFixed(2)}ms`, nameMethod);
+      keyIndex &&
+        args.at(keyIndex) &&
+        Logger.log(
+          `Custom watch variable:\n\t${args.at(keyIndex)}`,
+          nameMethod,
+        );
       return result;
     };
   };
@@ -50,4 +60,12 @@ export function ResponseSuccess({ code, message }: ResponseSuccessProps) {
       };
     };
   };
+}
+/**
+ *
+ * @param controller define in src/common/define
+ * @returns
+ */
+export function ProtectController(controller: string) {
+  return applyDecorators(Controller(controller), UseGuards(AuthenticateGuard));
 }

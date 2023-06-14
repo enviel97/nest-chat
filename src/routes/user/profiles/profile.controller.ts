@@ -9,21 +9,16 @@ import {
   ParseEnumPipe,
   Patch,
   Query,
-  Res,
-  StreamableFile,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { SkipThrottle } from '@nestjs/throttler';
-import type { Response } from 'express';
 import { SingleFileValidator } from 'src/adapter/image_storage/validator/SingleFileValidator';
 import { Routes, Services } from 'src/common/define';
 import { Event2 } from 'src/common/event/event';
 import { SearchCache } from 'src/middleware/cache/decorates/SearchCache';
-import { ParseUUIDPipe } from 'src/middleware/parse/uuid';
 import { UpdateProfileDTO } from 'src/models/profile';
 import UpdateStatusDTO from 'src/models/profile/dto/UpdateStatus.DTO';
 import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
@@ -111,24 +106,6 @@ export class ProfileController {
     );
     this.eventEmitter.emit(Event2.subscribe.PROFILE_UPDATE_INFO, result);
     return result;
-  }
-
-  @SkipThrottle()
-  @Get(':type/:id')
-  async getImage(
-    @Param('type', new ParseEnumPipe(UploadImageType))
-    type: UploadImageType,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Query('size') viewPort: ViewPort,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const { buffer, contentType } = await this.imageStorageService.getImage(
-      id,
-      type,
-      viewPort,
-    );
-    res.contentType(contentType ?? 'image/jpeg');
-    return new StreamableFile(buffer);
   }
 
   @Patch('update/:type')

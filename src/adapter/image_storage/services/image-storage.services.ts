@@ -111,6 +111,7 @@ export class ImageStorageService implements IImageStorageService {
           return;
         }
         Logger.log('File delete successfully', 'IMAGE_SERVICES');
+        Logger.log(result);
       },
     );
   }
@@ -133,11 +134,10 @@ export class ImageStorageService implements IImageStorageService {
             url: this.generatorUrl(public_id, transform('normal')),
             publicId: result.public_id,
             createdAt: result.created_at,
-            type: result.type,
           });
         },
       );
-      Readable.from(file.buffer).pipe(cloudinaryStream);
+      return Readable.from(file.buffer).pipe(cloudinaryStream);
     });
   }
 

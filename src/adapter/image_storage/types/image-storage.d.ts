@@ -18,7 +18,6 @@ interface CloudinarySuccessResponse {
   url: string;
   publicId: string;
   createdAt: string;
-  type: string;
   [future: string]: string;
 }
 

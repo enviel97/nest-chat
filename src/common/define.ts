@@ -6,6 +6,7 @@ export const Routes = Object.freeze({
   USERS: 'users',
   FRIEND_REQUEST: 'users/friend',
   PROFILE: 'users/profile',
+  MEDIA: 'media',
 });
 
 export const Services = Object.freeze({

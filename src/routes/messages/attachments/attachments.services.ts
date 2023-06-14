@@ -31,7 +31,9 @@ export class AttachmentsServices implements IAttachmentServices {
             return {
               downloadLink: cloudinary.url,
               publicId: id,
-              type: cloudinary.type,
+              type: attachment.mimetype,
+              originName: attachment.filename,
+              size: Number(attachment.size),
             };
           });
       }),

@@ -14,6 +14,8 @@ const MessageAttachment = new Schema<MessageAttachment>(
     downloadLink: { type: String, default: '' },
     publicId: { type: String, required: true },
     type: { type: String, required: true },
+    originName: { type: String },
+    size: { type: Number },
   },
   { timestamps: true },
 );

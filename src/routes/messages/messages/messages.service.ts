@@ -57,7 +57,7 @@ export class MessagesService implements IMessengerService {
       throw new MessagesCreateException();
     }
 
-    let cloudinaries = undefined;
+    let cloudinaries: IMessageAttachment[] = [];
     if (attachments?.length ?? 0 !== 0) {
       cloudinaries = await this.attachmentService.creates(attachments);
     }
