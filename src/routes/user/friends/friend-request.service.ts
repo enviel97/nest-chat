@@ -49,7 +49,7 @@ export class FriendRequestService implements IFriendRequestService {
   ): Promise<FriendRequest<Profile<User>>> {
     const [relationship, author, friend] = await Promise.all([
       this.friendModel
-        .find({
+        .findOne({
           $or: [
             { $and: [{ authorId: friendId }, { friendId: userId }] },
             { $and: [{ authorId: userId }, { friendId: friendId }] },

@@ -8,7 +8,7 @@ import {
 import { CorsOption } from '../../cors';
 import { Event, Services } from 'src/common/define';
 import { Server } from 'socket.io';
-import { Inject } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Event2 } from 'src/common/event/event';
 import { AuthenticationSocket } from '../gateway.session';
@@ -57,6 +57,7 @@ export class FriendGateway {
   handleSendFriendRequest(
     @MessageBody() payload: FriendRequest<Profile<User>>,
   ) {
+    Logger.log({ payload, status: payload.status }, 'Friend request ack');
     switch (payload.status) {
       case 'Request':
         this.handleRequest(payload);
@@ -92,7 +93,7 @@ export class FriendGateway {
       client.user.getId(),
       'request',
     );
-    if (!quantity || friendReq === quantity) return;
+    if (friendReq === 0 || friendReq === quantity) return;
     return friendReq;
   }
 }
