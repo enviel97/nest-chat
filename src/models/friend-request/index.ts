@@ -26,6 +26,7 @@ class SFriendRequest {
 
 const FriendRequestSchema = SchemaFactory.createForClass(SFriendRequest);
 FriendRequestSchema.index({ friendId: 1, authorId: 1 }, { unique: true });
+FriendRequestSchema.index({ _id: 1, status: 1 }, { unique: true });
 FriendRequestSchema.index({ friendId: 1, status: 1 });
 FriendRequestSchema.index({ authorId: 1, status: 1 });
 FriendRequestSchema.index({ authorId: 1, friendId: 1, status: 1 });

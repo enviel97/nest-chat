@@ -19,7 +19,7 @@ import { UserNotfoundException } from '../exceptions/user.exception';
 import {
   normalProjectionUser,
   requestFriendListPopulate,
-} from './friend-request.populate';
+} from '../populate/friend-request.populate';
 
 @Injectable()
 @UseGuards(AuthenticateGuard)
@@ -43,18 +43,21 @@ export class FriendRequestService implements IFriendRequestService {
     return quantity;
   }
 
-  private async validateFriendByUser(authorId: string, userId: string) {
-    const [friendRelationships, author, newFriend] = await Promise.all([
+  async create(
+    friendId: string,
+    userId: string,
+  ): Promise<FriendRequest<Profile<User>>> {
+    const [relationship, author, friend] = await Promise.all([
       this.friendModel
         .find({
           $or: [
-            { $and: [{ authorId: authorId }, { friendId: userId }] },
-            { $and: [{ authorId: userId }, { friendId: authorId }] },
+            { $and: [{ authorId: friendId }, { friendId: userId }] },
+            { $and: [{ authorId: userId }, { friendId: friendId }] },
           ],
         })
         .lean(),
       this.profileModel
-        .findOne({ user: authorId })
+        .findOne({ user: friendId })
         .populate('user', normalProjectionUser)
         .lean(),
       this.profileModel
@@ -62,27 +65,12 @@ export class FriendRequestService implements IFriendRequestService {
         .populate('user', normalProjectionUser)
         .lean(),
     ]);
+    if (relationship) throw new FriendRequestException();
     if (!author) throw new BadRequestException(`Author not found`);
-    if (!newFriend) throw new BadRequestException(`User not found`);
-    if (author.friends.includes(string.getId(newFriend))) {
+    if (!friend) throw new BadRequestException(`User not found`);
+    if (author.friends.includes(string.getId(friend))) {
       throw new BadRequestException(`You two are already friends`);
     }
-    return {
-      author: author as Profile<User>,
-      friend: newFriend as Profile<User>,
-      relationship: friendRelationships.at(0),
-    };
-  }
-
-  async create(
-    friendId: string,
-    userId: string,
-  ): Promise<FriendRequest<Profile<User>>> {
-    const { author, friend, relationship } = await this.validateFriendByUser(
-      userId,
-      friendId,
-    );
-    if (relationship) throw new FriendRequestException();
 
     const friendRequest = await this.friendModel.create({
       authorId: userId,
@@ -94,8 +82,8 @@ export class FriendRequestService implements IFriendRequestService {
 
     return {
       ...friendRequest.toObject(),
-      authorProfile: author,
-      friendProfile: friend,
+      authorProfile: author as Profile<User>,
+      friendProfile: friend as Profile<User>,
     };
   }
 
@@ -108,18 +96,32 @@ export class FriendRequestService implements IFriendRequestService {
     const [profileAuthor, profileUser] = await Promise.all([
       this.profileModel
         .findById(relationship.authorProfile)
-        .populate('user', normalProjectionUser),
+        .populate('user', normalProjectionUser)
+        .lean(),
       this.profileModel
         .findById(relationship.friendProfile)
-        .populate('user', normalProjectionUser),
+        .populate('user', normalProjectionUser)
+        .lean(),
     ]);
     if (!profileAuthor) throw new BadRequestException(`Author not found`);
     if (!profileUser) throw new BadRequestException(`User not found`);
     return {
-      author: profileAuthor,
-      friend: profileUser,
+      author: profileAuthor as Profile<User>,
+      friend: profileUser as Profile<User>,
       relationship,
     };
+  }
+
+  private async updateFriendList(authorId: string, friendId: string) {
+    const [authorProfile, friendProfile] = await Promise.all([
+      this.profileModel
+        .findByIdAndUpdate(authorId, { $push: { friends: friendId } })
+        .lean(),
+      this.profileModel
+        .findByIdAndUpdate(friendId, { $push: { friends: authorId } })
+        .lean(),
+    ]);
+    return { authorProfile, friendProfile };
   }
 
   async response(
@@ -139,33 +141,19 @@ export class FriendRequestService implements IFriendRequestService {
     const newRelationShip = await this.friendModel
       .findOneAndUpdate(
         { _id: new Types.ObjectId(friendRequestId), status: 'Request' },
-        { status: 'Accept' },
+        { status },
         { new: true },
       )
       .lean();
 
     if (!newRelationShip) throw new FriendRequestExitedException();
     if (status === 'Accept') {
-      await Promise.all([
-        author
-          .updateOne(
-            { $push: { friends: string.getId(relationship.friendProfile) } },
-            { new: true },
-          )
-          .lean(),
-        friend
-          .updateOne(
-            { $push: { friends: string.getId(relationship.authorProfile) } },
-            { new: true },
-          )
-          .lean(),
-      ]);
+      await this.updateFriendList(author.getId(), friend.getId());
     }
-
     return {
       ...relationship,
-      authorProfile: author.toObject(),
-      friendProfile: friend.toObject(),
+      authorProfile: author,
+      friendProfile: friend,
       status: status,
     };
   }
@@ -198,8 +186,8 @@ export class FriendRequestService implements IFriendRequestService {
     }
     return {
       ...relationship,
-      authorProfile: author.toObject(),
-      friendProfile: friend.toObject(),
+      authorProfile: author,
+      friendProfile: friend,
     };
   }
 
