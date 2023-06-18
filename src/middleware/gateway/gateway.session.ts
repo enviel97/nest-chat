@@ -16,8 +16,13 @@ export class GatewaySessionManager implements IGatewaySession {
     option?: SocketEmitOptions,
   ) {
     const { isEmitWithCreator = false, ignoreIds = [] } = option ?? {};
+    // mapping (On)
+    const _ignoreIds = new Map<string, number>(
+      ignoreIds.map((id, index) => [id, index]),
+    );
+
     ids.forEach((id) => {
-      if (ignoreIds.includes(id)) return;
+      if (_ignoreIds.has(id)) return;
       const socket: AuthenticationSocket = this.getSocketId(id);
       if (!socket) return;
       socket.emit(event, {

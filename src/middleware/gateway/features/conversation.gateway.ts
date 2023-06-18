@@ -34,8 +34,16 @@ export class ConversationGateway implements OnGatewayConnection {
   }
 
   @OnEvent(Event.EVENT_CONVERSATION_SENDING)
-  handleNotificationConversationCreated(payload: Conversation<any>) {
-    this.emitUpdateConversation(Event.EVENT_CONVERSATION_CREATED, payload);
+  handleNotificationConversationCreated(payload: ConversationCreatePayload) {
+    // TODO: Create conversation emit services
+    const { author, ...conversation } = payload;
+    const members = payload.participant.members.map(string.getId);
+    this.sessions.emitSocket(
+      members,
+      conversation,
+      Event.EVENT_CONVERSATION_CREATED,
+      { ignoreIds: [author.getId()] },
+    );
   }
 
   @OnEvent(Event.EVENT_CONVERSATION_ADD_MEMBER)
