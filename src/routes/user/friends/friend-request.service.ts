@@ -9,7 +9,6 @@ import string from 'src/utils/string';
 import {
   FriendNotFoundException,
   FriendRequestAcceptedException,
-  FriendRequestException,
   FriendRequestExitedException,
   FriendRequestPendingException,
   FriendRequestPermissionException,
@@ -26,7 +25,7 @@ import {
 export class FriendRequestService implements IFriendRequestService {
   constructor(
     @InjectModel(ModelName.FriendRequest)
-    private readonly friendModel: FriendRequestDocument,
+    private readonly friendRequestModel: FriendRequestDocument,
     @InjectModel(ModelName.Profile)
     private readonly profileModel: ProfileDocument,
   ) {}
@@ -39,7 +38,7 @@ export class FriendRequestService implements IFriendRequestService {
       action === 'request'
         ? { friendId: userId, status: 'Request' }
         : { authorId: userId, status: 'Request' };
-    const quantity = await this.friendModel.count(query);
+    const quantity = await this.friendRequestModel.count(query);
     return quantity;
   }
 
@@ -48,7 +47,7 @@ export class FriendRequestService implements IFriendRequestService {
     userId: string,
   ): Promise<FriendRequest<Profile<User>>> {
     const [relationship, author, friend] = await Promise.all([
-      this.friendModel
+      this.friendRequestModel
         .findOne({
           $or: [
             { $and: [{ authorId: friendId }, { friendId: userId }] },
@@ -65,30 +64,47 @@ export class FriendRequestService implements IFriendRequestService {
         .populate('user', normalProjectionUser)
         .lean(),
     ]);
-    if (relationship) throw new FriendRequestException();
+    // return relationship
     if (!author) throw new BadRequestException(`Author not found`);
     if (!friend) throw new BadRequestException(`User not found`);
     if (author.friends.includes(string.getId(friend))) {
       throw new BadRequestException(`You two are already friends`);
     }
 
-    const friendRequest = await this.friendModel.create({
-      authorId: userId,
-      authorProfile: author.getId(),
-      friendId: friendId,
-      friendProfile: friend.getId(),
-      status: 'Request',
-    });
+    switch (relationship?.status) {
+      case 'Accept':
+        throw new FriendRequestAcceptedException();
+      case 'Reject':
+        throw new FriendRequestRejectException();
+      case 'Request': {
+        // return all ready relation ship
+        return {
+          ...relationship,
+          authorProfile: author as Profile<User>,
+          friendProfile: friend as Profile<User>,
+        };
+      }
+      default: {
+        // not found relationship
+        const friendRequest = await this.friendRequestModel.create({
+          authorId: userId,
+          authorProfile: author.getId(),
+          friendId: friendId,
+          friendProfile: friend.getId(),
+          status: 'Request',
+        });
 
-    return {
-      ...friendRequest.toObject(),
-      authorProfile: author as Profile<User>,
-      friendProfile: friend as Profile<User>,
-    };
+        return {
+          ...friendRequest.toObject(),
+          authorProfile: author as Profile<User>,
+          friendProfile: friend as Profile<User>,
+        };
+      }
+    }
   }
 
   private async validateFriendById(friendRequestId: string) {
-    const relationship = await this.friendModel
+    const relationship = await this.friendRequestModel
       .findById(friendRequestId)
       .lean();
     if (!relationship) throw new FriendNotFoundException();
@@ -138,7 +154,7 @@ export class FriendRequestService implements IFriendRequestService {
     if (relationship.status !== 'Request') {
       throw new FriendRequestPendingException();
     }
-    const newRelationShip = await this.friendModel
+    const newRelationShip = await this.friendRequestModel
       .findOneAndUpdate(
         { _id: new Types.ObjectId(friendRequestId), status: 'Request' },
         { status },
@@ -168,13 +184,13 @@ export class FriendRequestService implements IFriendRequestService {
     if (relationship.authorId !== friendAccountId) {
       throw new FriendRequestPermissionException();
     }
-    switch (relationship.status) {
+    switch (relationship?.status) {
       case 'Accept':
         throw new FriendRequestAcceptedException();
       case 'Reject':
         throw new FriendRequestRejectException();
       case 'Request': {
-        const currentRelationship = await this.friendModel
+        const currentRelationship = await this.friendRequestModel
           .findOneAndDelete({
             _id: new Types.ObjectId(friendRequestId),
             status: 'Request',
@@ -202,7 +218,7 @@ export class FriendRequestService implements IFriendRequestService {
 
     const [user, relationship] = await Promise.all([
       this.profileModel.findOne({ user: userId }, 'user bio avatar').lean(),
-      this.friendModel
+      this.friendRequestModel
         .find(query)
         .skip(0)
         .limit(10)
