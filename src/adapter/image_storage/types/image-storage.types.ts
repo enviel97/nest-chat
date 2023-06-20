@@ -9,9 +9,9 @@ export type TemplateTransform = {
  */
 export enum ViewPortAvatarEnum {
   s = '190',
-  sm = '1032',
-  md = '1438',
-  lg = '1493',
+  sm = '522',
+  md = '767',
+  lg = '1438',
   xl = '1534',
 }
 
