@@ -56,17 +56,17 @@ export class FriendRequestService implements IFriendRequestService {
         })
         .lean(),
       this.profileModel
-        .findOne({ user: friendId })
+        .findOne({ user: userId })
         .populate('user', normalProjectionUser)
         .lean(),
       this.profileModel
-        .findOne({ user: userId })
+        .findOne({ user: friendId })
         .populate('user', normalProjectionUser)
         .lean(),
     ]);
     // return relationship
     if (!author) throw new BadRequestException(`Author not found`);
-    if (!friend) throw new BadRequestException(`User not found`);
+    if (!friend) throw new BadRequestException(`Friend not found`);
     if (author.friends.includes(string.getId(friend))) {
       throw new BadRequestException(`You two are already friends`);
     }

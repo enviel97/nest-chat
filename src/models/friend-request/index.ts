@@ -20,7 +20,11 @@ class SFriendRequest {
   @Prop({ type: String, required: true })
   friendId: string;
 
-  @Prop({ type: String, default: 'Request' })
+  @Prop({
+    type: String,
+    default: 'Request',
+    enum: ['Request', 'Accept', 'Reject'],
+  })
   status: FriendRequestStatus;
 }
 

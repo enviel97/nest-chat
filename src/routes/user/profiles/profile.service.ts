@@ -177,4 +177,45 @@ export class ProfileService implements IProfileService {
       } as Profile<User>,
     };
   }
+
+  async getRelationship(
+    authorProfileId: string,
+    friendProfileId: string,
+  ): Promise<FriendRelationship> {
+    const [relationship, authorProfile, friendProfile] = await Promise.all([
+      this.friendRequestModel
+        .count({
+          $or: [
+            {
+              authorId: authorProfileId,
+              friendId: friendProfileId,
+              status: 'Request',
+            },
+            {
+              authorId: friendProfileId,
+              friendId: authorProfileId,
+              status: 'Request',
+            },
+          ],
+        })
+        .lean(),
+      this.profileModel
+        .findOne({ user: authorProfileId }, 'friends blockList')
+        .lean(),
+      this.profileModel
+        .findOne({ user: friendProfileId }, 'friends blockList')
+        .lean(),
+    ]);
+    if (!friendProfile || !authorProfile)
+      throw new UserProfileNotFoundException();
+    if (relationship > 0) return 'pending';
+    if (authorProfile.friends.includes(friendProfile.getId() as any)) {
+      return 'friend';
+    }
+    if (authorProfile.blockList.includes(friendProfile.getId() as any)) {
+      return 'block';
+    }
+
+    return 'guest';
+  }
 }

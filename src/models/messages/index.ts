@@ -23,7 +23,7 @@ const MessageAttachment = new Schema<MessageAttachment>(
 const MessageSchema = new Schema<Message>(
   {
     conversationId: { type: String, index: true },
-    content: { type: String },
+    content: { type: String, trim: true },
     author: { type: String, ref: ModelName.User, unique: true, sparse: true },
     action: { type: String, default: 'New' },
     attachments: { type: [MessageAttachment], default: [] },

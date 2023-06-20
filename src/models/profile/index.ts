@@ -6,7 +6,7 @@ export type ProfileDocument = Model<HydratedDocument<Profile<UserRef>>>;
 
 @Schema({ timestamps: true })
 class SProfile {
-  @Prop({ type: String })
+  @Prop({ type: String, trim: true })
   displayName: string;
 
   @Prop({
@@ -18,7 +18,7 @@ class SProfile {
   })
   user: string;
 
-  @Prop({ type: String })
+  @Prop({ type: String, trim: true })
   bio: string;
 
   @Prop({ type: String, default: 'active' })

@@ -23,6 +23,8 @@ interface UpdateStatusResponse {
   notChange: boolean;
 }
 
+type FriendRelationship = 'guest' | 'friend' | 'block' | 'pending';
+
 interface IProfileService {
   getProfile(userId: string): Promise<Profile<User>>;
   listFriends(userId: string): Promise<ListFriendsResponse>;
@@ -36,4 +38,8 @@ interface IProfileService {
     profile: User,
     status: UpdateStatusDTO,
   ): Promise<UpdateStatusResponse>;
+  getRelationship(
+    authorProfileId: string,
+    friendProfileId: string,
+  ): Promise<FriendRelationship>;
 }

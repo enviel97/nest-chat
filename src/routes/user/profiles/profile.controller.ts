@@ -19,6 +19,7 @@ import { SingleFileValidator } from 'src/adapter/image_storage/validator/SingleF
 import { Routes, Services } from 'src/common/define';
 import { Event2 } from 'src/common/event/event';
 import { SearchCache } from 'src/middleware/cache/decorates/SearchCache';
+import { ParseObjectIdPipe } from 'src/middleware/parse/mongoDb';
 import { UpdateProfileDTO } from 'src/models/profile';
 import UpdateStatusDTO from 'src/models/profile/dto/UpdateStatus.DTO';
 import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
@@ -43,6 +44,23 @@ export class ProfileController {
 
     private readonly eventEmitter: EventEmitter2,
   ) {}
+
+  @Get('relationship/:idFriendProfile')
+  async getRelationship(
+    @AuthUser() author: User,
+    @Param('idFriendProfile', ParseObjectIdPipe) friendProfileId: string,
+  ) {
+    const relationship = await this.profileService.getRelationship(
+      author.getId(),
+      friendProfileId,
+    );
+
+    return {
+      code: 200,
+      data: relationship,
+      message: `Relationship is ${relationship}`,
+    };
+  }
 
   @Get('friends')
   async getListFriends(@AuthUser() user: User) {

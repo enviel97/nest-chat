@@ -6,16 +6,13 @@ import {
   Inject,
   Query,
   Post,
-  Res,
   UseGuards,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SkipThrottle } from '@nestjs/throttler';
-import { Response } from 'express';
 import { Event, Routes, Services } from 'src/common/define';
 import { CreateConversationDTO } from 'src/models/conversations';
-import { AuthUser } from 'src/utils/decorates';
-import string from 'src/utils/string';
+import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
 import { AuthenticateGuard } from '../../auth/utils/Guards';
 
 enum ConversationType {
@@ -35,47 +32,65 @@ class ConversationController {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
+  private async newConversation(params: NewConversationProps) {
+    const { authorId, idParticipants } = params;
+    const newConversation = await this.conversationsService.createConversation({
+      creator: authorId,
+      idParticipant: [...idParticipants, authorId],
+    });
+    return newConversation;
+  }
+
+  private async newMessage(params: NewMessageProps) {
+    const { content, conversationId, author } = params;
+    if (!content) return;
+    const newMessage = await this.messagesService.createMessage({
+      conversationId: conversationId,
+      author: author,
+      content: content,
+    });
+    return newMessage;
+  }
+
   @Post()
+  @ResponseSuccess({
+    code: HttpStatus.CREATED,
+    message: 'Create conversation successfully',
+  })
   async createConversation(
     @Body() conversation: CreateConversationDTO,
     @AuthUser() author: IUser,
-    @Res() res: Response,
   ) {
-    const result = await this.conversationsService.createConversation({
-      creator: string.getId(author),
-      idParticipant: [...conversation.idParticipant, string.getId(author)],
+    const newConversation = await this.newConversation({
+      authorId: author.getId(),
+      idParticipants: conversation.idParticipant,
     });
-    let lastMessage = undefined;
-    if (conversation.message) {
-      const newMessage = await this.messagesService.createMessage({
-        conversationId: string.getId(result),
-        author: string.getId(author),
-        content: conversation.message,
-      });
-      lastMessage = newMessage;
-    }
-    const data = {
-      ...result,
+    const newMessage = await this.newMessage({
+      content: conversation.message,
       author: author,
-      lastMessage: lastMessage ?? result.lastMessage,
-    };
-    this.eventEmitter.emit(Event.EVENT_CONVERSATION_SENDING, data);
-
-    return res.json({
-      code: HttpStatus.OK,
-      message: 'Create successfully',
-      data,
+      conversationId: newConversation.getId(),
     });
+
+    const response = {
+      ...newConversation,
+      author: author,
+      lastMessage: newMessage ?? newConversation.lastMessage,
+    };
+    this.eventEmitter.emit(Event.EVENT_CONVERSATION_SENDING, response);
+
+    return response;
   }
 
   @Get()
   @SkipThrottle()
+  @ResponseSuccess({
+    message: 'Get list conversation successfully',
+  })
   async getAllConversation(
     @Query('type') type: ConversationType,
     @AuthUser() author: User,
-    @Res() res: Response,
   ) {
-    const data = await this.conversationsService.getConversations(
+    const response = await this.conversationsService.getConversations(
       author.id ?? author._id,
       {
         limit: 20,
@@ -83,11 +98,7 @@ class ConversationController {
         type: type ?? 'direct',
       },
     );
-    return res.json({
-      code: HttpStatus.OK,
-      message: 'Get list conversation successfully',
-      data: data,
-    });
+    return response;
   }
 }
 
