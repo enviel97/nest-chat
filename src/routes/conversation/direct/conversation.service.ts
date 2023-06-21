@@ -65,15 +65,19 @@ class ConversationService implements IConversationsService {
   }: ConversationCreateParams) {
     const unique = new Set<string>([...idParticipant]);
     const users = await this.userModel
-      .find({ _id: { $in: [...unique] } }, 'firstName lastName email')
+      .find({ _id: { $in: [...unique] } }, 'firstName lastName email profile')
+      .populate({
+        path: 'profile',
+        select: 'displayName avatar',
+      })
       .lean();
+
     if (users.length === 0 || users.length !== unique.size) {
       throw new CreateConversationException('Users not found');
     }
     const newUser = mapToEntities(users);
     const participant = await this.participantModel
       .findOne({ members: { $all: newUser.ids } })
-      .populate('members', 'firstName lastName email')
       .lean();
 
     if (!participant) {
