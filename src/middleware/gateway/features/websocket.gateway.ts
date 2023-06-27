@@ -1,5 +1,6 @@
 import {
   ConnectedSocket,
+  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
   SubscribeMessage,
@@ -114,18 +115,16 @@ export class WebsocketGateway
   @SubscribeMessage(Event.EVENT_FRIEND_LIST_STATUS)
   async handleGetFriendListRetrieve(
     @ConnectedSocket() client: AuthenticationSocket,
+    @MessageBody() payload: { id: string; userId: string }[],
   ) {
     const sockets = this.sessions.getSockets();
-    const { friends } = await this.profileService.listFriends(
-      client.user.getId(),
-    );
 
-    const { online, offline } = friends.reduce(
+    const { online, offline } = payload.reduce(
       (reduceObject, currentValue) => {
-        if (sockets.has(currentValue.user.getId())) {
-          reduceObject.online.add(currentValue.getId());
+        if (sockets.has(currentValue.userId)) {
+          reduceObject.online.add(currentValue.id);
         } else {
-          reduceObject.offline.add(currentValue.getId());
+          reduceObject.offline.add(currentValue.id);
         }
         return reduceObject;
       },
@@ -137,7 +136,6 @@ export class WebsocketGateway
     client.emit(Event.EVENT_FRIEND_LIST_STATUS_RESPONSE, {
       online: [...online],
       offline: [...offline],
-      listFriend: friends,
     });
   }
 
