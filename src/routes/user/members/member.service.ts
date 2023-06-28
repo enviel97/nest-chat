@@ -40,7 +40,7 @@ export class MemberService implements IMemberService {
     const result = await this.userModel
       .findById(id)
       .select(select)
-      .populate('profile', 'displayName status avatar banner')
+      .populate('profile', 'displayName avatar banner')
       .lean();
 
     return result;
@@ -51,7 +51,7 @@ export class MemberService implements IMemberService {
     const result = await this.userModel
       .findOne({ email })
       .select(select)
-      .populate('profile', 'displayName status avatar banner')
+      .populate('profile', 'displayName avatar banner')
       .lean();
 
     return result;
