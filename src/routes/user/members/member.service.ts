@@ -46,7 +46,6 @@ export class MemberService implements IMemberService {
     return result;
   }
 
-  @ModelCache({ modelName: CacheModel.USER, keyIndex: [0] })
   private async findUserByEmail(email: string, select: string) {
     const result = await this.userModel
       .findOne({ email })

@@ -28,6 +28,7 @@ export class MessagesMiddleware implements NestMiddleware {
       .findById(conversationId)
       .populate([populateParticipant, populateLastMessage])
       .lean();
+    if (!conversation) throw new BadRequestException('Conversation not found');
     return conversation;
   }
 
