@@ -93,7 +93,7 @@ export class FriendGateway {
       client.user.getId(),
       'request',
     );
-    if (friendReq === 0 || friendReq === quantity) return;
+    if (friendReq === quantity) return null;
     return friendReq;
   }
 }

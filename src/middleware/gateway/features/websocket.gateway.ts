@@ -16,11 +16,6 @@ import string from 'src/utils/string';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Event2 } from 'src/common/event/event';
 
-enum CONNECTED_STATUS {
-  GOOD = 'good',
-  BAD = 'bad',
-}
-
 @WsG({ cors: CorsOption })
 export class WebsocketGateway
   implements OnGatewayConnection, OnGatewayDisconnect
@@ -35,52 +30,7 @@ export class WebsocketGateway
   @WebSocketServer()
   server: Server;
 
-  private async handleNotificationRetrieve(
-    client: AuthenticationSocket,
-    status: 'online' | 'offline',
-  ) {
-    try {
-      const { friends, profileId } = await this.profileService.listFriends(
-        client.user.getId(),
-      );
-      const friendIds = friends.map((friend) => friend.user.getId());
-
-      this.sessions.emitSocket(
-        friendIds,
-        {
-          userId: profileId,
-          status: status,
-        },
-        Event.EVENT_FRIEND_LIST_RETRIEVE,
-      );
-    } catch (error) {
-      console.log(`Error:::${error}`);
-    }
-  }
-  async handleConnection(client: AuthenticationSocket, ...args: any[]) {
-    console.log(`>>> New Incoming Connection from: ${client.id}`);
-    this.sessions.setUserSocket(string.getId(client.user as any), client);
-
-    client.emit(Event.EVENT_SOCKET_CONNECTED, {
-      status: CONNECTED_STATUS.GOOD,
-      client: client.id,
-    });
-    /**
-     * Notification for all friend i online
-     */
-    await this.handleNotificationRetrieve(client, 'online').then(() => {
-      console.log(`>>> ${client.user.getFullName()} online successfully`);
-    });
-
-    /**
-     * Notification for all friend i disconnect
-     */
-    client.on('disconnecting', async (reason) => {
-      console.log(`>>> ${client.user.getFullName()} suddenly offline`);
-      await this.handleNotificationRetrieve(client, 'offline');
-    });
-    // Listen on disconnecting
-  }
+  private readonly mapFriendList = new Map<string, string[]>();
 
   @OnEvent(Event2.subscribe.PROFILE_UPDATE_INFO)
   async handleUpdateProfileInfo(payload: Profile<User>) {
@@ -115,28 +65,21 @@ export class WebsocketGateway
   @SubscribeMessage(Event.EVENT_FRIEND_LIST_STATUS)
   async handleGetFriendListRetrieve(
     @ConnectedSocket() client: AuthenticationSocket,
-    @MessageBody() payload: { id: string; userId: string }[],
+    @MessageBody() payload: string[],
   ) {
     const sockets = this.sessions.getSockets();
+    const prevFriend = this.mapFriendList.get(client.user.getId());
+    const onlineIds = payload.filter((id) => sockets.has(id));
+    if (onlineIds.isEqual(prevFriend)) return;
+    // memory friend list
+    this.mapFriendList.set(client.user.getId(), onlineIds);
+    return onlineIds;
+  }
 
-    const { online, offline } = payload.reduce(
-      (reduceObject, currentValue) => {
-        if (sockets.has(currentValue.userId)) {
-          reduceObject.online.add(currentValue.id);
-        } else {
-          reduceObject.offline.add(currentValue.id);
-        }
-        return reduceObject;
-      },
-      {
-        online: new Set<string>(),
-        offline: new Set<string>(),
-      },
-    );
-    client.emit(Event.EVENT_FRIEND_LIST_STATUS_RESPONSE, {
-      online: [...online],
-      offline: [...offline],
-    });
+  handleConnection(client: AuthenticationSocket, ...args: any[]) {
+    console.log(`>>> Memory online friend: ${client.user.getId()}`);
+    this.sessions.setUserSocket(client.user.getId(), client);
+    this.mapFriendList.set(client.user.getId(), []);
   }
 
   handleDisconnect(client: AuthenticationSocket) {

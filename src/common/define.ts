@@ -57,8 +57,6 @@ export const Event = Object.freeze({
 
   EVENT_CONNECT_ROOM_CONVERSATION: 'onConnectRoomConversation',
   EVENT_LEAVE_ROOM_CONVERSATION: 'onLeaveRoomConversation',
-  EVENT_CONNECTED_ROOM: 'onConnectedRoom',
-  EVENT_LEAVED_ROOM: 'onLeavedRoom',
   EVENT_CONVERSATION_CREATED: 'onConversationCreated',
   EVENT_CONVERSATION_LEAVE_GROUP: 'onConversationLeaving',
   EVENT_NOTIFICATION_CHANGE_STATUS: 'onNotificationChangeStatus',
@@ -77,7 +75,5 @@ export const Event = Object.freeze({
   EVENT_FRIEND_RECEIVE_CANCEL_FRIEND_REQUEST: 'onReceiveCancelFriendRequest',
 
   EVENT_SOCKET_CONNECTED: 'connected',
-  EVENT_FRIEND_LIST_STATUS: 'onFriendListStatus',
-  EVENT_FRIEND_LIST_STATUS_RESPONSE: 'onFriendListStatusResponse',
-  EVENT_FRIEND_LIST_RETRIEVE: 'onFriendListRetrieve',
+  EVENT_FRIEND_LIST_STATUS: 'get.friendStatus',
 });

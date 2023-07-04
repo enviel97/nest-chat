@@ -87,6 +87,7 @@ export class ConversationGateway implements OnGatewayConnection {
     @ConnectedSocket() client: AuthenticationSocket,
   ) {
     const conversationId = data.conversationId;
+
     await client.join(this.conversationRoom(conversationId));
     console.log(
       `>>> [${string.getFullName(client.user)}] join in conversation-${
@@ -117,8 +118,8 @@ export class ConversationGateway implements OnGatewayConnection {
         message: `${string.getFullName(client.user)} leaved`,
         action: 'offline',
       });
-
     await client.leave(this.conversationRoom(conversationId));
+
     console.log(
       `>>> [${string.getFullName(client.user)}] leaving conversation-${
         data.conversationId
@@ -134,6 +135,7 @@ export class ConversationGateway implements OnGatewayConnection {
     const sockets = this.sessions.getSockets();
     if (!sockets.has(userId)) return 'offline';
     const socket: AuthenticationSocket = this.sessions.getSocketId(userId);
+
     const isInRoom =
       socket && socket.rooms.has(this.conversationRoom(conversationId));
     return isInRoom ? 'online' : 'offline';

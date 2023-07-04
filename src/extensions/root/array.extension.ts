@@ -4,12 +4,7 @@ declare global {
   interface Array<T = any> {
     isEmpty(): boolean;
     getIds(): string[];
-    /**
-     * Check current array is subset of target array
-     * @param source target need compare
-     * @param key key use build hash map, use item in source if key undefine
-     */
-    isSubsetOf(source: Array<T>, key?: string): boolean;
+    isEqual(array: T[]): boolean;
   }
 }
 
@@ -28,22 +23,14 @@ Object.defineProperty(Array.prototype, 'getIds', {
   },
 });
 
-Object.defineProperty(Array.prototype, 'isSubsetOf', {
-  value: function (source: any[], key?: string) {
-    if (source.length < this.length) return false;
-    // build hashmap
-    const hashmap = new Map<any, any>();
-    source.forEach((item) => {
-      const _key = key ?? item;
-      hashmap.set(_key, item);
-    });
-    const elements = [...this];
-    for (let element of elements) {
-      if (hashmap.has(element)) {
-        elements.pop();
-      }
-    }
-    return elements.length === 0;
+/*eslint no-extend-native: ["error", { "exceptions": ["Array"] }]*/
+Object.defineProperty(Array.prototype, 'isEqual', {
+  value: function <T = any>(array: T[]) {
+    if (!array || this.length !== array.length) return false;
+    if (array === this) return true;
+    this.sort();
+    array.sort();
+    return this.every((value: T, index: number) => value === array[index]);
   },
 });
 
