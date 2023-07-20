@@ -58,17 +58,14 @@ export class MemberService implements IMemberService {
 
   async findUser(params: FindUserParams): Promise<User> {
     const { password = false, ...param } = params;
-    const select = `profile firstName lastName email${
+    const select = `id profile firstName lastName email${
       password ? ' password' : ''
     }`;
     const user = param.id
       ? await this.findUserById(param.id, select)
       : await this.findUserByEmail(param.email, select);
-
-    return {
-      id: user.getId(),
-      ...user,
-    };
+    if (!user) return;
+    return { id: user.getId(), ...user };
   }
 
   @ProtectPassword({ isHidden: true })

@@ -18,13 +18,10 @@ export class AuthService implements IAuthService {
       password: true,
     });
 
-    if (!result) {
+    if (!result || !compare(account.password, result.password)) {
       throw new BadRequestException('Invalid email or password');
     }
 
-    if (!compare(account.password, result.password)) {
-      throw new UnauthorizedException('Invalid Credentials');
-    }
     const { password, ...user } = result;
     return user;
   }
