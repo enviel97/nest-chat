@@ -85,6 +85,17 @@ export class ProfileService implements IProfileService {
       friends: [...profile.friends] as Profile<User>[],
     };
   }
+  async listFriendIds(userId: string): Promise<string[]> {
+    const user = await this.validateUserId(userId);
+    const profile = await this.profileModel
+      .findById(user.getId())
+      .populate({ path: 'friends', select: 'user ' })
+      .lean();
+    const friends = profile.friends.map(
+      (profile) => `${string.getId(profile.user)}`,
+    );
+    return friends;
+  }
 
   async searchFriend(user: string, query: string): Promise<Profile<User>[]> {
     const accountIds = await this.findBaseAccountId(query, user);

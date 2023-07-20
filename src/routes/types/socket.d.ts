@@ -1,8 +1,8 @@
-interface IGatewaySession {
-  getSocketId(id: string): AuthenticationSocket | undefined;
-  setUserSocket(userId: string, socket: AuthenticationSocket);
+interface IGatewaySession<T = any> {
+  getSocketId(id: string): T | undefined;
+  setUserSocket(userId: string, socket: T);
   removeUserSocket(userId: string);
-  getSockets(): Map<string, AuthenticationSocket>;
+  getSockets(): Map<string, T>;
   emitSocket<T>(
     ids: string[],
     payload: T,

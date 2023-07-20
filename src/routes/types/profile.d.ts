@@ -28,6 +28,7 @@ type FriendRelationship = 'guest' | 'friend' | 'block' | 'pending';
 interface IProfileService {
   getProfile(userId: string): Promise<Profile<User>>;
   listFriends(userId: string): Promise<ListFriendsResponse>;
+  listFriendIds(userId: string): Promise<string[]>;
   searchFriend(userId: string, query: string): Promise<Profile<User>[]>;
   updateProfile(
     profileId: string,

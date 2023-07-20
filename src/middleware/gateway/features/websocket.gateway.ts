@@ -1,6 +1,5 @@
 import {
   ConnectedSocket,
-  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
   SubscribeMessage,
@@ -11,8 +10,7 @@ import { CorsOption } from '../../cors';
 import { Event, Services } from 'src/common/define';
 import { Server } from 'socket.io';
 import { AuthenticationSocket } from '../gateway.session';
-import { Inject } from '@nestjs/common';
-import string from 'src/utils/string';
+import { Inject, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Event2 } from 'src/common/event/event';
 
@@ -65,21 +63,22 @@ export class WebsocketGateway
   @SubscribeMessage(Event.EVENT_FRIEND_LIST_STATUS)
   async handleGetFriendListRetrieve(
     @ConnectedSocket() client: AuthenticationSocket,
-    @MessageBody() payload: string[],
   ) {
     const sockets = this.sessions.getSockets();
     const prevFriend = this.mapFriendList.get(client.user.getId());
-    const onlineIds = payload.filter((id) => sockets.has(id));
-    if (onlineIds.isEqual(prevFriend)) return;
-    // memory friend list
-    this.mapFriendList.set(client.user.getId(), onlineIds);
-    return onlineIds;
+    return prevFriend.filter((id) => sockets.has(id));
   }
 
   handleConnection(client: AuthenticationSocket, ...args: any[]) {
     console.log(`>>> Memory online friend: ${client.user.getId()}`);
     this.sessions.setUserSocket(client.user.getId(), client);
-    this.mapFriendList.set(client.user.getId(), []);
+    client.setMaxListeners(100);
+    this.profileService
+      .listFriendIds(client.user.getId())
+      .then((ids) => {
+        this.mapFriendList.set(client.user.getId(), ids);
+      })
+      .catch((error) => Logger.error(error));
   }
 
   handleDisconnect(client: AuthenticationSocket) {
