@@ -172,6 +172,18 @@ class ConversationGroupService implements IParticipantService {
       updatedAt: newParticipant.updatedAt,
     });
   }
+
+  async getParticipants(participants: string[]): Promise<Participant<any>> {
+    const participant = await this.participantModel
+      .findOne({
+        members: {
+          $all: participants,
+          $size: participants.length,
+        },
+      })
+      .lean();
+    return participant;
+  }
 }
 
 export default ConversationGroupService;

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Socket } from 'socket.io';
+import type { Socket } from 'socket.io';
 
 export interface AuthenticationSocket extends Socket {
   user?: User;

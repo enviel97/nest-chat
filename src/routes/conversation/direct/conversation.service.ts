@@ -15,7 +15,10 @@ import {
   createNameConversation,
   createRoles,
 } from '../utils/create.conversation';
-import { CreateConversationException } from './conversation.exception';
+import {
+  ConversationNotFoundException,
+  CreateConversationException,
+} from './conversation.exception';
 
 @Injectable()
 class ConversationService implements IConversationsService {
@@ -137,6 +140,18 @@ class ConversationService implements IConversationsService {
         participant: entities.get(string.getId(conversation.participant)),
       };
     });
+  }
+
+  async findConversationByIds(ids: string[]): Promise<Conversation<any>> {
+    const participant = await this.participantModel
+      .findOne({ members: { $size: ids.length, $all: ids } })
+      .lean();
+    if (!participant) throw new ConversationNotFoundException();
+    const conversation = await this.conversationModel
+      .findById(participant)
+      .lean();
+    if (!conversation) throw new ConversationNotFoundException();
+    return conversation;
   }
 }
 

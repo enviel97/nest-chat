@@ -1,6 +1,12 @@
 export const Event2 = Object.freeze({
   client: {
     FRIEND_REQUEST_QUANTITY: 'get.quantity',
+    // Call
+    CALL_VIDEO_CALLING: 'call.videoCalling',
+    CALL_VIDEO_CALL_ACCEPT: 'call.videoCalling.accept',
+    CALL_VIDEO_CALL_REJECT: 'call.videoCalling.reject',
+    CALL_VIDEO_P2P_ERROR: 'call.error.p2pServices',
+    CALL_VIDEO_DEVICE_PERMISSION: 'call.error.userDevices',
   },
 
   // server subscribe
@@ -24,5 +30,11 @@ export const Event2 = Object.freeze({
     PROFILE_UPLOAD_IMAGE: 'onFriendUploadImage',
     PROFILE_UPDATE: 'onFriendUploadProfile',
     image_profile: 'onFriendUploadImage',
+
+    // Call
+    CALL_VIDEO_CALLING: 'onVideoCalling',
+    CALL_VIDEO_CALL_ACCEPT: 'onVideoCallAccept',
+    CALL_VIDEO_CALL_REJECT: 'onVideoCallReject',
+    CALL_VIDEO_CALL_ERROR: 'onVideoCallError',
   },
 });

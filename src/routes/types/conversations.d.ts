@@ -10,4 +10,5 @@ interface IConversationsService {
     authorId: string,
     options: GetConversationsOption,
   ): Promise<Conversation<any>[]>;
+  findConversationByIds(ids: string[]): Promise<Conversation<any> | undefined>;
 }

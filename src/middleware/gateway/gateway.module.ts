@@ -7,6 +7,8 @@ import { ConversationGateway } from './features/conversation.gateway';
 import { FriendGateway } from './features/friends.gateway';
 import { MediaGateway } from './features/media.gateway';
 import { UserModule } from 'src/routes/user/user.module';
+import { CallGateway } from './features/call.gateway';
+import { ConversationModule } from 'src/routes/conversation/conversation.module';
 
 const SessionsManager = {
   provide: Services.GATEWAY_SESSION,
@@ -14,13 +16,14 @@ const SessionsManager = {
 };
 
 @Module({
-  imports: [UserModule],
+  imports: [UserModule, ConversationModule],
   providers: [
     MessagingGateway,
     ConversationGateway,
     WebsocketGateway,
     FriendGateway,
     MediaGateway,
+    CallGateway,
     SessionsManager,
   ],
 })
