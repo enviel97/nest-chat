@@ -66,6 +66,7 @@ export class WebsocketGateway
   ) {
     const sockets = this.sessions.getSockets();
     const prevFriend = this.mapFriendList.get(client.user.getId());
+    if (!prevFriend) return [];
     return prevFriend.filter((id) => sockets.has(id));
   }
 

@@ -1,9 +1,16 @@
 interface CallPayload {
+  callId: string;
   receiver: string;
 }
 
 interface AcceptCallPayload {
+  callId: string;
   caller: string;
+}
+
+interface RejectCallPayload {
+  callId: string;
+  connecterId: string;
 }
 
 interface CallInfo {
@@ -26,7 +33,7 @@ interface VideoCallEmit {
 }
 
 // error
-type CallFailure = 'user-unavailable' | 'p2p-unavailable';
+type CallFailure = 'user-unavailable' | 'peer-unavailable';
 
 interface P2PErrorServicesPayload {
   to: string;

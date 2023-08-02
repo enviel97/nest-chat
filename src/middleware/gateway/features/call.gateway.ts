@@ -11,6 +11,7 @@ import { Inject } from '@nestjs/common';
 import { Services } from 'src/common/define';
 import { Event2 } from 'src/common/event/event';
 import { AuthenticationSocket } from '../gateway.session';
+import { callEmit } from '../utils/call.utils';
 import string from 'src/utils/string';
 
 @WsG({ cors: CorsOption })
@@ -19,69 +20,37 @@ export class CallGateway {
     @Inject(Services.GATEWAY_SESSION)
     private readonly sessions: IGatewaySession<AuthenticationSocket>,
 
-    @Inject(Services.CONVERSATIONS)
-    private readonly conversationService: IConversationsService,
+    @Inject(Services.PROFILE)
+    private readonly profileServices: IProfileService,
   ) {}
 
   @WebSocketServer()
   server: Server;
 
-  //#region Utils
-  private getUserInfo(user: User) {
+  async getUserInfo(user: User) {
+    const profile = await this.profileServices.getProfile(user.getId());
     return {
       id: user.getId(),
-      name: user.profile?.displayName ?? string.getFullName(user),
-      avatar: user.profile?.avatar,
+      name: profile?.displayName ?? user.getFullName(),
+      avatar: profile?.avatar,
       createdAt: new Date().toISOString(),
     };
   }
-
-  private genCallId(participants: string[]) {
-    return participants.sort((a, b) => b.localeCompare(a)).join('');
-  }
-
-  private callEvent(type: CallSuccess | CallFailure) {
-    switch (type) {
-      case 'calling': {
-        return Event2.emit.CALL_VIDEO_CALLING;
-      }
-      case 'accept': {
-        return Event2.emit.CALL_VIDEO_CALL_ACCEPT;
-      }
-      case 'reject': {
-        return Event2.emit.CALL_VIDEO_CALL_REJECT;
-      }
-
-      // Error
-      case 'user-unavailable':
-        return Event2.emit.CALL_VIDEO_CALL_ERROR;
-    }
-  }
-
-  private emit<T>(
-    socket: AuthenticationSocket,
-    type: CallSuccess | CallFailure,
-    data?: T,
-  ) {
-    const event = this.callEvent(type);
-    console.log({ event, payload: { type, ...(data && { data }) } });
-    socket.emit(event, { type, ...(data && { data }) });
-  }
-  //#endregion
 
   @SubscribeMessage(Event2.client.CALL_VIDEO_CALLING)
   async handleVideoCalling(
     @MessageBody() data: CallPayload,
     @ConnectedSocket() callerSocket: AuthenticationSocket,
   ) {
-    const callerId = callerSocket.user.getId();
-    const receiverSocket = this.sessions.getSocketId(data.receiver);
-    if (!receiverSocket) return this.emit(callerSocket, 'user-unavailable');
-    const callerInfo = this.getUserInfo(callerSocket.user);
-    const receiverInfo = this.getUserInfo(receiverSocket.user);
-    const listIds = [callerId, data.receiver];
-    const callId = this.genCallId(listIds);
-    this.emit(receiverSocket, 'calling', { callId, user: callerInfo });
+    const { callId, receiver } = data;
+    const receiverSocket = this.sessions.getSocketId(receiver);
+    if (!receiverSocket)
+      return callEmit(callerSocket, 'user-unavailable', callId);
+    const [callerInfo, receiverInfo] = await Promise.all([
+      this.getUserInfo(callerSocket.user),
+      this.getUserInfo(receiverSocket.user),
+    ]);
+    callEmit(receiverSocket, 'calling', { callId, user: callerInfo });
     return { type: 'calling', data: { callId, user: receiverInfo } };
   }
 
@@ -90,34 +59,32 @@ export class CallGateway {
     @MessageBody() data: AcceptCallPayload,
     @ConnectedSocket() receiverSocket: AuthenticationSocket,
   ) {
+    const { callId, caller } = data;
     const receiverId = receiverSocket.user.getId();
-    const callerSocket = this.sessions.getSocketId(data.caller);
-    if (!callerSocket) return this.emit(receiverSocket, 'user-unavailable');
-    const callerInfo = this.getUserInfo(callerSocket.user);
-    const listIds = [data.caller, receiverId];
-    const callId = this.genCallId(listIds);
-    this.emit(callerSocket, 'accept', {
+    const callerSocket = this.sessions.getSocketId(caller);
+    if (!callerSocket)
+      return callEmit(receiverSocket, 'user-unavailable', callId);
+    callEmit(callerSocket, 'accept', {
       callId,
-      from: callerInfo.id,
-      to: receiverId,
+      connecterId: receiverId,
     });
 
-    return { type: 'accept', data: { callId, user: callerInfo } };
+    return { type: 'accept' };
   }
 
-  @SubscribeMessage(Event2.client.CALL_VIDEO_P2P_ERROR)
-  async handleP2PError(
-    @MessageBody() data: P2PErrorServicesPayload,
+  @SubscribeMessage(Event2.client.CALL_VIDEO_CALL_REJECT)
+  async handleVideoCallReject(
+    @MessageBody() data: RejectCallPayload,
     @ConnectedSocket() socket: AuthenticationSocket,
   ) {
-    const { callId, to } = data;
-    const participantSocket = this.sessions.getSocketId(to);
-    if (participantSocket) {
-      participantSocket.emit(Event2.emit.CALL_VIDEO_CALL_ERROR, {
-        callId,
-        from: socket.user.getId(),
-      });
-    }
-    return;
+    const destSocket = this.sessions.getSocketId(data.connecterId);
+    if (!destSocket) return;
+
+    const payload = {
+      callId: data.callId,
+      from: socket.user.getId(),
+      to: data.connecterId,
+    };
+    callEmit(destSocket, 'reject', payload);
   }
 }
