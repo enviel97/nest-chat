@@ -1,6 +1,5 @@
 import { BadRequestException, Inject } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import { Cache } from 'cache-manager';
 import { Services } from 'src/common/define';
 import string from 'src/utils/string';
 
@@ -45,7 +44,7 @@ export const CheckPermissionModifyConversation = (
       const [conversationId, _] = args;
       const authorId = string.getId(this.request.user);
       const validateKey = `Validate:PermissionConversationModify:${conversationId}_${authorId}`;
-      const cache: Cache = this.cacheService;
+      const cache: ICacheService = this.cacheService;
       if (!cache) {
         await checkPermission(this, conversationId, authorId, role);
         return await originalMethod.call(this, ...args);

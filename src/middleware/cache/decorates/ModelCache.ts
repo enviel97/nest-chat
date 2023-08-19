@@ -1,5 +1,4 @@
 import { Inject } from '@nestjs/common';
-import { Cache } from 'cache-manager';
 import { Services } from 'src/common/define';
 import generateKeyByParams from '../utils/generateKeyByParams';
 
@@ -18,7 +17,7 @@ const ModelCache = ({
     cacheInject(target, 'cache');
     const originalMethod = descriptor.value;
     descriptor.value = async function (...args: any[]) {
-      const cache: Cache = this.cache;
+      const cache: ICacheService = this.cache;
       // Normal call
       if (!cache) return await originalMethod.call(this, ...args);
 
