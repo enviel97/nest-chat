@@ -42,14 +42,15 @@ export class MessagesController {
   async createMessage(
     @Param('conversationId') conversationId: string,
     @AuthUser() user: User,
-    @UploadedFiles(MultipleFileValidator()) attachments: Express.Multer.File[],
+    @UploadedFiles() attachments: Array<Express.Multer.File>,
     @Body() createMessageDTO: CreateMessageDTO,
   ) {
+    // console.log(attachments);
     const newMessage = await this.messageService.createMessage({
       conversationId: conversationId,
       author: user,
       content: createMessageDTO.content,
-      attachments: attachments,
+      // attachments: attachments,
     });
     return newMessage;
   }

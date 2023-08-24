@@ -13,6 +13,11 @@ interface RejectCallPayload {
   connecterId: string;
 }
 
+interface ControllerCallPayload extends RejectCallPayload {
+  type: 'microphone' | 'camera';
+  enable: boolean;
+}
+
 interface CallInfo {
   id: string;
   name: string;

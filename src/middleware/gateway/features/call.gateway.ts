@@ -87,4 +87,21 @@ export class CallGateway {
     };
     callEmit(destSocket, 'reject', payload);
   }
+
+  @SubscribeMessage(Event2.client.CALL_VIDEO_MODIFY_DEVICES)
+  async handleCameraVideo(
+    @MessageBody() data: ControllerCallPayload,
+    @ConnectedSocket() socket: AuthenticationSocket,
+  ) {
+    const { callId, connecterId, enable, type } = data;
+    const destSocket = this.sessions.getSocketId(connecterId);
+    if (!destSocket) return;
+    destSocket.emit(Event2.emit.CALL_VIDEO_MODIFY_DEVICES, {
+      callId: callId,
+      from: socket.user.getId(),
+      to: connecterId,
+      type: type,
+      enable: enable,
+    });
+  }
 }

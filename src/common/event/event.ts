@@ -7,6 +7,7 @@ export const Event2 = Object.freeze({
     CALL_VIDEO_CALL_REJECT: 'call.videoCalling.reject',
     CALL_VIDEO_P2P_ERROR: 'call.error.p2pServices',
     CALL_VIDEO_DEVICE_PERMISSION: 'call.error.userDevices',
+    CALL_VIDEO_MODIFY_DEVICES: 'call.modify.devices',
   },
 
   // server subscribe
@@ -36,5 +37,6 @@ export const Event2 = Object.freeze({
     CALL_VIDEO_CALL_ACCEPT: 'onVideoCallAccept',
     CALL_VIDEO_CALL_REJECT: 'onVideoCallReject',
     CALL_VIDEO_CALL_ERROR: 'onVideoCallError',
+    CALL_VIDEO_MODIFY_DEVICES: 'onModifyDevices',
   },
 });

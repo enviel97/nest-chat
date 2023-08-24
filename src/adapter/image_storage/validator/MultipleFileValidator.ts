@@ -14,13 +14,6 @@ const MAX_QUANTITY_FILE = 15; // 15 files on once request
 const DEFAULT_FILE_TYPE = 'IMAGES';
 
 class _MultipleFileValidator extends FileValidator<ValidateOptions> {
-  private readonly Notification = {
-    OVER_QUANTITY: ``,
-    OVER_SIZE: `File size exceed ${string.cvtToNormalSize(
-      this.validationOptions.maxEach,
-    )}`,
-  };
-
   async isValid(files?: MediaData[]): Promise<boolean> {
     const {
       maxQuantity = 15,
@@ -77,7 +70,6 @@ export const MultipleFileValidator = (options?: Partial<ValidateOptions>) => {
     maxQuantity = MAX_QUANTITY_FILE,
     mimeType = DEFAULT_FILE_TYPE,
   } = options ?? {};
-
   return new ParseFilePipe({
     validators: [
       new _MultipleFileValidator({
