@@ -15,7 +15,6 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { SkipThrottle } from '@nestjs/throttler';
-import { MultipleFileValidator } from 'src/adapter/image_storage/validator/MultipleFileValidator';
 import { Event, Routes, Services } from 'src/common/define';
 import { ParseObjectIdPipe } from 'src/middleware/parse/mongoDb';
 import { CreateMessageDTO } from 'src/models/messages';
@@ -24,6 +23,7 @@ import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
 import string from 'src/utils/string';
 import { AuthenticateGuard } from '../../auth/utils/Guards';
 import { EmitModifiedMessage } from '../decorates/EmitModifiedMessage';
+import { ConversationOfMessage } from '../decorates/MessageMiddleware';
 @Controller(Routes.MESSAGES)
 @UseGuards(AuthenticateGuard)
 @SkipThrottle()
@@ -31,7 +31,9 @@ export class MessagesController {
   constructor(
     @Inject(Services.MESSAGES)
     private readonly messageService: IMessengerService,
-
+    /**
+     * Decorate will use this, not clean
+     */
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -45,12 +47,11 @@ export class MessagesController {
     @UploadedFiles() attachments: Array<Express.Multer.File>,
     @Body() createMessageDTO: CreateMessageDTO,
   ) {
-    // console.log(attachments);
     const newMessage = await this.messageService.createMessage({
       conversationId: conversationId,
       author: user,
       content: createMessageDTO.content,
-      // attachments: attachments,
+      attachments: attachments,
     });
     return newMessage;
   }
@@ -58,15 +59,21 @@ export class MessagesController {
   @Get()
   @ResponseSuccess({ message: 'Get list conversation successfully' })
   async getMessagesByConversationId(
-    @Param('conversationId', ParseObjectIdPipe) conversationId: string,
+    @ConversationOfMessage() conversation: Conversation,
     @Query('limit') limit: number | undefined,
     @Query('bucket') bucket: number | undefined,
   ) {
-    const data = await this.messageService.getMessages(conversationId, {
-      limit: limit ?? 20,
-      bucket: bucket ?? 1,
-    });
-    return data;
+    const payload = await this.messageService.getMessages(
+      conversation.getId(),
+      {
+        limit: limit ?? 20,
+        bucket: bucket ?? 1,
+      },
+    );
+    return {
+      ...payload,
+      data: { conversation, messages: payload.data },
+    };
   }
 
   @Delete(':id')

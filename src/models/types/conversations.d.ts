@@ -1,7 +1,7 @@
 type ConversationType = 'direct' | 'group';
 
 interface ConversationDetail<T = any> {
-  participant: string | Participant<T>;
+  participant: Participant<T>;
   lastMessage: string | Message;
   name: string;
   type: ConversationType;

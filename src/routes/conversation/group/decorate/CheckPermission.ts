@@ -2,6 +2,10 @@ import { BadRequestException, Inject } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Services } from 'src/common/define';
 import string from 'src/utils/string';
+import {
+  ConversationNotFoundException,
+  ConversationNoTypeException,
+} from '../../exception/conversation.exception';
 
 async function checkPermission(
   target: any,
@@ -13,10 +17,9 @@ async function checkPermission(
   const conversation = await target.conversationModel
     .findById(conversationId)
     .lean();
-  if (!conversation) throw new BadRequestException('Conversation not found');
-  const participant = await target.participantModel
-    .findById(conversation.participant)
-    .lean();
+  if (!conversation) throw new ConversationNotFoundException();
+  if (conversation.type !== 'group') throw new ConversationNoTypeException();
+  const participant = conversation.participant;
   if (!roleAllow.includes(participant.roles[user])) {
     throw new BadRequestException("You don't have permission");
   }

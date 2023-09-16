@@ -36,3 +36,7 @@ interface GetMemberStatusPayload {
   conversationId: string;
   userId: string;
 }
+
+interface GetMembersStatusPayload {
+  conversationId: string;
+}

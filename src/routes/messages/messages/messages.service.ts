@@ -29,12 +29,12 @@ export class MessagesService implements IMessengerService {
           skip: bucket * limit,
         },
       )
+      .lean()
       .populate({
         path: 'author',
         select: 'firstName lastName userName profile',
         populate: { path: 'profile', select: 'display avatar' },
-      })
-      .lean();
+      });
 
     return {
       total: data.length,
@@ -56,7 +56,6 @@ export class MessagesService implements IMessengerService {
     if (!content && attachments?.isEmpty()) {
       throw new MessagesCreateException();
     }
-
     let cloudinaries: IMessageAttachment[] = [];
     if (attachments?.length ?? 0 !== 0) {
       cloudinaries = await this.attachmentService.creates(attachments);

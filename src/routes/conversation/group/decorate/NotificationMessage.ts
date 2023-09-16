@@ -1,6 +1,7 @@
 import { Inject, InternalServerErrorException, Logger } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Event, Services } from 'src/common/define';
+import { ParticipantModifyException } from '../../exception/conversation.group.exception';
 
 export interface MessageCreateSystemParams {
   conversationId: string;
@@ -12,6 +13,7 @@ const createContentSystem = (
   author: User,
   participant: User[],
 ) => {
+  if (participant.length === 0) throw new ParticipantModifyException();
   switch (action) {
     case 'invite':
       return `${participant
@@ -40,15 +42,20 @@ export const NotificationMessage = (action: MessageType) => {
         const author: User = this.ctx.user;
         const [conversationId] = args;
         const result = await originalMethod.call(this, ...args);
-        const content = createContentSystem(action, author, result);
+        const content = createContentSystem(
+          action,
+          author,
+          result?.modify ?? [],
+        );
         const message = await messageServices.createMessage({
           conversationId: conversationId,
           content: content,
           author: author,
           action: 'Notice',
         });
-
-        this.eventEmitter.emit(Event.EVENT_MESSAGE_SENDING, message);
+        const emitPayload = { conversation: result, message };
+        this.eventEmitter.emit(Event.EVENT_MESSAGE_SENDING, emitPayload);
+        return result;
       };
     } catch (err) {
       throw new InternalServerErrorException();

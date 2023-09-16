@@ -86,22 +86,18 @@ export class ConversationGateway implements OnGatewayConnection {
     @MessageBody() data: UserTypeMessaged,
     @ConnectedSocket() client: AuthenticationSocket,
   ) {
-    const conversationId = data.conversationId;
-
-    await client.join(this.conversationRoom(conversationId));
+    const roomCode = this.conversationRoom(data.conversationId);
+    await client.join(roomCode);
     console.log(
       `>>> [${string.getFullName(client.user)}] join in conversation-${
         data.conversationId
       }`,
     );
-
-    client
-      .to(this.conversationRoom(conversationId))
-      .emit(Event.EVENT_NOTIFICATION_CHANGE_STATUS, {
-        id: string.getId(client.user),
-        message: `${string.getFullName(client.user)} join`,
-        action: 'online',
-      });
+    client.to(roomCode).emit(Event.EVENT_NOTIFICATION_CHANGE_STATUS, {
+      id: string.getId(client.user),
+      message: `${string.getFullName(client.user)} join`,
+      action: 'online',
+    });
   }
 
   @SubscribeMessage(Event.EVENT_LEAVE_ROOM_CONVERSATION)
@@ -109,22 +105,33 @@ export class ConversationGateway implements OnGatewayConnection {
     @MessageBody() data: UserTypeMessaged,
     @ConnectedSocket() client: AuthenticationSocket,
   ) {
-    const conversationId = data.conversationId;
+    const roomCode = this.conversationRoom(data.conversationId);
+    await client.leave(roomCode);
 
-    client
-      .to(this.conversationRoom(conversationId))
-      .emit(Event.EVENT_NOTIFICATION_CHANGE_STATUS, {
-        id: string.getId(client.user),
-        message: `${string.getFullName(client.user)} leaved`,
-        action: 'offline',
-      });
-    await client.leave(this.conversationRoom(conversationId));
+    this.server.to(roomCode).emit(Event.EVENT_NOTIFICATION_CHANGE_STATUS, {
+      id: string.getId(client.user),
+      message: `${string.getFullName(client.user)} leaved`,
+      action: 'offline',
+    });
+  }
 
-    console.log(
-      `>>> [${string.getFullName(client.user)}] leaving conversation-${
-        data.conversationId
-      }`,
-    );
+  @SubscribeMessage(Event.EVENT_PARTICIPANT_GET_ALL_STATUS)
+  async handleUserHookParticipantsStatus(
+    @MessageBody() payload: GetMembersStatusPayload,
+    @ConnectedSocket() client: AuthenticationSocket,
+  ) {
+    const { conversationId } = payload;
+    if (!conversationId) return;
+    const roomCode = this.conversationRoom(conversationId);
+    const sockets = await this.server.in(roomCode).fetchSockets();
+    const onlineMembers = sockets.reduce((onlineMembers, socket) => {
+      if ('user' in socket) {
+        const user = socket.user as User;
+        onlineMembers.add(user.getId());
+      }
+      return onlineMembers;
+    }, new Set(client.user.getId()));
+    return { onlineMembers: [...onlineMembers] };
   }
 
   @SubscribeMessage(Event.EVENT_PARTICIPANT_STATUS_RESPONSE)
@@ -144,17 +151,18 @@ export class ConversationGateway implements OnGatewayConnection {
   handleConnection(client: AuthenticationSocket, ...args: any[]) {
     // Listen on disconnecting
     client.on('disconnecting', (reason) => {
-      const rooms = [...this.server.sockets.adapter.rooms].filter(([room]) =>
-        room.includes('conversation-'),
-      );
-      if (rooms.length === 0) return;
-      rooms.forEach(([roomId]) => {
-        this.server.to(roomId).emit(Event.EVENT_NOTIFICATION_CHANGE_STATUS, {
-          id: string.getId(client.user),
-          message: `${string.getFullName(client.user)} leaved`,
-          action: 'offline',
-        });
+      const rooms = client.rooms;
+      if (rooms.size === 0) return;
+      rooms.forEach((roomId) => {
+        if (roomId.includes('conversation-')) {
+          this.server.to(roomId).emit(Event.EVENT_NOTIFICATION_CHANGE_STATUS, {
+            id: string.getId(client.user),
+            message: `${string.getFullName(client.user)} leaved`,
+            action: 'offline',
+          });
+        }
       });
+
       console.log(`>>> ${string.getFullName(client.user)} Suddenly shutdown`);
     });
   }

@@ -7,6 +7,24 @@ enum ConversationType {
   direct = 'direct',
   group = 'group',
 }
+
+@Schema()
+class SParticipant {
+  @Prop({
+    type: [String],
+    ref: ModelName.User,
+    default: [],
+    unique: true,
+    index: 1,
+  })
+  members: User[];
+
+  @Prop({ type: Map, of: String, default: {} })
+  roles: ParticipantRole;
+}
+
+const ParticipantSchema = SchemaFactory.createForClass(SParticipant);
+
 @Schema({ timestamps: true })
 class SConversation {
   @Prop()
@@ -15,12 +33,7 @@ class SConversation {
   @Prop({ default: 'direct', enum: ConversationType })
   type: ConversationType;
 
-  @Prop({
-    type: String,
-    required: true,
-    ref: ModelName.Participant,
-    index: true,
-  })
+  @Prop({ type: ParticipantSchema })
   participant: Participant<User>;
 
   @Prop({ type: String, ref: ModelName.Message })
@@ -30,7 +43,7 @@ class SConversation {
 const ConversationSchema = SchemaFactory.createForClass(SConversation);
 ConversationSchema.index({ createdAt: 1 });
 ConversationSchema.index({ updatedAt: -1 });
-ConversationSchema.index({ participant: 1, type: 1 });
+ConversationSchema.index({ type: 1, ['participant.members']: 1 });
 
 export { default as CreateConversationDTO } from './dto/ConversationCreate';
 

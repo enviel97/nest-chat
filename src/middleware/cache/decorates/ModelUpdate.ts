@@ -6,11 +6,13 @@ interface ModelCacheProps {
   ttl?: number;
   modelName: string;
   keyIndex?: number[];
+  shallow?: boolean;
 }
 const ModelUpdate = ({
   ttl = 24 * 60 * 60,
   modelName,
   keyIndex,
+  shallow,
 }: ModelCacheProps) => {
   const cacheInject = Inject(Services.CACHE);
   return (target: any, nameMethod: string, descriptor: PropertyDescriptor) => {
@@ -23,7 +25,7 @@ const ModelUpdate = ({
       const key = generateKeyByParams([...args], { keyIndex });
       const modalKey = `${modelName}:${key}`;
       const value = await originalMethod.call(this, ...args);
-      await cache.update(modalKey, value, ttl);
+      await cache.update(modalKey, value, ttl, shallow);
       return value;
     };
   };

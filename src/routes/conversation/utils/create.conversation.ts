@@ -10,10 +10,12 @@ export function createRoles(ids: string[], adminId: string) {
 }
 
 export function createNameConversation(
-  users: User[],
+  author: User,
   options?: { type?: 'group' | 'direct' },
 ) {
   const { type = 'direct' } = options ?? {};
   if (type === 'direct') return '';
-  return `Group of ${users.map((user) => user.lastName).join(', ')}`;
+  return `Group of ${
+    author.profile?.displayName ?? author.lastName ?? `@User${author.getId()}`
+  }`;
 }

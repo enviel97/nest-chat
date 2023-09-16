@@ -24,9 +24,9 @@ const MessageSchema = new Schema<Message>(
   {
     conversationId: { type: String, index: true },
     content: { type: String, trim: true },
-    author: { type: String, ref: ModelName.User, unique: true, sparse: true },
+    author: { type: String, ref: ModelName.User },
     action: { type: String, default: 'New' },
-    attachments: { type: [MessageAttachment], default: [] },
+    attachments: { type: [MessageAttachment] },
   },
   { timestamps: true },
 );
@@ -57,6 +57,7 @@ export default {
           { lastMessage: doc },
         ),
       ]).catch((error) => {
+        console.log({ error });
         next(error);
       });
     });

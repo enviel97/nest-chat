@@ -9,6 +9,6 @@ interface ParticipantDetail<T extends ParticipantMembers> {
   roles: ParticipantRole;
 }
 
-type IParticipant<T> = ParticipantDetail<T> & TimeStamps & Identity;
+type IParticipant<T> = ParticipantDetail<T> & Identity;
 
 type Participant<T> = Partial<IParticipant<T>>;

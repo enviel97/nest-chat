@@ -30,7 +30,6 @@ export const ModelName = Object.freeze({
   User: 'users',
   Conversation: 'conversations',
   Message: 'messages',
-  Participant: 'participants',
   FriendRequest: 'friendRequests',
   Profile: 'profiles',
 });
@@ -46,6 +45,7 @@ export const Event = Object.freeze({
   EVENT_CONVERSATION_BANNED_MEMBER: 'conversation.bannedMember',
 
   EVENT_PARTICIPANT_GET_STATUS: 'participant.getStatus',
+  EVENT_PARTICIPANT_GET_ALL_STATUS: 'participant.getAllStatus',
 
   EVENT_FRIEND_SEND_REQUEST: 'friend-request.ack',
   EVENT_FRIEND_REQUEST_CANCEL: 'friend-request.cancel',
