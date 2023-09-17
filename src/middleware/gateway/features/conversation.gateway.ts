@@ -115,26 +115,7 @@ export class ConversationGateway implements OnGatewayConnection {
     });
   }
 
-  @SubscribeMessage(Event.EVENT_PARTICIPANT_GET_ALL_STATUS)
-  async handleUserHookParticipantsStatus(
-    @MessageBody() payload: GetMembersStatusPayload,
-    @ConnectedSocket() client: AuthenticationSocket,
-  ) {
-    const { conversationId } = payload;
-    if (!conversationId) return;
-    const roomCode = this.conversationRoom(conversationId);
-    const sockets = await this.server.in(roomCode).fetchSockets();
-    const onlineMembers = sockets.reduce((onlineMembers, socket) => {
-      if ('user' in socket) {
-        const user = socket.user as User;
-        onlineMembers.add(user.getId());
-      }
-      return onlineMembers;
-    }, new Set(client.user.getId()));
-    return { onlineMembers: [...onlineMembers] };
-  }
-
-  @SubscribeMessage(Event.EVENT_PARTICIPANT_STATUS_RESPONSE)
+  @SubscribeMessage(Event.EVENT_PARTICIPANT_GET_STATUS)
   async handleGetParticipantStatus(
     @MessageBody() payload: GetMemberStatusPayload,
   ) {

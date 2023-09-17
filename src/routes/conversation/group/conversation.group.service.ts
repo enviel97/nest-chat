@@ -8,6 +8,7 @@ import ModelUpdate from 'src/middleware/cache/decorates/ModelUpdate';
 import { ConversationDocument } from 'src/models/conversations';
 import { UserDocument } from 'src/models/users';
 import { mapToMapEntities } from 'src/utils/map';
+import string from 'src/utils/string';
 import { ConversationNotFoundException } from '../exception/conversation.exception';
 import { ParticipantMemberNotFoundException } from '../exception/conversation.group.exception';
 import { populateLastMessage, populateMember } from '../utils/config';
@@ -35,11 +36,11 @@ class ConversationGroupService implements IGroupConversationServices {
       throw new ParticipantMemberNotFoundException(this.ADD_ACTION_EXCEPTION);
     }
     if (action === 'Remove' && !targets.isSubsetOf(members)) {
+      console.log(targets, members, targets.isSubsetOf(members));
       throw new ParticipantMemberNotFoundException(
         this.REMOVE_ACTION_EXCEPTION,
       );
     }
-
     // All ids is valid
     const unique = new Set<string>([...members, ...targets]);
     const memberUsers = await this.userModel
@@ -49,7 +50,8 @@ class ConversationGroupService implements IGroupConversationServices {
       throw new ParticipantMemberNotFoundException();
     }
     const { entities } = mapToMapEntities<User>(memberUsers);
-    return targets.map(entities.get);
+    console.log(entities, targets);
+    return targets.map((id) => entities.get(id));
   }
 
   @ModelCache({ modelName: CacheModel.CONVERSATION })
@@ -103,8 +105,9 @@ class ConversationGroupService implements IGroupConversationServices {
     inviterIds: string[],
   ): Promise<ResponseModified> {
     const conversation = await this.getConversation(conversationId);
-    const members = conversation.participant.members;
+    const members = conversation.participant.members.map(string.getId);
     const targetUsers = await this.validateMembers(members, inviterIds, 'Add');
+    console.log(targetUsers);
     const updatedConversation = await this.updateParticipant(
       conversationId,
       inviterIds,
@@ -122,7 +125,7 @@ class ConversationGroupService implements IGroupConversationServices {
     bannedIds: string[],
   ): Promise<ResponseModified> {
     const conversation = await this.getConversation(conversationId);
-    const members = conversation.participant.members;
+    const members = conversation.participant.members.map(string.getId);
     const targetUsers = await this.validateMembers(
       members,
       bannedIds,
@@ -146,7 +149,7 @@ class ConversationGroupService implements IGroupConversationServices {
     authorId: string,
   ): Promise<Conversation<any>> {
     const conversation = await this.getConversation(conversationId);
-    const members = conversation.participant.members;
+    const members = conversation.participant.members.map(string.getId);
     await this.validateMembers(members, [authorId], 'Remove');
     const updatedConversation = await this.updateParticipant(
       conversationId,

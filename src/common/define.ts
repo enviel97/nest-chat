@@ -45,7 +45,6 @@ export const Event = Object.freeze({
   EVENT_CONVERSATION_BANNED_MEMBER: 'conversation.bannedMember',
 
   EVENT_PARTICIPANT_GET_STATUS: 'participant.getStatus',
-  EVENT_PARTICIPANT_GET_ALL_STATUS: 'participant.getAllStatus',
 
   EVENT_FRIEND_SEND_REQUEST: 'friend-request.ack',
   EVENT_FRIEND_REQUEST_CANCEL: 'friend-request.cancel',
@@ -66,8 +65,6 @@ export const Event = Object.freeze({
   EVENT_MESSAGE_CREATED: 'onMessageCreated',
   EVENT_MESSAGE_REMOVE: 'onMessageRemove',
   EVENT_MESSAGE_EDITED: 'onMessageEdited',
-
-  EVENT_PARTICIPANT_STATUS_RESPONSE: 'onParticipantStatusResponse',
 
   EVENT_FRIEND_RECEIVE_FRIEND_REQUEST: 'onReceiveFriendRequest',
   EVENT_FRIEND_RECEIVE_ALLOW_FRIEND: 'onReceiveAllowFriendRequest',
