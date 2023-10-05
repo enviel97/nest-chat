@@ -37,13 +37,19 @@ export class MemberService implements IMemberService {
 
   @ModelCache({ modelName: CacheModel.USER, keyIndex: [0] })
   private async findUserById(id: string, select: string) {
-    const result = await this.userModel.findById(id).select(select).lean();
+    const result = await this.userModel
+      .findById(id)
+      .populate('profile', 'avatar displayname')
+      .select(select)
+      .lean();
+
     return result;
   }
 
   private async findUserByEmail(email: string, select: string) {
     const result = await this.userModel
       .findOne({ email })
+      .populate('profile', 'avatar displayName')
       .select(select)
       .lean();
 
@@ -52,7 +58,7 @@ export class MemberService implements IMemberService {
 
   async findUser(params: FindUserParams): Promise<User> {
     const { password = false, ...param } = params;
-    const select = `id profile firstName lastName email${
+    const select = `id profile profile firstName lastName email${
       password ? ' password' : ''
     }`;
     const user = param.id

@@ -51,7 +51,6 @@ export const NotificationMessage = (action: MessageType) => {
           conversationId: conversationId,
           content: content,
           author: author,
-          action: 'Notice',
         });
         const emitPayload = { conversation: result, message };
         this.eventEmitter.emit(Event.EVENT_MESSAGE_SENDING, emitPayload);

@@ -32,7 +32,7 @@ export class AttachmentsServices implements IAttachmentServices {
               downloadLink: cloudinary.url,
               publicId: id,
               type: attachment.mimetype,
-              originName: attachment.filename,
+              originName: attachment.filename ?? attachment.originalname,
               size: Number(attachment.size),
             };
           });

@@ -14,7 +14,7 @@ import ConversationAddMember from 'src/models/conversations/dto/ConversationAddM
 import { AuthenticateGuard } from 'src/routes/auth/utils/Guards';
 import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
 import string from 'src/utils/string';
-import { NotificationMessage } from './decorate/NotificationMessage';
+// import { NotificationMessage } from './decorate/NotificationMessage';
 @Controller(Routes.PARTICIPANT)
 @UseGuards(AuthenticateGuard)
 class ConversationGroupController {
@@ -27,7 +27,7 @@ class ConversationGroupController {
 
   @Post()
   @ResponseSuccess({ message: 'Add new members successfully' })
-  @NotificationMessage('invite')
+  // @NotificationMessage('invite')
   async addMembers(
     @Param('id') conversationId: string,
     @Body() body: ConversationAddMember,
@@ -48,7 +48,7 @@ class ConversationGroupController {
 
   @Delete('leave')
   @ResponseSuccess({ message: 'Leaving group chat successfully' })
-  @NotificationMessage('leave')
+  // @NotificationMessage('leave')
   async leave(@Param('id') conversationId: string, @AuthUser() author: User) {
     const conversation = await this.conversationsService.leave(
       conversationId,
@@ -61,7 +61,7 @@ class ConversationGroupController {
 
   @Delete(':userId')
   @ResponseSuccess({ message: 'Remove member out off group chat successfully' })
-  @NotificationMessage('banned')
+  // @NotificationMessage('banned')
   async removeMembers(
     @Param('id') conversationId: string,
     @Param('userId') userId: string,

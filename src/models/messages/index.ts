@@ -32,6 +32,7 @@ const MessageSchema = new Schema<Message>(
 );
 
 MessageSchema.index({ createdAt: 1 }, { expires: '1y' });
+MessageSchema.index({ conversationId: 1, action: 1 });
 
 export { default as CreateMessageDTO } from './dto/CreateMessagesDTO';
 

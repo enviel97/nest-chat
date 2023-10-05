@@ -19,25 +19,24 @@ export class MessagesService implements IMessengerService {
     conversationId: string,
     { limit, bucket }: PaginationOption,
   ): Promise<Pagination<IMessage>> {
-    const data = await this.messageModel
-      .find(
-        { conversationId },
-        {},
-        {
-          sort: { createdAt: 'desc' },
-          limit: limit,
-          skip: bucket * limit,
-        },
-      )
-      .lean()
-      .populate({
-        path: 'author',
-        select: 'firstName lastName userName profile',
-        populate: { path: 'profile', select: 'display avatar' },
-      });
+    const query = { conversationId, action: { $ne: 'Notice' } };
+    const [data, total] = await Promise.all([
+      this.messageModel
+        .find(query)
+        .skip(bucket * limit)
+        .limit(limit)
+        .sort({ createdAt: 'desc' })
+        .lean()
+        .populate({
+          path: 'author',
+          select: 'firstName lastName userName profile',
+          populate: { path: 'profile', select: 'display avatar' },
+        }),
+      this.messageModel.find(query).count().lean(),
+    ]);
 
     return {
-      total: data.length,
+      total: total,
       bucket: bucket,
       limit: limit,
       data: data as IMessage[],

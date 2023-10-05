@@ -42,8 +42,7 @@ export class MessagingGateway {
       payload.message,
       Event.EVENT_MESSAGE_CREATED,
       {
-        ignoreIds:
-          message.action !== 'Notice' ? [message.author.getId()] : undefined,
+        ignoreIds: [message.author.getId()],
       },
     );
   }
