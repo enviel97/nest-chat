@@ -11,7 +11,7 @@ import ModelCache from 'src/middleware/cache/decorates/ModelCache';
 import { CacheModel } from 'src/common/cache';
 import {
   populateLastMessage,
-  populateParticipant,
+  populateMember,
 } from 'src/routes/conversation/utils/config';
 import { validateObjectId } from '../utils/message.validate';
 import { MessageConversationId } from '../utils/messages.exception';
@@ -26,8 +26,8 @@ export class MessagesMiddleware implements NestMiddleware {
   private async getConversationByID(conversationId: string) {
     const conversation = await this.conversationModel
       .findById(conversationId)
-      .populate([populateParticipant, populateLastMessage])
-      .lean();
+      .lean()
+      .populate([populateMember, populateLastMessage]);
     if (!conversation) throw new BadRequestException('Conversation not found');
     return conversation;
   }

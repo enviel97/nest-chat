@@ -1,10 +1,17 @@
 import string from 'src/utils/string';
+import { isSubset, IsSubsetConfig } from '../utils/array';
 
 declare global {
   interface Array<T = any> {
     isEmpty(): boolean;
     getIds(): string[];
     isEqual(array: T[]): boolean;
+    /**
+     * Check targets array is sub set of src array
+     * @param src Src array want to check
+     * @param config config compare function if array has special value
+     */
+    isSubsetOf(src: T[], config?: IsSubsetConfig<T>): boolean;
   }
 }
 
@@ -31,6 +38,13 @@ Object.defineProperty(Array.prototype, 'isEqual', {
     this.sort();
     array.sort();
     return this.every((value: T, index: number) => value === array[index]);
+  },
+});
+
+/*eslint no-extend-native: ["error", { "exceptions": ["Array"] }]*/
+Object.defineProperty(Array.prototype, 'isSubsetOf', {
+  value: function <T = any>(src: T[], config?: IsSubsetConfig<T>) {
+    return isSubset(src, this, config);
   },
 });
 

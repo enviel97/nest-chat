@@ -7,6 +7,7 @@ import type { RedisClientType } from 'redis';
 import environment from 'src/common/environment';
 import { Services } from 'src/common/define';
 import type { ServerOptions } from 'socket.io';
+import { GatewayException } from './exeptions/GatewayAdapter.exception';
 
 export class WebsocketAdapter extends IoAdapter {
   private redisClient: RedisClientType;
@@ -21,12 +22,12 @@ export class WebsocketAdapter extends IoAdapter {
   private getSignedCookie(clientCookie: string) {
     if (!clientCookie) {
       console.log('ERROR: Client has no cookie');
-      throw new Error('Not Authenticate');
+      throw new GatewayException();
     }
     const { SESSION_ID } = cookie.parse(clientCookie);
     if (!SESSION_ID) {
       console.log('ERROR: SESSION_ID has not exits');
-      throw new Error('Not Authenticate');
+      throw new GatewayException();
     }
     const signedCookie = cookieParser.signedCookie(
       SESSION_ID,
@@ -34,7 +35,7 @@ export class WebsocketAdapter extends IoAdapter {
     );
     if (!signedCookie) {
       console.log('ERROR: SESSION_ID parser error');
-      throw new Error('Not Authenticate');
+      throw new GatewayException();
     }
     return signedCookie;
   }
@@ -45,12 +46,12 @@ export class WebsocketAdapter extends IoAdapter {
     );
     if (!sessionDB) {
       console.log('ERROR: Hacking authenticate notice');
-      throw new Error('Not Authenticate');
+      throw new GatewayException();
     }
     const userDB = JSON.parse(sessionDB)?.passport?.user;
     if (!userDB) {
       console.log('ERROR: User not found');
-      throw new Error('Not Authenticate');
+      throw new GatewayException();
     }
     return userDB;
   }

@@ -41,7 +41,9 @@ export class MessagingGateway {
       [...this.getMembersInConversation(payload)],
       payload.message,
       Event.EVENT_MESSAGE_CREATED,
-      { ignoreIds: [message.author.getId()] },
+      {
+        ignoreIds: [message.author.getId()],
+      },
     );
   }
 

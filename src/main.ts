@@ -31,7 +31,7 @@ const start = async () => {
   // setup
   app.useWebSocketAdapter(websocketAdapter);
   app.setGlobalPrefix('api');
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ stopAtFirstError: true }));
   app.useGlobalFilters(
     new AllExceptionsFilter(httpAdapterHost),
     new HttpExceptionFilter(),

@@ -1,3 +1,10 @@
+interface CreateProfileResponse {
+  id?: string;
+  user?: string;
+  displayName?: string;
+  avatar?: string;
+}
+
 interface ListFriendsResponse {
   profileId: string;
   friends: Profile<User>[];
@@ -26,6 +33,7 @@ interface UpdateStatusResponse {
 type FriendRelationship = 'guest' | 'friend' | 'block' | 'pending';
 
 interface IProfileService {
+  createProfile(props: CreateProfileResponse): Promise<Profile<string>>;
   getProfile(userId: string): Promise<Profile<User>>;
   listFriends(userId: string): Promise<ListFriendsResponse>;
   listFriendIds(userId: string): Promise<string[]>;

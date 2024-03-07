@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
+import { isArray, mergeWith } from 'lodash';
 
 @Injectable()
 export class CacheService implements ICacheService {
@@ -35,10 +36,20 @@ export class CacheService implements ICacheService {
     await this.cache.store.mdel(...keys);
   }
 
-  async update<T = any>(key: string, value: T, ttl?: number): Promise<boolean> {
+  async update<T = any>(
+    key: string,
+    value: T,
+    ttl?: number,
+    shallow?: boolean,
+  ): Promise<boolean> {
     const data = await this.get<T>(key);
     if (!data) return false;
-    await this.set<T>(key, { ...data, ...value }, ttl);
+    const merged = shallow
+      ? { ...data, ...value }
+      : mergeWith(data, value, (src, target) => {
+          if (isArray(src)) return target;
+        });
+    await this.set<T>(key, merged, ttl);
     return true;
   }
 }

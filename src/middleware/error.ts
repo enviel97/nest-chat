@@ -17,16 +17,26 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const status = exception.getStatus();
-
+    const exceptionResponse = exception.getResponse();
     Logger.error(
       exception.getResponse()['message'] ?? 'Unknown',
       exception.name,
     );
+    if (typeof exceptionResponse === 'string') {
+      return response.status(status).json({
+        code: status,
+        message: exception.message.includes('/api/')
+          ? 'Bad request'
+          : exception.message,
+      });
+    }
+
     return response.status(status).json({
       code: status,
       message: exception.message.includes('/api/')
         ? 'Bad request'
         : exception.message,
+      errors: exceptionResponse?.['errors'],
     });
   }
 }

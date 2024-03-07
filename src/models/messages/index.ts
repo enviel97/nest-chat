@@ -24,14 +24,15 @@ const MessageSchema = new Schema<Message>(
   {
     conversationId: { type: String, index: true },
     content: { type: String, trim: true },
-    author: { type: String, ref: ModelName.User, unique: true, sparse: true },
+    author: { type: String, ref: ModelName.User },
     action: { type: String, default: 'New' },
-    attachments: { type: [MessageAttachment], default: [] },
+    attachments: { type: [MessageAttachment] },
   },
   { timestamps: true },
 );
 
 MessageSchema.index({ createdAt: 1 }, { expires: '1y' });
+MessageSchema.index({ conversationId: 1, action: 1 });
 
 export { default as CreateMessageDTO } from './dto/CreateMessagesDTO';
 
@@ -57,6 +58,7 @@ export default {
           { lastMessage: doc },
         ),
       ]).catch((error) => {
+        console.log({ error });
         next(error);
       });
     });

@@ -12,9 +12,3 @@ interface UserLogin {
   email: string;
   password: string;
 }
-
-type FindUserParams = Partial<{
-  id: string;
-  email: string;
-  password?: boolean;
-}>;

@@ -1,4 +1,4 @@
-type MessageAction = 'New' | 'Edited' | 'Removed' | 'Seen' | 'Notice';
+type MessageAction = 'New' | 'Edited' | 'Removed' | 'Seen';
 type MessageType = 'banned' | 'invite' | 'leave';
 
 interface IMessageAttachment {

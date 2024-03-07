@@ -8,7 +8,9 @@ interface ConversationModifiedMembers {
   idParticipant: string[];
 }
 
-interface IParticipantService {
+type ConversationGroupAction = 'Add' | 'Remove';
+
+interface IGroupConversationServices {
   addMoreMembers(
     conversationId: string,
     inviterIds: string[],

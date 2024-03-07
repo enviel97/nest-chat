@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { SkipThrottle } from '@nestjs/throttler';
+import { Throttle } from '@nestjs/throttler';
 import { Event, Routes, Services } from 'src/common/define';
 import { CreateConversationDTO } from 'src/models/conversations';
 import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
@@ -82,7 +82,7 @@ class ConversationController {
   }
 
   @Get()
-  @SkipThrottle()
+  @Throttle(100, 5)
   @ResponseSuccess({
     message: 'Get list conversation successfully',
   })

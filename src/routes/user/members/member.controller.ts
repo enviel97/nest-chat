@@ -19,14 +19,11 @@ export class MemberController {
     private readonly userService: IMemberService,
   ) {}
 
-  @SearchCache()
+  @SearchCache(10)
   @Get('search')
   async searchUser(@Query('participant') participant: string) {
     if (!participant) throw new BadRequestException('Provide a valid query');
     const result = await this.userService.searchUsers(participant.trim());
-    return mapToResponse({
-      code: 200,
-      data: result,
-    });
+    return mapToResponse({ code: 200, data: result });
   }
 }

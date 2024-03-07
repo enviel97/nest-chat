@@ -3,5 +3,10 @@ interface ICacheService {
   get<T = any>(key: string): Promise<T>;
   del(key: string): Promise<void>;
   delP(pattern: string): Promise<void>;
-  update<T = any>(key: string, value: T, ttl?: number): Promise<boolean>;
+  update<T = any>(
+    key: string,
+    value: T,
+    ttl?: number,
+    shallow?: boolean,
+  ): Promise<boolean>;
 }

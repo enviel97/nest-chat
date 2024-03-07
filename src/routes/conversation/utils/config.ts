@@ -8,17 +8,10 @@ export const populateLastMessage = {
 };
 
 export const populateMember = {
-  path: 'members',
+  path: 'participant.members',
   select: 'firstName lastName email profile',
   populate: {
     path: 'profile',
     select: 'avatar displayName',
-  },
-};
-
-export const populateParticipant = {
-  path: 'participant',
-  populate: {
-    ...populateMember,
   },
 };
