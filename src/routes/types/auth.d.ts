@@ -15,6 +15,10 @@ interface NewAccount {
   profile: Profile<string>;
 }
 
+interface SignToken {
+  accessToken: string;
+}
+
 interface IAuthService {
   validateUser(validationRule: UserValidation);
   registerAccount(user: UserDetailDTO): Promise<NewAccount>;

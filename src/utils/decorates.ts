@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { performance } from 'perf_hooks';
-import { AuthenticateGuard } from 'src/routes/auth/utils/Guards';
+import { AuthenticateGuard } from 'src/middleware/authenticate';
 
 export const AuthUser = createParamDecorator(
   (data: string, ctx: ExecutionContext) => {

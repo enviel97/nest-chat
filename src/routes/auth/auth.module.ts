@@ -4,9 +4,8 @@ import { Services } from 'src/common/define';
 import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { LocalStrategy } from './utils/LocalStrategy';
-import { SessionSerializer } from './utils/SessionSerializer';
-import { PassportModule } from 'src/middleware/passport';
+import { LocalStrategy, SessionSerializer } from './utils';
+import { PassportModule } from 'src/middleware/authenticate';
 
 const AuthenticateServices = { provide: Services.AUTH, useClass: AuthService };
 @Module({

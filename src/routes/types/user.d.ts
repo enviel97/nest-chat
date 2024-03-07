@@ -1,6 +1,6 @@
 type FindUserQuery = { id: string } | { email: string };
 type FindUserConfig = { password?: boolean };
-
+type FindUserValidate = { _id: string } | { email: string };
 interface CreateUserResponse {
   firstName: string;
   lastName: string;
@@ -17,4 +17,5 @@ interface IMemberService {
     options?: FindUserConfig,
   ): Promise<User | null>;
   searchUsers(query: string): Promise<User[]>;
+  validateUser(userKey: FindUserValidate): Promise<boolean>;
 }

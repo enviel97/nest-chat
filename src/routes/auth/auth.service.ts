@@ -1,4 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Services } from 'src/common/define';
 import { compare } from 'src/utils/bcrypt';
 
@@ -21,7 +26,7 @@ export class AuthService implements IAuthService {
       { password: true },
     );
     if (!result || !compare(account.password, result.password)) {
-      return null;
+      throw new UnauthorizedException('Incorrect email or password');
     }
     const { password, ...user } = result;
     return user;
@@ -41,7 +46,10 @@ export class AuthService implements IAuthService {
 
   public async registerAccount(dto: UserDetailDTO) {
     const { avatar, avatarId, displayName, ...createProp } = dto;
-
+    const hasAccount = await this.userService.validateUser({
+      email: dto.email,
+    });
+    if (hasAccount) throw new BadRequestException('Email already used.');
     // Create account here
     const [_, user, profile] = await Promise.all([
       this.createAvatar(avatarId, avatar),

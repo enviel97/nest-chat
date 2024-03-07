@@ -3,19 +3,24 @@ import {
   Get,
   HttpStatus,
   Inject,
+  Logger,
   Post,
+  Req,
   Res,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { Routes, Services } from 'src/common/define';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserDetailDTO } from 'src/models/users';
-import { AuthenticateGuard, LocalAuthGuard } from './utils/Guards';
+import { LocalAuthGuard } from './utils';
 import { Response } from 'express';
 import { AuthUser } from 'src/utils/decorates';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { BodyDTO } from 'src/utils/valid';
+import { AuthenticateGuard } from 'src/middleware/authenticate';
+import { NotAcceptableException } from '@nestjs/common/exceptions';
 
 @Controller(Routes.AUTH)
 export class AuthController {
@@ -23,20 +28,25 @@ export class AuthController {
     @Inject(Services.AUTH)
     private readonly authenticateServices: IAuthService,
   ) {}
-
   @Post('register')
   @UseInterceptors(FileInterceptor('avatar'))
   async register(
+    @Req() req: Request,
     @Res() res: Response,
     @BodyDTO(UserDetailDTO, { upload: 'single' }) dto: UserDetailDTO,
   ) {
-    // Force login and set token if can ?
-    const newAccount = await this.authenticateServices.registerAccount(dto);
-    const { user, profile } = newAccount;
+    const registerPlain = await this.authenticateServices.registerAccount(dto);
+    const { user, profile } = registerPlain;
+    const newAccount = UserDetailDTO.getUser(user, profile);
+    req.login(user, { session: true }, (error) => {
+      if (!error) return;
+      Logger.error(error);
+      throw new NotAcceptableException('Login failure', error);
+    });
     return res.json({
-      code: HttpStatus.OK,
+      code: HttpStatus.CREATED,
       message: 'Register success',
-      data: UserDetailDTO.getUser(user, profile),
+      data: newAccount,
     });
   }
 
@@ -63,5 +73,15 @@ export class AuthController {
   }
 
   @Get('logout')
-  logout() {}
+  logout(@Req() req: Request) {
+    req.logout({ keepSessionInfo: false }, (error) => {
+      if (!error) return;
+      Logger.error('Logout failure', error);
+      throw new NotAcceptableException('Logout occurs failure');
+    });
+    return {
+      code: HttpStatus.ACCEPTED,
+      message: 'Logout success.',
+    };
+  }
 }

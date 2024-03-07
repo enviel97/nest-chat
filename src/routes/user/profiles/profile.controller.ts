@@ -18,13 +18,13 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { SingleFileValidator } from 'src/adapter/image_storage/validator/SingleFileValidator';
 import { Routes, Services } from 'src/common/define';
 import { Event2 } from 'src/common/event/event';
+import { AuthenticateGuard } from 'src/middleware/authenticate';
 import { SearchCache } from 'src/middleware/cache/decorates/SearchCache';
 import { ParseObjectIdPipe } from 'src/middleware/parse/mongoDb';
 import { UpdateProfileDTO } from 'src/models/profile';
 import UpdateStatusDTO from 'src/models/profile/dto/UpdateStatus.DTO';
 import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
 import { mapToResponse } from 'src/utils/map';
-import { AuthenticateGuard } from '../../auth/utils/Guards';
 import { imageGenerationUID } from '../utils/image';
 
 enum UploadImageType {

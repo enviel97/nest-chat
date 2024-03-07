@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Logger } from '@nestjs/common/services';
 import { InjectModel } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { ModelName } from 'src/common/define';
@@ -6,7 +7,10 @@ import type { FriendRequestDocument } from 'src/models/friend-request';
 import type { ProfileDocument } from 'src/models/profile';
 import type { UserDocument } from 'src/models/users';
 import string from 'src/utils/string';
-import { UserProfileNotFoundException } from '../exceptions/profile.exception';
+import {
+  UserProfileCreateException,
+  UserProfileNotFoundException,
+} from '../exceptions/profile.exception';
 import { UserNotfoundException } from '../exceptions/user.exception';
 
 @Injectable()
@@ -223,14 +227,19 @@ export class ProfileService implements IProfileService {
   }
 
   async createProfile(dto: CreateProfileResponse): Promise<Profile<string>> {
-    const { id, user, ...profileInformation } = dto;
-    const profileId = id || string.generatorId();
-    const userId = user || string.generatorId();
-    const profile = await this.profileModel.create({
-      ...profileInformation,
-      user: userId,
-      _id: profileId,
-    });
-    return profile.toObject();
+    try {
+      const { id, user, ...profileInformation } = dto;
+      const profileId = id || string.generatorId();
+      const userId = user || string.generatorId();
+      const profile = await this.profileModel.create({
+        ...profileInformation,
+        user: userId,
+        _id: profileId,
+      });
+      return profile.toObject();
+    } catch (error) {
+      Logger.error('Create profile failure', error);
+      throw new UserProfileCreateException();
+    }
   }
 }

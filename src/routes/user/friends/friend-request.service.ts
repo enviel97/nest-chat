@@ -2,9 +2,9 @@ import { BadRequestException, Injectable, UseGuards } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { ModelName } from 'src/common/define';
+import { AuthenticateGuard } from 'src/middleware/authenticate';
 import { FriendRequestDocument } from 'src/models/friend-request';
 import { ProfileDocument } from 'src/models/profile';
-import { AuthenticateGuard } from 'src/routes/auth/utils/Guards';
 import string from 'src/utils/string';
 import {
   FriendNotFoundException,

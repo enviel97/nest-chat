@@ -7,9 +7,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Routes, Services } from 'src/common/define';
+import { AuthenticateGuard } from 'src/middleware/authenticate';
 import { SearchCache } from 'src/middleware/cache/decorates/SearchCache';
 import { mapToResponse } from 'src/utils/map';
-import { AuthenticateGuard } from '../../auth/utils/Guards';
 
 @Controller(Routes.USERS)
 @UseGuards(AuthenticateGuard)

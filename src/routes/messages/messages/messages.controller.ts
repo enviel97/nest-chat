@@ -16,12 +16,12 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { SkipThrottle } from '@nestjs/throttler';
 import { Event, Routes, Services } from 'src/common/define';
+import { AuthenticateGuard } from 'src/middleware/authenticate';
 import { ParseObjectIdPipe } from 'src/middleware/parse/mongoDb';
 import { CreateMessageDTO } from 'src/models/messages';
 import EditContentMessageDTO from 'src/models/messages/dto/EditContentMessageDTO';
 import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
 import string from 'src/utils/string';
-import { AuthenticateGuard } from '../../auth/utils/Guards';
 import { EmitModifiedMessage } from '../decorates/EmitModifiedMessage';
 import { ConversationOfMessage } from '../decorates/MessageMiddleware';
 @Controller(Routes.MESSAGES)

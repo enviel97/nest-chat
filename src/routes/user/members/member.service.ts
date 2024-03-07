@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CacheModel } from 'src/common/cache';
 import { ModelName } from 'src/common/define';
 import ModelCache from 'src/middleware/cache/decorates/ModelCache';
 import { UserDocument } from 'src/models/users';
 import string from 'src/utils/string';
+import { UserCreateException } from '../exceptions/user.exception';
 
 @Injectable()
 export class MemberService implements IMemberService {
@@ -65,15 +66,25 @@ export class MemberService implements IMemberService {
   }
 
   async createUser(dto: CreateUserResponse): Promise<User> {
-    const { id, profile, ...userInformation } = dto;
-    const userId = id || string.generatorId();
-    const profileId = profile || string.generatorId();
-    const user = await this.userModel.create({
-      ...userInformation,
-      _id: userId,
-      profile: profileId,
-    });
-    const { password, ...result } = user.toObject();
-    return result;
+    try {
+      const { id, profile, ...userInformation } = dto;
+      const userId = id || string.generatorId();
+      const profileId = profile || string.generatorId();
+      const user = await this.userModel.create({
+        ...userInformation,
+        _id: userId,
+        profile: profileId,
+      });
+      const { password, ...result } = user.toObject();
+      return result;
+    } catch (error) {
+      Logger.error('Create user failure', error);
+      throw new UserCreateException();
+    }
+  }
+
+  async validateUser(userKey: FindUserValidate): Promise<boolean> {
+    let exitUser: User = await this.userModel.count(userKey).lean();
+    return exitUser > 1;
   }
 }

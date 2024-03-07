@@ -11,9 +11,9 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Throttle } from '@nestjs/throttler';
 import { Event, Routes, Services } from 'src/common/define';
+import { AuthenticateGuard } from 'src/middleware/authenticate';
 import { CreateConversationDTO } from 'src/models/conversations';
 import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
-import { AuthenticateGuard } from '../../auth/utils/Guards';
 
 enum ConversationType {
   GROUP = 'group',

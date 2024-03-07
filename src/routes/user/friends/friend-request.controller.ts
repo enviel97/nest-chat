@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Event, Routes, Services } from 'src/common/define';
+import { AuthenticateGuard } from 'src/middleware/authenticate';
 import { ParseObjectIdPipe } from 'src/middleware/parse/mongoDb';
 import {
   CreateFriendRequestDTO,
@@ -18,7 +19,6 @@ import {
 } from 'src/models/friend-request';
 import { AuthUser } from 'src/utils/decorates';
 import string from 'src/utils/string';
-import { AuthenticateGuard } from '../../auth/utils/Guards';
 
 @Controller(Routes.FRIEND_REQUEST)
 @UseGuards(AuthenticateGuard)

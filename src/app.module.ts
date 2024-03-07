@@ -12,11 +12,10 @@ import type { RedisClientType } from 'redis';
 
 import ConfigModule from './middleware/environment';
 import MongooseModule from './middleware/mongoose';
-import { PassportModule } from './middleware/passport';
+import { PassportModule } from './middleware/authenticate';
 import { GatewayModule } from './middleware/gateway/gateway.module';
 import EventConfigModule from './middleware/gateway/event.config';
 import { CacheModule } from './middleware/cache/cache.module';
-import QueuesModule from './middleware/queues';
 import ThrottlerModule from './middleware/throttler';
 
 import { AuthModule } from './routes/auth/auth.module';
@@ -57,7 +56,6 @@ const ThrottlerProvider = {
     EventConfigModule,
     ThrottlerModule,
     CacheModule,
-    QueuesModule,
   ],
   controllers: [],
   providers: [ThrottlerProvider],

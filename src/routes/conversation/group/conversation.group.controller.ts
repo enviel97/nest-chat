@@ -9,12 +9,11 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Event, Routes, Services } from 'src/common/define';
+import { AuthenticateGuard } from 'src/middleware/authenticate';
 import ConversationAddMember from 'src/models/conversations/dto/ConversationAddMember';
-
-import { AuthenticateGuard } from 'src/routes/auth/utils/Guards';
 import { AuthUser, ResponseSuccess } from 'src/utils/decorates';
 import string from 'src/utils/string';
-// import { NotificationMessage } from './decorate/NotificationMessage';
+
 @Controller(Routes.PARTICIPANT)
 @UseGuards(AuthenticateGuard)
 class ConversationGroupController {
