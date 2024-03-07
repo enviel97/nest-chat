@@ -139,28 +139,26 @@ export class ProfileController {
     @UploadedFile(SingleFileValidator())
     file: Express.Multer.File,
   ) {
-    const fileId = imageGenerationUID(`${user.getId()}${type.toUpperCase()}`);
-    const promises = Promise.all([
-      this.profileService.updateProfile(user.getId(), { [type]: fileId }),
-      this.imageStorageService.uploadImage(fileId, file),
-    ]);
-
-    return await promises
-      .then(([profile, image]) => {
-        this.eventEmitter.emit(Event2.subscribe.image_profile, {
-          user: user.getId(),
-          image: image.url,
-          type: type,
-        });
-        return {
-          code: 206,
-          message: 'Upload image successfully',
-          data: { ...profile, [type]: fileId },
-        };
-      })
-      .catch((error) => {
-        Logger.error('Upload image error', error);
-        throw new BadRequestException('Upload image failure');
+    try {
+      const userId = user.getId();
+      const fileId = imageGenerationUID(`${userId}${type.toUpperCase()}`);
+      const [profile, image] = await Promise.all([
+        this.profileService.updateProfile(user.getId(), { [type]: fileId }),
+        this.imageStorageService.uploadImage(fileId, file),
+      ]);
+      this.eventEmitter.emit(Event2.subscribe.image_profile, {
+        user: userId,
+        image: image.url,
+        type: type,
       });
+      return {
+        code: 206,
+        message: 'Upload image successfully',
+        data: { ...profile, [type]: fileId },
+      };
+    } catch (error) {
+      Logger.error('Upload image error', error);
+      throw new BadRequestException('Upload image failure');
+    }
   }
 }

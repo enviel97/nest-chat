@@ -3,19 +3,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { CacheModel } from 'src/common/cache';
 import { ModelName } from 'src/common/define';
 import ModelCache from 'src/middleware/cache/decorates/ModelCache';
-import { ProfileDocument } from 'src/models/profile';
 import { UserDocument } from 'src/models/users';
-import { hash } from 'src/utils/bcrypt';
 import string from 'src/utils/string';
-import { ProtectPassword } from './member.decorate';
 
 @Injectable()
 export class MemberService implements IMemberService {
   constructor(
     @InjectModel(ModelName.User)
     private readonly userModel: UserDocument,
-    @InjectModel(ModelName.Profile)
-    private readonly profileModel: ProfileDocument,
   ) {}
 
   async searchUsers(query: string): Promise<User[]> {
@@ -29,7 +24,7 @@ export class MemberService implements IMemberService {
         ],
       })
       .select('firstName lastName email')
-      .sort({ email: 1, userName: 1, firstName: 1, lastName: 1 })
+      .sort({ email: 1, firstName: 1, lastName: 1 })
       .limit(10)
       .lean();
     return result;
@@ -39,7 +34,7 @@ export class MemberService implements IMemberService {
   private async findUserById(id: string, select: string) {
     const result = await this.userModel
       .findById(id)
-      .populate('profile', 'avatar displayname')
+      .populate('profile', 'avatar displayName')
       .select(select)
       .lean();
 
@@ -56,39 +51,29 @@ export class MemberService implements IMemberService {
     return result;
   }
 
-  async findUser(params: FindUserParams): Promise<User> {
-    const { password = false, ...param } = params;
-    const select = `id profile profile firstName lastName email${
-      password ? ' password' : ''
-    }`;
-    const user = param.id
-      ? await this.findUserById(param.id, select)
-      : await this.findUserByEmail(param.email, select);
-    if (!user) return;
-    return { id: user.getId(), ...user };
+  async findUser(
+    params: FindUserQuery,
+    config: FindUserConfig = {},
+  ): Promise<User | null> {
+    const baseSelect = 'id profile profile firstName lastName email';
+    const forcePassword = !!config?.password ? ' password' : '';
+    const select = `${baseSelect}${forcePassword}`;
+    let user: User = null;
+    if ('id' in params) user = await this.findUserById(params.id, select);
+    else user = await this.findUserByEmail(params.email, select);
+    return user && { id: user.getId(), ...user };
   }
 
-  @ProtectPassword({ isHidden: true })
-  async createUser(user: UserDetailDTO): Promise<User> {
-    const hashPassword = await hash(user.password);
-    const profileId = string.generatorId();
-    const userId = string.generatorId();
-    const [model, profile] = await Promise.all([
-      this.userModel.create({
-        ...user,
-        _id: userId,
-        profile: profileId,
-        password: hashPassword,
-      }),
-      this.profileModel.create({
-        _id: profileId,
-        user: userId,
-        displayName: `${user.lastName.at(0).toLocaleUpperCase()}. ${
-          user.firstName
-        }`,
-      }),
-    ]);
-    const result = model.toObject();
-    return { ...result, profile: profile as Profile<User> };
+  async createUser(dto: CreateUserResponse): Promise<User> {
+    const { id, profile, ...userInformation } = dto;
+    const userId = id || string.generatorId();
+    const profileId = profile || string.generatorId();
+    const user = await this.userModel.create({
+      ...userInformation,
+      _id: userId,
+      profile: profileId,
+    });
+    const { password, ...result } = user.toObject();
+    return result;
   }
 }

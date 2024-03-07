@@ -12,7 +12,7 @@ import type { RedisClientType } from 'redis';
 
 import ConfigModule from './middleware/environment';
 import MongooseModule from './middleware/mongoose';
-import PassportModule from './middleware/passport';
+import { PassportModule } from './middleware/passport';
 import { GatewayModule } from './middleware/gateway/gateway.module';
 import EventConfigModule from './middleware/gateway/event.config';
 import { CacheModule } from './middleware/cache/cache.module';
@@ -30,7 +30,7 @@ import { LoggerMiddleware } from './adapter/logger.module';
 import { RedisModule } from './adapter/redis.module';
 
 import { Services } from './common/define';
-import environment, { default as env } from './common/environment';
+import environment from './common/environment';
 
 const ThrottlerProvider = {
   provide: Services.APP_GUARD,
@@ -64,7 +64,8 @@ const ThrottlerProvider = {
 })
 export class AppModule {
   constructor(
-    @Inject(Services.REDIS) private readonly redisClient: RedisClientType,
+    @Inject(Services.REDIS)
+    private readonly redisClient: RedisClientType,
   ) {}
 
   configure(consumer: MiddlewareConsumer) {
@@ -75,17 +76,19 @@ export class AppModule {
           store: new RedisStore({
             client: this.redisClient as any,
             prefix: environment.server.session_prefix,
+            logErrors: true,
           }),
           name: 'SESSION_ID',
-          resave: false,
-          saveUninitialized: true,
+          resave: true,
+          saveUninitialized: false,
 
-          secret: env.server.cookie_key,
+          secret: environment.server.cookie_key,
           cookie: {
             sameSite: 'strict',
             secure: environment.server.env === 'prod',
-            // httpOnly: true,
-            maxAge: 86400000,
+            httpOnly: true,
+            // maxAge: 86400000,
+            maxAge: 10000,
           },
         }),
         passport.initialize(),

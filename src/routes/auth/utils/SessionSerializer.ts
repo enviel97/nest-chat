@@ -12,10 +12,12 @@ export class SessionSerializer extends PassportSerializer {
   }
 
   serializeUser(user: any, done: Function) {
+    console.log({ serializeUser: user });
     done(null, user);
   }
 
   async deserializeUser(payload: any, done: Function) {
+    console.log({ deserializeUser: payload });
     const userDb = await this.userService.findUser({ id: payload.id });
     done(null, userDb ?? null);
   }

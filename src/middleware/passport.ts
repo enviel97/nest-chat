@@ -1,5 +1,5 @@
-import { PassportModule } from '@nestjs/passport';
+import { PassportModule as passport } from '@nestjs/passport';
 
-export default PassportModule.register({
+export const PassportModule = passport.register({
   session: true,
 });

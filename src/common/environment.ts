@@ -4,6 +4,7 @@ export default Object.freeze({
     port: process.env.PORT,
     cookie_key: process.env.COOKIE_KEY,
     session_prefix: 'sid_',
+    jwt: process.env.JWT_PRIVATE,
   },
   mongoose: {
     uri: `mongodb+srv://${process.env.MONGOOSE_USERNAME}:${process.env.MONGOOSE_PASSWORD}@chatapp.ykb0ux4.mongodb.net/`,
@@ -18,11 +19,6 @@ export default Object.freeze({
     password: process.env.REDIS_PASSWORD,
   },
   image: {
-    // publicKey: process.env.IMAGE_KIT_PUBLIC_KEY,
-    // privateKey: process.env.IMAGE_KIT_PRIVATE_KEY,
-    // urlEndpoint: process.env.IMAGE_KIT_URL_ENDPOINT,
-
-    // Cloudinary
     cloud_name: process.env.CLOUDINARY_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,

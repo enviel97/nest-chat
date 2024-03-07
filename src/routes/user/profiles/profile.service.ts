@@ -145,12 +145,7 @@ export class ProfileService implements IProfileService {
     const profile: Profile<User> = await this.profileModel
       .findByIdAndUpdate(
         user.getId(),
-        {
-          bio: updateProfileDTO.bio,
-          avatar: updateProfileDTO.avatar,
-          banner: updateProfileDTO.banner,
-          displayName: updateProfileDTO.displayName,
-        },
+        updateProfileDTO,
         // default true
         { new: isNew },
       )
@@ -167,13 +162,10 @@ export class ProfileService implements IProfileService {
     updateStatusDTO: UpdateStatusDTO,
   ): Promise<UpdateStatusResponse> {
     const profile = await this.validateUserId(user.getId());
-    if (profile.status !== updateStatusDTO.status) {
+    const { status } = updateStatusDTO;
+    if (profile.status !== status) {
       const updatedProfile: Profile<User> = await this.profileModel
-        .findByIdAndUpdate(
-          profile.getId(),
-          { status: updateStatusDTO.status },
-          { new: true },
-        )
+        .findByIdAndUpdate(profile.getId(), { status: status }, { new: true })
         .lean();
       return {
         notChange: false,
@@ -181,7 +173,7 @@ export class ProfileService implements IProfileService {
       };
     }
     return {
-      notChange: profile.status === updateStatusDTO.status,
+      notChange: profile.status === status,
       profile: {
         ...profile,
         user: user,
@@ -228,5 +220,17 @@ export class ProfileService implements IProfileService {
     }
 
     return 'guest';
+  }
+
+  async createProfile(dto: CreateProfileResponse): Promise<Profile<string>> {
+    const { id, user, ...profileInformation } = dto;
+    const profileId = id || string.generatorId();
+    const userId = user || string.generatorId();
+    const profile = await this.profileModel.create({
+      ...profileInformation,
+      user: userId,
+      _id: profileId,
+    });
+    return profile.toObject();
   }
 }
