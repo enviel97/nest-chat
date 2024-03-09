@@ -85,6 +85,6 @@ export class MemberService implements IMemberService {
 
   async validateUser(userKey: FindUserValidate): Promise<boolean> {
     let exitUser: User = await this.userModel.count(userKey).lean();
-    return exitUser > 1;
+    return exitUser > 0;
   }
 }

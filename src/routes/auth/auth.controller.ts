@@ -20,7 +20,10 @@ import { AuthUser } from 'src/utils/decorates';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { BodyDTO } from 'src/utils/valid';
 import { AuthenticateGuard } from 'src/middleware/authenticate';
-import { NotAcceptableException } from '@nestjs/common/exceptions';
+import {
+  LoginFailureException,
+  LogoutFailureException,
+} from './exceptions/authenticate.exception';
 
 @Controller(Routes.AUTH)
 export class AuthController {
@@ -28,6 +31,7 @@ export class AuthController {
     @Inject(Services.AUTH)
     private readonly authenticateServices: IAuthService,
   ) {}
+
   @Post('register')
   @UseInterceptors(FileInterceptor('avatar'))
   async register(
@@ -37,16 +41,17 @@ export class AuthController {
   ) {
     const registerPlain = await this.authenticateServices.registerAccount(dto);
     const { user, profile } = registerPlain;
-    const newAccount = UserDetailDTO.getUser(user, profile);
-    req.login(user, { session: true }, (error) => {
-      if (!error) return;
-      Logger.error(error);
-      throw new NotAcceptableException('Login failure', error);
-    });
-    return res.json({
-      code: HttpStatus.CREATED,
-      message: 'Register success',
-      data: newAccount,
+    req.login({ id: user.getId() }, (error) => {
+      if (error) {
+        Logger.error(error);
+        throw new LoginFailureException();
+      }
+      const newAccount = UserDetailDTO.getUser(user, profile);
+      res.send({
+        code: HttpStatus.CREATED,
+        message: 'Register success',
+        data: newAccount,
+      });
     });
   }
 
@@ -73,15 +78,16 @@ export class AuthController {
   }
 
   @Get('logout')
-  logout(@Req() req: Request) {
+  logout(@Req() req: Request, @Res() res: Response) {
     req.logout({ keepSessionInfo: false }, (error) => {
-      if (!error) return;
-      Logger.error('Logout failure', error);
-      throw new NotAcceptableException('Logout occurs failure');
+      if (error) {
+        Logger.error('Logout failure', error);
+        throw new LogoutFailureException();
+      }
+      res.send({
+        code: HttpStatus.ACCEPTED,
+        message: 'Logout success.',
+      });
     });
-    return {
-      code: HttpStatus.ACCEPTED,
-      message: 'Logout success.',
-    };
   }
 }

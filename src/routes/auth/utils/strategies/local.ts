@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PassportSerializer, PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
 import { Services } from 'src/common/define';
+import string from 'src/utils/string';
 
 @Injectable()
 export class SessionSerializer extends PassportSerializer {
@@ -12,12 +13,16 @@ export class SessionSerializer extends PassportSerializer {
     super();
   }
 
+  // Store user in redis here
   serializeUser(user: any, done: Function) {
-    done(null, user);
+    done(null, { ...user, from: new Date().toISOString() });
   }
 
+  // Find user by id to confirm login
   async deserializeUser(payload: any, done: Function) {
-    const userDb = await this.userService.findUser({ id: payload.id });
+    const userDb = await this.userService.findUser({
+      id: string.getId(payload),
+    });
     done(null, userDb);
   }
 }

@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { Types } from 'mongoose';
 
 const cvtToObjectId = (plainText: string) => {
@@ -11,7 +12,7 @@ const cvtToObjectId = (plainText: string) => {
 const getId = (object?: any) => {
   if (typeof object === 'string') return object;
   if (!object?.id && !object?._id)
-    throw new Error('Object is empty or not have id');
+    throw new BadRequestException('Invalid request');
   return (object?.id ?? object?._id).toString();
 };
 
